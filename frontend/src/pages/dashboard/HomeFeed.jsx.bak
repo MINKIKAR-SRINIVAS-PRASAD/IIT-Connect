@@ -1,0 +1,25 @@
+import React from 'react'
+import { motion } from 'framer-motion'
+
+export default function HomeFeed() {
+  return (
+    <div className="space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6"
+      >
+        <div className="text-xl font-semibold">Home </div>
+        <div className="mt-2 text-slate-300">
+          This starter build focuses on core systems: auth, realtime chat, gallery/placements/events with admin approvals.
+        </div>
+        <div className="mt-4 text-sm text-slate-400">
+          You can extend this feed to show posts from users, updates from IITs, event announcements, placement news, and more.
+        </div>
+        <div className="mt-4 text-sm text-slate-400">
+          Consider integrating features like post creation, likes/comments, and personalized content to enhance user engagement.
+        </div>
+      </motion.div>
+    </div>
+  )
+}
