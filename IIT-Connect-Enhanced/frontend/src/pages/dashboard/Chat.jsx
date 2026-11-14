@@ -45,6 +45,7 @@ export default function Chat() {
         onStartDM={startDM}
         onJoinGroup={joinGroup}
         onJoinCommunity={joinCommunity}
+        onLeaveConversation={(conversationId) => setActive((current) => current?._id === conversationId ? null : current)}
       />
       <ChatWindow conversation={active} />
     </div>
