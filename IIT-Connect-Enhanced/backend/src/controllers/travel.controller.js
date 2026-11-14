@@ -1,6 +1,7 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import TravelPost from '../models/TravelPost.js'
+import { createContentDeletionNotification } from '../utils/contentDeletion.js'
 
 const cleanText = (value, maxLength) => String(value || '').trim().slice(0, maxLength)
 const categories = ['Trekking', 'Weekend Trips', 'Pilgrimage', 'Adventure', 'Sightseeing']
@@ -70,8 +71,27 @@ export const listApprovedTravel = asyncHandler(async (req, res) => {
   res.json({ success: true, posts })
 })
 
+export const deleteMyTravelPost = asyncHandler(async (req, res) => {
+  const post = await TravelPost.findOne({ _id: req.params.id, authorId: req.user._id, status: { $ne: 'Deleted' } })
+  if (!post) throw new ApiError(404, 'Travel plan not found or you do not own it')
+
+  await createContentDeletionNotification({
+    userId: req.user._id,
+    post,
+    contentType: 'Travel',
+    contentTitle: `${post.destination} · ${post.location}`
+  })
+
+  post.status = 'Deleted'
+  post.deletedAt = new Date()
+  post.deletedBy = req.user._id
+  await post.save()
+
+  res.json({ success: true, message: 'Travel plan deleted for everyone' })
+})
+
 export const listMyTravel = asyncHandler(async (req, res) => {
-  const posts = await TravelPost.find({ authorId: req.user._id })
+  const posts = await TravelPost.find({ authorId: req.user._id, status: { $ne: 'Deleted' } })
     .sort({ createdAt: -1 })
     .limit(60)
 
