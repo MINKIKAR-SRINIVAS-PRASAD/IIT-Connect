@@ -4,8 +4,10 @@ import { createTravelPost, listApprovedTravel, listMyTravel } from '../controlle
 
 const router = Router()
 
+router.use(requireAuth)
+
 router.get('/', listApprovedTravel)
-router.get('/mine', requireAuth, listMyTravel)
-router.post('/', requireAuth, createTravelPost)
+router.get('/mine', listMyTravel)
+router.post('/', createTravelPost)
 
 export default router
