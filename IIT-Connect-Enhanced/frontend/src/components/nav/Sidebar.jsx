@@ -13,6 +13,7 @@ export default function Sidebar() {
     { to: '/app/gallery', label: 'Gallery' },
     { to: '/app/placements', label: 'Placement Cell' },
     { to: '/app/events', label: 'Events' },
+    { to: '/app/travel', label: 'Travel' },
     { to: '/app/profile', label: 'Profile' }
   ]
 
