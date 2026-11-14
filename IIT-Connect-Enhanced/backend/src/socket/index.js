@@ -156,6 +156,13 @@ export function initSocket(httpServer, corsOrigin) {
           _id: msg._id,
           conversationId: roomId,
           senderId: userId,
+          sender: {
+            _id: userId,
+            name: user.profile?.name || (user.role === 'admin' ? 'Admin' : 'Student'),
+            photoUrl: user.profile?.photoUrl || '',
+            iit: user.profile?.iit || '',
+            role: user.role
+          },
           text: msg.text,
           createdAt: msg.createdAt,
           seenBy: msg.seenBy
