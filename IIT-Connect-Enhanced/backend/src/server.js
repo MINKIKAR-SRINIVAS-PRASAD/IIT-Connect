@@ -24,14 +24,16 @@ import adminRoutes from './routes/admin.routes.js'
 import healthRoutes from './routes/health.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
+import { requireTrustedOrigin } from './middleware/origin.middleware.js'
 
 async function bootstrap() {
   assertEnv()
   await connectDB()
   await createDefaultAdmin(env)
   const app = express()
+  if (env.NODE_ENV === 'production') app.set('trust proxy', 1)
   app.use(helmet())
-  app.use(morgan('dev'))
+  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
   app.use(
     cors({
@@ -43,6 +45,8 @@ async function bootstrap() {
   app.use(express.json({ limit: '1mb' }))
   app.use(express.urlencoded({ extended: true }))
   app.use(cookieParser())
+  // Cookie-authenticated mutations must originate from the configured frontend.
+  app.use(requireTrustedOrigin)
 
   app.get('/', (req, res) => {
     res.json({ ok: true, name: 'IIT Connect API' })
