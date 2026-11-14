@@ -105,6 +105,24 @@ export const login = asyncHandler(async (req, res) => {
 })
 
 export const logout = asyncHandler(async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken
+
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET)
+      const user = await User.findById(payload.sub)
+      if (user?.refreshTokenHash) {
+        const matches = await bcrypt.compare(refreshToken, user.refreshTokenHash)
+        if (matches) {
+          user.refreshTokenHash = null
+          await user.save()
+        }
+      }
+    } catch {
+      // Logout must still clear cookies when a token is expired or malformed.
+    }
+  }
+
   const opts = cookieOptions()
   res.clearCookie('accessToken', opts)
   res.clearCookie('refreshToken', opts)
