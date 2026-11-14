@@ -6,6 +6,7 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import { isProfileComplete } from '../utils/profileCompletion.js'
 
+let socketServer = null
 const onlineUsers = new Map() // userId -> Set<socketId>
 const eventLimits = new Map() // userId:event -> { startedAt, count }
 
@@ -66,6 +67,12 @@ function allowUserEvent(userId, event, limit, windowMs = 60_000) {
   return true
 }
 
+export function removeUserFromConversation(userId, conversationId) {
+  if (!socketServer) return
+  const socketIds = Array.from(onlineUsers.get(String(userId)) || [])
+  if (socketIds.length) socketServer.in(socketIds).socketsLeave(String(conversationId))
+}
+
 export function initSocket(httpServer, corsOrigin) {
   const io = new Server(httpServer, {
     cors: {
@@ -73,6 +80,8 @@ export function initSocket(httpServer, corsOrigin) {
       credentials: true
     }
   })
+
+  socketServer = io
 
   io.use(async (socket, next) => {
     try {
