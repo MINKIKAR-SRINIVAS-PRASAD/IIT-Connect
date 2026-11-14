@@ -4,6 +4,7 @@ import { env } from '../config/env.js'
 import User from '../models/User.js'
 import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
+import { isProfileComplete } from '../utils/profileCompletion.js'
 
 const onlineUsers = new Map() // userId -> Set<socketId>
 const eventLimits = new Map() // userId:event -> { startedAt, count }
@@ -33,6 +34,8 @@ async function authFromHandshake(socket) {
     const payload = jwt.verify(token, env.JWT_ACCESS_SECRET)
     const user = await User.findById(payload.sub).select('email role profile isBanned')
     if (!user || user.isBanned) return null
+    // Students cannot establish protected realtime connections until onboarding is complete.
+    if (user.role !== 'admin' && !isProfileComplete(user)) return null
     return user
   } catch {
     return null
