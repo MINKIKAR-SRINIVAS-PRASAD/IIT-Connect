@@ -3,38 +3,37 @@ import { ApiError } from '../utils/apiError.js'
 import TravelPost from '../models/TravelPost.js'
 
 const cleanText = (value, maxLength) => String(value || '').trim().slice(0, maxLength)
+const categories = ['Trekking', 'Weekend Trips', 'Pilgrimage', 'Adventure', 'Sightseeing']
 
 export const createTravelPost = asyncHandler(async (req, res) => {
-  const { travelMode, seatDetails, travelDate, from, to, notes, contactPreference } = req.body
   const profile = req.user.profile || {}
   const iit = cleanText(profile.iit, 100)
-
-  if (!iit) throw new ApiError(400, 'Set your IIT in profile before posting')
-
   const name = cleanText(profile.name, 100)
   const branch = cleanText(profile.branch, 100)
   const batch = cleanText(profile.batch, 20)
-  if (!name || !branch || !batch) {
+
+  if (!iit || !name || !branch || !batch) {
     throw new ApiError(400, 'Complete your student profile before posting')
   }
 
-  if (!['Train', 'Flight', 'Bus'].includes(travelMode)) {
-    throw new ApiError(400, 'Invalid travel mode')
-  }
+  const destination = cleanText(req.body.destination, 120)
+  const location = cleanText(req.body.location, 120)
+  const category = req.body.category
+  const description = cleanText(req.body.description, 1000)
+  const budget = cleanText(req.body.budget, 40)
+  const members = Number(req.body.members || 1)
+  const dateValue = req.body.date || req.body.travelDate || null
+  const travelDate = dateValue ? new Date(dateValue) : null
 
-  const parsedDate = new Date(travelDate)
-  if (!travelDate || Number.isNaN(parsedDate.getTime())) {
-    throw new ApiError(400, 'A valid travel date is required')
+  if (!destination || !location || !description) {
+    throw new ApiError(400, 'Destination, location and description are required')
   }
-
-  const cleanFrom = cleanText(from, 120)
-  const cleanTo = cleanText(to, 120)
-  if (!cleanFrom || !cleanTo) {
-    throw new ApiError(400, 'Origin and destination are required')
+  if (!categories.includes(category)) throw new ApiError(400, 'Choose a valid travel category')
+  if (!Number.isInteger(members) || members < 1 || members > 50) {
+    throw new ApiError(400, 'Maximum members must be between 1 and 50')
   }
-
-  if (contactPreference && !['Email', 'Phone', 'WhatsApp'].includes(contactPreference)) {
-    throw new ApiError(400, 'Invalid contact preference')
+  if (dateValue && Number.isNaN(travelDate.getTime())) {
+    throw new ApiError(400, 'Enter a valid travel date')
   }
 
   const post = await TravelPost.create({
@@ -43,26 +42,30 @@ export const createTravelPost = asyncHandler(async (req, res) => {
     branch,
     batch,
     iit,
-    travelMode,
-    seatDetails: cleanText(seatDetails, 80),
-    travelDate: parsedDate,
-    from: cleanFrom,
-    to: cleanTo,
-    notes: cleanText(notes, 1000),
-    contactPreference: contactPreference || 'Email',
+    destination,
+    location,
+    category,
+    description,
+    budget,
+    members,
+    travelMode: 'Trip',
+    travelDate,
+    from: location,
+    to: destination,
+    notes: description,
+    contactPreference: 'Email',
     status: 'Pending'
   })
 
-  res.status(201).json({ success: true, post })
+  res.status(201).json({ success: true, post, message: 'Travel plan submitted for admin approval' })
 })
 
 export const listApprovedTravel = asyncHandler(async (req, res) => {
-  // Seat and contact details remain private; only approved trip summaries are listed.
   const posts = await TravelPost.find({ status: 'Approved' })
-    .select('-seatDetails -contactPreference')
+    .select('-seatDetails -contactPreference -rejectionReason')
     .sort({ travelDate: 1, createdAt: -1 })
     .limit(100)
-    .populate('authorId', 'profile.name profile.iit profile.branch profile.batch')
+    .populate('authorId', 'profile.name profile.iit profile.branch profile.batch profile.photoUrl')
 
   res.json({ success: true, posts })
 })
