@@ -141,6 +141,7 @@ export const myConversations = asyncHandler(async (req, res) => {
     ...conversation,
     preferences: preferenceByConversation.get(conversation._id.toString()) || { pinned: false, muted: false, archived: false }
   })).filter((conversation) => req.query.includeArchived === 'true' || !conversation.preferences.archived)
+    .filter((conversation) => !(conversation.type === 'dm' && conversation.participants.some((participant) => participant?.role === 'admin')))
     .sort((a, b) => Number(b.preferences.pinned) - Number(a.preferences.pinned)
       || new Date(b.lastMessageAt || b.updatedAt) - new Date(a.lastMessageAt || a.updatedAt))
 
