@@ -6,6 +6,7 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 
 const onlineUsers = new Map() // userId -> Set<socketId>
+const eventLimits = new Map() // userId:event -> { startedAt, count }
 
 function parseCookie(cookieHeader = '') {
   const out = {}
@@ -50,19 +51,17 @@ async function findAuthorizedConversation(conversationId, userId) {
   return isConversationMember(conversation, userId) ? conversation : null
 }
 
-function createEventLimiter() {
-  const buckets = new Map()
-  return (key, limit, windowMs = 60_000) => {
-    const now = Date.now()
-    const current = buckets.get(key)
-    if (!current || now - current.startedAt >= windowMs) {
-      buckets.set(key, { startedAt: now, count: 1 })
-      return true
-    }
-    if (current.count >= limit) return false
-    current.count += 1
+function allowUserEvent(userId, event, limit, windowMs = 60_000) {
+  const key = `${userId}:${event}`
+  const now = Date.now()
+  const current = eventLimits.get(key)
+  if (!current || now - current.startedAt >= windowMs) {
+    eventLimits.set(key, { startedAt: now, count: 1 })
     return true
   }
+  if (current.count >= limit) return false
+  current.count += 1
+  return true
 }
 
 export function initSocket(httpServer, corsOrigin) {
@@ -92,7 +91,6 @@ export function initSocket(httpServer, corsOrigin) {
     sockets.add(socket.id)
     onlineUsers.set(userId, sockets)
 
-    const allowEvent = createEventLimiter()
 
     if (wasOffline) {
       socket.broadcast.emit('presence:update', { userId, status: 'online' })
@@ -100,7 +98,7 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('conversation:join', async (payload = {}) => {
       try {
-        if (!allowEvent('join', 30)) return
+        if (!allowUserEvent(userId, 'join', 30)) return
         const conversationId = payload?.conversationId
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
@@ -112,7 +110,7 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('conversation:typing', async (payload = {}) => {
       try {
-        if (!allowEvent('typing', 60)) return
+        if (!allowUserEvent(userId, 'typing', 60)) return
         const { conversationId, isTyping } = payload || {}
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
@@ -130,7 +128,7 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('message:send', async (payload = {}) => {
       try {
-        if (!allowEvent('message', 20)) return
+        if (!allowUserEvent(userId, 'message', 20)) return
         const { conversationId, text } = payload || {}
         if (typeof text !== 'string') return
         const cleanText = text.trim()
@@ -166,7 +164,7 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('message:seen', async (payload = {}) => {
       try {
-        if (!allowEvent('seen', 60)) return
+        if (!allowUserEvent(userId, 'seen', 60)) return
         const { conversationId } = payload || {}
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
@@ -192,6 +190,9 @@ export function initSocket(httpServer, corsOrigin) {
         activeSockets.delete(socket.id)
         if (activeSockets.size === 0) {
           onlineUsers.delete(userId)
+          for (const key of eventLimits.keys()) {
+            if (key.startsWith(`${userId}:`)) eventLimits.delete(key)
+          }
           try {
             await User.updateOne({ _id: userId }, { $set: { lastSeenAt: new Date() } })
           } catch (error) {
