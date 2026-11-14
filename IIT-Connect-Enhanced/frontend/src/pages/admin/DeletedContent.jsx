@@ -41,7 +41,7 @@ export default function DeletedContent() {
   useEffect(() => {
     if (!socket) return undefined
     const onDeleted = (notification) => {
-      await load()
+      load()
       toast('A student deleted a Gallery/Travel submission', { icon: '🗑️' })
     }
     socket.on('admin:content-deleted', onDeleted)
