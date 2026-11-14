@@ -44,7 +44,6 @@ async function authFromHandshake(socket) {
 
 function isConversationMember(conversation, userId) {
   if (!conversation) return false
-  if (conversation.type === 'community') return true
   return conversation.participants.some((participant) => participant.toString() === userId)
 }
 
