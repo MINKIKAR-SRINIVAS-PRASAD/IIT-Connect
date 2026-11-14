@@ -92,13 +92,22 @@ export const getOrCreateIitGroup = asyncHandler(async (req, res) => {
 })
 
 export const getOrCreateCommunity = asyncHandler(async (req, res) => {
+  const title = 'Indian IIT Students Community'
   let convo = await Conversation.findOne({ type: 'community' })
+
   if (!convo) {
     convo = await Conversation.create({
       type: 'community',
-      title: 'IIT Community - All IITs',
-      participants: []
+      title,
+      participants: [req.user._id]
     })
+  } else {
+    convo.title = title
+    const alreadyJoined = convo.participants.some(
+      (participant) => participant.toString() === req.user._id.toString()
+    )
+    if (!alreadyJoined) convo.participants.push(req.user._id)
+    await convo.save()
   }
 
   convo = await withParticipants(convo)
@@ -107,9 +116,7 @@ export const getOrCreateCommunity = asyncHandler(async (req, res) => {
 
 export const myConversations = asyncHandler(async (req, res) => {
   const userId = req.user._id
-  const convos = await Conversation.find({
-    $or: [{ participants: userId }, { type: 'group' }, { type: 'community' }]
-  })
+  const convos = await Conversation.find({ participants: userId })
     .sort({ lastMessageAt: -1, updatedAt: -1 })
     .limit(50)
     .populate('participants', participantFields)
@@ -122,8 +129,7 @@ export const messages = asyncHandler(async (req, res) => {
   const convo = await Conversation.findById(conversationId)
   if (!convo) throw new ApiError(404, 'Conversation not found')
 
-  const isMember = convo.type === 'community' ||
-    convo.participants.some((p) => p.toString() === req.user._id.toString())
+  const isMember = convo.participants.some((p) => p.toString() === req.user._id.toString())
 
   if (!isMember) throw new ApiError(403, 'Not a member')
 
