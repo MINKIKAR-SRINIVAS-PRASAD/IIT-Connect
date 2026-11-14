@@ -6,6 +6,10 @@ import User from '../models/User.js'
 import ConversationPreference from '../models/ConversationPreference.js'
 import { removeUserFromConversation } from '../socket/index.js'
 
+function isConversationMember(conversation, userId) {
+  return Boolean(conversation?.participants?.some((participant) => participant.toString() === userId.toString()))
+}
+
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const participantFields = 'profile.name profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
 
