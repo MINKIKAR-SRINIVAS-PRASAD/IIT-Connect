@@ -63,12 +63,17 @@ export const setBan = asyncHandler(async (req, res) => {
 })
 
 export const pendingApprovals = asyncHandler(async (req, res) => {
+  // This endpoint is admin-only. Include the submitter's institute email and
+  // complete student profile so moderators can verify who sent each request.
+  const submitterFields = 'email role profile.name profile.iit profile.branch profile.batch profile.bio profile.photoUrl createdAt'
+  const withSubmitter = (query) => query.sort({ createdAt: -1 }).limit(100).populate('authorId', submitterFields)
+
   const [gallery, placements, events, travel, study] = await Promise.all([
-    GalleryPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    PlacementPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    EventPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    TravelPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    StudyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile')
+    withSubmitter(GalleryPost.find({ status: 'Pending' })),
+    withSubmitter(PlacementPost.find({ status: 'Pending' })),
+    withSubmitter(EventPost.find({ status: 'Pending' })),
+    withSubmitter(TravelPost.find({ status: 'Pending' })),
+    withSubmitter(StudyPost.find({ status: 'Pending' }))
   ])
 
   res.json({ success: true, gallery, placements, events, travel, study })
