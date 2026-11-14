@@ -7,6 +7,7 @@ import EventPost from '../models/EventPost.js'
 import TravelPost from '../models/TravelPost.js'
 import StudyPost from '../models/StudyPost.js'
 import AdminLog from '../models/AdminLog.js'
+import AdminNotification from '../models/AdminNotification.js'
 
 async function log(adminId, action, targetType, targetId = null, metadata = {}) {
   await AdminLog.create({ adminId, action, targetType, targetId, metadata })
@@ -187,4 +188,23 @@ export const approveStudy = asyncHandler(async (req, res) => {
 export const logs = asyncHandler(async (req, res) => {
   const items = await AdminLog.find({}).sort({ createdAt: -1 }).limit(200).populate('adminId', 'email profile')
   res.json({ success: true, logs: items })
+})
+
+
+export const deletionNotifications = asyncHandler(async (req, res) => {
+  const notifications = await AdminNotification.find({})
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .populate('actorId', 'email role profile.name profile.iit profile.branch profile.batch profile.photoUrl')
+  res.json({ success: true, notifications })
+})
+
+export const markDeletionNotificationRead = asyncHandler(async (req, res) => {
+  const notification = await AdminNotification.findByIdAndUpdate(
+    req.params.id,
+    { $set: { readAt: new Date() } },
+    { new: true }
+  )
+  if (!notification) throw new ApiError(404, 'Notification not found')
+  res.json({ success: true, notification })
 })
