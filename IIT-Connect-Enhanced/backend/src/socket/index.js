@@ -50,6 +50,21 @@ async function findAuthorizedConversation(conversationId, userId) {
   return isConversationMember(conversation, userId) ? conversation : null
 }
 
+function createEventLimiter() {
+  const buckets = new Map()
+  return (key, limit, windowMs = 60_000) => {
+    const now = Date.now()
+    const current = buckets.get(key)
+    if (!current || now - current.startedAt >= windowMs) {
+      buckets.set(key, { startedAt: now, count: 1 })
+      return true
+    }
+    if (current.count >= limit) return false
+    current.count += 1
+    return true
+  }
+}
+
 export function initSocket(httpServer, corsOrigin) {
   const io = new Server(httpServer, {
     cors: {
@@ -58,12 +73,15 @@ export function initSocket(httpServer, corsOrigin) {
     }
   })
 
-  // Reject unauthenticated sockets before connection handlers are registered.
   io.use(async (socket, next) => {
-    const user = await authFromHandshake(socket)
-    if (!user) return next(new Error('Unauthorized'))
-    socket.data.user = user
-    next()
+    try {
+      const user = await authFromHandshake(socket)
+      if (!user) return next(new Error('Unauthorized'))
+      socket.data.user = user
+      next()
+    } catch {
+      next(new Error('Unauthorized'))
+    }
   })
 
   io.on('connection', (socket) => {
@@ -74,12 +92,16 @@ export function initSocket(httpServer, corsOrigin) {
     sockets.add(socket.id)
     onlineUsers.set(userId, sockets)
 
+    const allowEvent = createEventLimiter()
+
     if (wasOffline) {
       socket.broadcast.emit('presence:update', { userId, status: 'online' })
     }
 
-    socket.on('conversation:join', async ({ conversationId } = {}) => {
+    socket.on('conversation:join', async (payload = {}) => {
       try {
+        if (!allowEvent('join', 30)) return
+        const conversationId = payload?.conversationId
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
         socket.join(conversation._id.toString())
@@ -88,8 +110,10 @@ export function initSocket(httpServer, corsOrigin) {
       }
     })
 
-    socket.on('conversation:typing', async ({ conversationId, isTyping } = {}) => {
+    socket.on('conversation:typing', async (payload = {}) => {
       try {
+        if (!allowEvent('typing', 60)) return
+        const { conversationId, isTyping } = payload || {}
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
         const roomId = conversation._id.toString()
@@ -104,9 +128,12 @@ export function initSocket(httpServer, corsOrigin) {
       }
     })
 
-    socket.on('message:send', async ({ conversationId, text } = {}) => {
+    socket.on('message:send', async (payload = {}) => {
       try {
-        const cleanText = String(text || '').trim()
+        if (!allowEvent('message', 20)) return
+        const { conversationId, text } = payload || {}
+        if (typeof text !== 'string') return
+        const cleanText = text.trim()
         if (!cleanText || cleanText.length > 2000) return
 
         const conversation = await findAuthorizedConversation(conversationId, userId)
@@ -137,8 +164,10 @@ export function initSocket(httpServer, corsOrigin) {
       }
     })
 
-    socket.on('message:seen', async ({ conversationId } = {}) => {
+    socket.on('message:seen', async (payload = {}) => {
       try {
+        if (!allowEvent('seen', 60)) return
+        const { conversationId } = payload || {}
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
 
