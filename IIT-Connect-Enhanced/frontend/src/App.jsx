@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 
 import Landing from './pages/Landing.jsx'
@@ -22,10 +22,35 @@ import Users from './pages/admin/Users.jsx'
 import Approvals from './pages/admin/Approvals.jsx'
 import Analytics from './pages/admin/Analytics.jsx'
 
+function hasCompletedStudentProfile(user) {
+  const profile = user?.profile || {}
+  return Boolean(
+    user?.role === 'admin' ||
+    (
+      profile.name?.trim() &&
+      profile.iit?.trim() &&
+      profile.branch?.trim() &&
+      profile.batch?.trim() &&
+      profile.photoUrl?.trim()
+    )
+  )
+}
+
 function Protected({ children }) {
   const { user, loading } = useAuth()
+  const location = useLocation()
+
   if (loading) return <div className="p-8 text-slate-300">Loading...</div>
   if (!user) return <Navigate to="/login" replace />
+
+  const profileComplete = hasCompletedStudentProfile(user)
+  const isProfilePage = location.pathname === '/app/profile'
+
+  // Incomplete students may only access profile setup. Admins are exempt.
+  if (!profileComplete && !isProfilePage) {
+    return <Navigate to="/app/profile" replace />
+  }
+
   return children
 }
 
@@ -42,7 +67,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
 
-      <Route element={<AuthLayout />}> 
+      <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
