@@ -16,6 +16,7 @@ import Gallery from './pages/dashboard/Gallery.jsx'
 import Placement from './pages/dashboard/Placement.jsx'
 import Events from './pages/dashboard/Events.jsx'
 import Profile from './pages/dashboard/Profile.jsx'
+import Travel from './pages/dashboard/Travel.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import Users from './pages/admin/Users.jsx'
@@ -85,6 +86,7 @@ export default function App() {
         <Route path="gallery" element={<Gallery />} />
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
+        <Route path="travel" element={<Travel />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
