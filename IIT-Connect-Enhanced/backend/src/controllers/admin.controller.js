@@ -77,6 +77,9 @@ export const pendingApprovals = asyncHandler(async (req, res) => {
 export const approveGallery = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) {
+    throw new ApiError(400, 'Status must be Approved or Rejected')
+  }
 
   const post = await GalleryPost.findById(id)
   if (!post) throw new ApiError(404, 'Post not found')
@@ -95,6 +98,9 @@ export const approveGallery = asyncHandler(async (req, res) => {
 export const approvePlacement = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) {
+    throw new ApiError(400, 'Status must be Approved or Rejected')
+  }
 
   const post = await PlacementPost.findById(id)
   if (!post) throw new ApiError(404, 'Post not found')
@@ -113,6 +119,9 @@ export const approvePlacement = asyncHandler(async (req, res) => {
 export const approveEvent = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) {
+    throw new ApiError(400, 'Status must be Approved or Rejected')
+  }
 
   const post = await EventPost.findById(id)
   if (!post) throw new ApiError(404, 'Post not found')
@@ -131,6 +140,9 @@ export const approveEvent = asyncHandler(async (req, res) => {
 export const approveTravel = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) {
+    throw new ApiError(400, 'Status must be Approved or Rejected')
+  }
 
   const post = await TravelPost.findById(id)
   if (!post) throw new ApiError(404, 'Post not found')
@@ -149,6 +161,9 @@ export const approveTravel = asyncHandler(async (req, res) => {
 export const approveStudy = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) {
+    throw new ApiError(400, 'Status must be Approved or Rejected')
+  }
 
   const post = await StudyPost.findById(id)
   if (!post) throw new ApiError(404, 'Post not found')
