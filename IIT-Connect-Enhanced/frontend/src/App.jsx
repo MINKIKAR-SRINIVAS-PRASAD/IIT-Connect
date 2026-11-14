@@ -22,6 +22,7 @@ import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import Users from './pages/admin/Users.jsx'
 import Approvals from './pages/admin/Approvals.jsx'
 import Analytics from './pages/admin/Analytics.jsx'
+import DeletedContent from './pages/admin/DeletedContent.jsx'
 
 function hasCompletedStudentProfile(user) {
   const profile = user?.profile || {}
@@ -102,6 +103,7 @@ export default function App() {
         <Route path="users" element={<Users />} />
         <Route path="approvals" element={<Approvals />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="deleted-content" element={<DeletedContent />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
