@@ -17,6 +17,7 @@ import Placement from './pages/dashboard/Placement.jsx'
 import Events from './pages/dashboard/Events.jsx'
 import Profile from './pages/dashboard/Profile.jsx'
 import Travel from './pages/dashboard/Travel.jsx'
+import Study from './pages/dashboard/Study.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import Users from './pages/admin/Users.jsx'
@@ -48,7 +49,6 @@ function Protected({ children }) {
   const profileComplete = hasCompletedStudentProfile(user)
   const isProfilePage = location.pathname === '/app/profile'
 
-  // Incomplete students may only access profile setup. Admins are exempt.
   if (!profileComplete && !isProfilePage) {
     return <Navigate to="/app/profile" replace />
   }
@@ -88,6 +88,7 @@ export default function App() {
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
         <Route path="travel" element={<Travel />} />
+        <Route path="study" element={<Study />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
