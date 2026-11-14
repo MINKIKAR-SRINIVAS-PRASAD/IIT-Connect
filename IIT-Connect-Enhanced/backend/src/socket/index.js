@@ -67,6 +67,11 @@ function allowUserEvent(userId, event, limit, windowMs = 60_000) {
   return true
 }
 
+export function notifyAdminsOfContentDeletion(notification) {
+  if (!socketServer) return
+  socketServer.to('admins').emit('admin:content-deleted', notification)
+}
+
 export function removeUserFromConversation(userId, conversationId) {
   if (!socketServer) return
   const socketIds = Array.from(onlineUsers.get(String(userId)) || [])
@@ -97,6 +102,7 @@ export function initSocket(httpServer, corsOrigin) {
   io.on('connection', (socket) => {
     const user = socket.data.user
     const userId = user._id.toString()
+    if (user.role === 'admin') socket.join('admins')
     const sockets = onlineUsers.get(userId) || new Set()
     const wasOffline = sockets.size === 0
     sockets.add(socket.id)
