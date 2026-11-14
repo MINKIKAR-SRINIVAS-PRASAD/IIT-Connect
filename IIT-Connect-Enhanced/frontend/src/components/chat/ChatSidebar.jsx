@@ -21,7 +21,7 @@ function conversationAvatar(conversation, currentUserId) {
   return (conversation.participants || []).find((person) => getId(person) !== currentUserId)?.profile?.photoUrl || ''
 }
 
-export default function ChatSidebar({ activeId, onSelectConversation, onStartDM, onJoinGroup }) {
+export default function ChatSidebar({ activeId, onSelectConversation, onStartDM, onJoinGroup, onJoinCommunity }) {
   const { user } = useAuth()
   const [q, setQ] = useState('')
   const [users, setUsers] = useState([])
@@ -62,9 +62,15 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         <div className="mt-3">
           <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or institute..." />
         </div>
-        <div className="mt-3">
-          <Button className="w-full" onClick={() => onJoinGroup(user?.profile?.iit)}>
-            + Join IIT Group
+        <div className="mt-3 space-y-2">
+          <Button className="w-full" onClick={async () => {
+            const conversation = await onJoinCommunity()
+            if (conversation) await loadConvos()
+          }}>
+            🌐 Join Indian IIT Students Community
+          </Button>
+          <Button variant="secondary" className="w-full" onClick={() => onJoinGroup(user?.profile?.iit)}>
+            + Join My IIT Group
           </Button>
         </div>
       </div>
