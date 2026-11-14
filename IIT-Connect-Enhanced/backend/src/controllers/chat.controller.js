@@ -4,20 +4,27 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
 
-export const listUsers = asyncHandler(async (req, res) => {
-  const q = (req.query.q || '').toString().trim()
-  const filter = q
-    ? {
-        $or: [
-          { email: { $regex: q, $options: 'i' } },
-          { 'profile.name': { $regex: q, $options: 'i' } },
-          { 'profile.iit': { $regex: q, $options: 'i' } }
-        ]
-      }
-    : {}
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+export const listUsers = asyncHandler(async (req, res) => {
+  const q = (req.query.q || '').toString().trim().slice(0, 80)
+  const filter = {
+    _id: { $ne: req.user._id },
+    isBanned: false
+  }
+
+  if (q) {
+    const safeQuery = escapeRegex(q)
+    filter.$or = [
+      { email: { $regex: safeQuery, $options: 'i' } },
+      { 'profile.name': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.iit': { $regex: safeQuery, $options: 'i' } }
+    ]
+  }
+
+  // Do not expose email addresses, roles, or moderation flags in the student directory.
   const users = await User.find(filter)
-    .select('email role profile isBanned lastSeenAt')
+    .select('profile.name profile.iit profile.branch profile.photoUrl lastSeenAt')
     .limit(25)
     .sort({ createdAt: -1 })
 
@@ -29,9 +36,10 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
   if (!otherUserId) throw new ApiError(400, 'otherUserId is required')
 
   const other = await User.findById(otherUserId)
-  if (!other) throw new ApiError(404, 'User not found')
+  if (!other || other.isBanned) throw new ApiError(404, 'User not found')
 
   const me = req.user._id
+  if (other._id.equals(me)) throw new ApiError(400, 'You cannot start a conversation with yourself')
 
   let convo = await Conversation.findOne({
     type: 'dm',
@@ -49,8 +57,12 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
 })
 
 export const getOrCreateIitGroup = asyncHandler(async (req, res) => {
-  const iit = (req.body.iit || req.user.profile?.iit || '').trim()
-  if (!iit) throw new ApiError(400, 'IIT is required')
+  const requestedIit = (req.body.iit || req.user.profile?.iit || '').trim()
+  const profileIit = (req.user.profile?.iit || '').trim()
+  if (!profileIit || requestedIit !== profileIit) {
+    throw new ApiError(403, 'You can only join your own institute group')
+  }
+  const iit = profileIit
 
   let convo = await Conversation.findOne({ type: 'group', iit })
   if (!convo) {
@@ -62,7 +74,6 @@ export const getOrCreateIitGroup = asyncHandler(async (req, res) => {
     })
   }
 
-  // ensure membership
   if (!convo.participants.some((p) => p.toString() === req.user._id.toString())) {
     convo.participants.push(req.user._id)
     await convo.save()
@@ -77,7 +88,7 @@ export const getOrCreateCommunity = asyncHandler(async (req, res) => {
     convo = await Conversation.create({
       type: 'community',
       title: 'IIT Community - All IITs',
-      participants: [] // no approval needed, open to all
+      participants: []
     })
   }
 
@@ -100,12 +111,8 @@ export const messages = asyncHandler(async (req, res) => {
   const convo = await Conversation.findById(conversationId)
   if (!convo) throw new ApiError(404, 'Conversation not found')
 
-  // dm: must be participant; group: allow if user is in participants; community: open to all
-  const isMember = convo.type === 'community'
-    ? true
-    : convo.type === 'group'
-    ? convo.participants.some((p) => p.toString() === req.user._id.toString())
-    : convo.participants.some((p) => p.toString() === req.user._id.toString())
+  const isMember = convo.type === 'community' ||
+    convo.participants.some((p) => p.toString() === req.user._id.toString())
 
   if (!isMember) throw new ApiError(403, 'Not a member')
 
