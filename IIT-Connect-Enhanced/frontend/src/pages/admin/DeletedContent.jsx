@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import Loader from '../../components/common/Loader'
 import { api } from '../../utils/api'
+import { SocketContext } from '../../context/SocketContext.jsx'
 
 function Field({ label, value }) {
   if (value === undefined || value === null || value === '') return null
@@ -12,6 +13,7 @@ function Field({ label, value }) {
 export default function DeletedContent() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const { socket } = useContext(SocketContext) || {}
 
   async function load() {
     setLoading(true)
@@ -35,6 +37,16 @@ export default function DeletedContent() {
   }
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (!socket) return undefined
+    const onDeleted = (notification) => {
+      setItems((current) => [notification, ...current.filter((item) => item._id !== notification._id)])
+      toast('A student deleted a Gallery/Travel submission', { icon: '🗑️' })
+    }
+    socket.on('admin:content-deleted', onDeleted)
+    return () => socket.off('admin:content-deleted', onDeleted)
+  }, [socket])
 
   if (loading) return <Loader />
 
