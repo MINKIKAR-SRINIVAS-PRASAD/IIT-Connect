@@ -29,8 +29,8 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   const [showArchived, setShowArchived] = useState(false)
   const currentUserId = getId(user?.id || user?._id)
 
-  async function loadConvos(includeArchived = showArchived) {
-    const { data } = await api.get('/chat/conversations', { params: includeArchived ? { includeArchived: 'true' } : {} })
+  async function loadConvos() {
+    const { data } = await api.get('/chat/conversations', { params: { includeArchived: 'true' } })
     setConvos(data.conversations || [])
   }
 
@@ -48,7 +48,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
     return () => clearTimeout(timer)
   }, [q])
 
-  const convosSorted = useMemo(() => convos, [convos])
+  const convosSorted = useMemo(() => convos.filter((conversation) => Boolean(conversation.preferences?.archived) === showArchived), [convos, showArchived])
 
   async function updatePreference(conversation, patch) {
     try {
@@ -113,7 +113,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
 
       <div className="flex items-center justify-between px-4 pt-3">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{showArchived ? 'Archived chats' : 'Recent conversations'}</div>
-        <button type="button" onClick={() => { setShowArchived((value) => !value); loadConvos(!showArchived).catch(() => {}) }} className="text-xs text-indigo-300 hover:text-indigo-200">
+        <button type="button" onClick={() => setShowArchived((value) => !value)} className="text-xs text-indigo-300 hover:text-indigo-200">
           {showArchived ? 'Show inbox' : 'Archived'}
         </button>
       </div>
