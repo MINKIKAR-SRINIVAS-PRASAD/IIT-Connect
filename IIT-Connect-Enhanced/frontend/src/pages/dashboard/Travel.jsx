@@ -58,6 +58,17 @@ export default function Travel() {
     })
   }, [trips, category, search])
 
+  async function deleteMyTrip(id) {
+    if (!window.confirm('Delete this travel plan for everyone? This cannot be undone.')) return
+    try {
+      await api.delete(`/travel/${id}`)
+      toast.success('Travel plan deleted for everyone')
+      await loadTrips()
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Could not delete travel plan')
+    }
+  }
+
   const destinationsCount = new Set(trips.map((trip) => trip.destination?.trim().toLowerCase()).filter(Boolean)).size
 
   function updateForm(event) {
@@ -240,7 +251,10 @@ export default function Travel() {
                   <p className="font-medium">{trip.destination} · {trip.location}</p>
                   <p className="text-xs text-slate-400">{trip.category} · {formatDate(trip.travelDate)}</p>
                 </div>
-                <span className={trip.status === 'Approved' ? 'rounded-full bg-emerald-500/15 px-3 py-1 text-xs text-emerald-300' : trip.status === 'Rejected' ? 'rounded-full bg-rose-500/15 px-3 py-1 text-xs text-rose-300' : 'rounded-full bg-amber-500/15 px-3 py-1 text-xs text-amber-300'}>{trip.status}</span>
+                <div className="flex items-center gap-2">
+                  <span className={trip.status === 'Approved' ? 'rounded-full bg-emerald-500/15 px-3 py-1 text-xs text-emerald-300' : trip.status === 'Rejected' ? 'rounded-full bg-rose-500/15 px-3 py-1 text-xs text-rose-300' : 'rounded-full bg-amber-500/15 px-3 py-1 text-xs text-amber-300'}>{trip.status}</span>
+                  <button type="button" onClick={() => deleteMyTrip(trip._id)} className="rounded-lg border border-rose-500/30 px-3 py-1.5 text-xs text-rose-300 hover:bg-rose-500/10">Delete for everyone</button>
+                </div>
               </div>
             ))}
           </div>
