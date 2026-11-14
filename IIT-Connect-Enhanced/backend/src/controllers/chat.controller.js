@@ -5,6 +5,14 @@ import Message from '../models/Message.js'
 import User from '../models/User.js'
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const participantFields = 'profile.name profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
+
+async function withParticipants(conversation) {
+  return Conversation.populate(conversation, {
+    path: 'participants',
+    select: participantFields
+  })
+}
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
@@ -22,7 +30,6 @@ export const listUsers = asyncHandler(async (req, res) => {
     ]
   }
 
-  // Do not expose email addresses, roles, or moderation flags in the student directory.
   const users = await User.find(filter)
     .select('profile.name profile.iit profile.branch profile.photoUrl lastSeenAt')
     .limit(25)
@@ -53,6 +60,7 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
     })
   }
 
+  convo = await withParticipants(convo)
   res.json({ success: true, conversation: convo })
 })
 
@@ -79,6 +87,7 @@ export const getOrCreateIitGroup = asyncHandler(async (req, res) => {
     await convo.save()
   }
 
+  convo = await withParticipants(convo)
   res.json({ success: true, conversation: convo })
 })
 
@@ -92,6 +101,7 @@ export const getOrCreateCommunity = asyncHandler(async (req, res) => {
     })
   }
 
+  convo = await withParticipants(convo)
   res.json({ success: true, conversation: convo })
 })
 
@@ -102,6 +112,7 @@ export const myConversations = asyncHandler(async (req, res) => {
   })
     .sort({ lastMessageAt: -1, updatedAt: -1 })
     .limit(50)
+    .populate('participants', participantFields)
 
   res.json({ success: true, conversations: convos })
 })
@@ -119,6 +130,7 @@ export const messages = asyncHandler(async (req, res) => {
   const msgs = await Message.find({ conversationId })
     .sort({ createdAt: 1 })
     .limit(500)
+    .populate('senderId', 'profile.name profile.photoUrl profile.iit role')
 
   res.json({ success: true, messages: msgs })
 })
