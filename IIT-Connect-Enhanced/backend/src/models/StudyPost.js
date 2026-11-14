@@ -6,14 +6,16 @@ const studyPostSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, default: '' },
     tags: [{ type: String }],
-    iit: { type: String, default: '' }, // optional - can be for all IITs
-    links: [{ type: String }], // YouTube playlist, Google Drive, etc.
+    iit: { type: String, default: '' },
+    links: [{ type: String }],
     subject: { type: String, required: true },
     semester: { type: String, default: '' },
     branch: { type: String, default: '' },
     resourceType: { type: String, enum: ['Video', 'Notes', 'Assignment', 'Book', 'Practice', 'Other'], default: 'Other' },
-    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending', index: true },
-    rejectionReason: { type: String, default: '' }
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Deleted'], default: 'Pending', index: true },
+    rejectionReason: { type: String, default: '' },
+    deletedAt: { type: Date, default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
   },
   { timestamps: true }
 )
