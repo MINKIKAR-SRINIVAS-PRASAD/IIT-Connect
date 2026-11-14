@@ -18,7 +18,18 @@ export default function Profile() {
   const [batch, setBatch] = useState('')
   const [bio, setBio] = useState('')
   const [photo, setPhoto] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview('')
+      return undefined
+    }
+    const objectUrl = URL.createObjectURL(photo)
+    setPhotoPreview(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [photo])
 
   useEffect(() => {
     setName(user?.profile?.name || '')
@@ -78,8 +89,8 @@ export default function Profile() {
 
         <div className="flex items-start gap-4">
           <div className="h-20 w-20 rounded-2xl border border-slate-800 overflow-hidden bg-slate-900">
-            {photo ? (
-              <img src={URL.createObjectURL(photo)} alt="Selected profile" className="h-full w-full object-cover" />
+            {photoPreview ? (
+              <img src={photoPreview} alt="Selected profile" className="h-full w-full object-cover" />
             ) : user?.profile?.photoUrl ? (
               <img src={user.profile.photoUrl} alt="profile" className="h-full w-full object-cover" />
             ) : (
