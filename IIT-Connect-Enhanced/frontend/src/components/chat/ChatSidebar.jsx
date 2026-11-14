@@ -62,17 +62,32 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         <div className="mt-3">
           <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or institute..." />
         </div>
-        <div className="mt-3 space-y-2">
-          <Button className="w-full" onClick={async () => {
-            const conversation = await onJoinCommunity()
-            if (conversation) await loadConvos()
-          }}>
-            🌐 Join Indian IIT Students Community
-          </Button>
-          <Button variant="secondary" className="w-full" onClick={() => onJoinGroup(user?.profile?.iit)}>
-            + Join My IIT Group
-          </Button>
-        </div>
+        {(() => {
+          const hasCommunity = convos.some((conversation) => conversation.type === 'community')
+          const hasIitGroup = convos.some((conversation) => conversation.type === 'group')
+          if (hasCommunity && hasIitGroup) return null
+
+          return (
+            <div className="mt-3 space-y-2">
+              {!hasCommunity && (
+                <Button className="w-full" onClick={async () => {
+                  const conversation = await onJoinCommunity()
+                  if (conversation) await loadConvos()
+                }}>
+                  🌐 Join Indian IIT Students Community
+                </Button>
+              )}
+              {!hasIitGroup && (
+                <Button variant="secondary" className="w-full" onClick={async () => {
+                  await onJoinGroup(user?.profile?.iit)
+                  await loadConvos()
+                }}>
+                  + Join My IIT Group
+                </Button>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       <div className="max-h-[280px] space-y-2 overflow-y-auto p-3 md:max-h-[calc(70vh-190px)]">
