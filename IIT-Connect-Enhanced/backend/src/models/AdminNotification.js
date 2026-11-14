@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 const adminNotificationSchema = new mongoose.Schema(
   {
     type: { type: String, enum: ['CONTENT_DELETED'], required: true, index: true },
-    contentType: { type: String, enum: ['Gallery', 'Travel'], required: true },
+    contentType: { type: String, enum: ['Gallery', 'Travel', 'Study'], required: true },
     contentId: { type: mongoose.Schema.Types.ObjectId, required: true },
     contentTitle: { type: String, required: true, maxlength: 200 },
     actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
