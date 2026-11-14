@@ -8,6 +8,10 @@ import { cookieOptions } from '../utils/cookie.js'
 import { isAllowedIitEmail } from '../utils/allowedIitDomains.js'
 import { getRoleForEmail } from '../utils/seedAdmin.js'
 
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
 function signAccessToken(userId) {
   return jwt.sign({ sub: userId }, env.JWT_ACCESS_SECRET, { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN })
 }
@@ -23,32 +27,36 @@ async function setAuthCookies(res, { accessToken, refreshToken }) {
 }
 
 export const register = asyncHandler(async (req, res) => {
-  const { email, password } = req.body
+  const email = normalizeEmail(req.body.email)
+  const { password } = req.body
 
   if (!isAllowedIitEmail(email)) {
     throw new ApiError(400, 'Only IIT emails allowed')
   }
 
-  const existing = await User.findOne({ email: email.toLowerCase() })
+  // Administrator identities must be provisioned out-of-band, never self-registered.
+  if (getRoleForEmail(email) === 'admin') {
+    throw new ApiError(403, 'Administrator accounts are provisioned separately')
+  }
+
+  const existing = await User.findOne({ email })
   if (existing) throw new ApiError(409, 'Email already registered')
 
-  const passwordHash = await bcrypt.hash(password, 10)
-  const role = getRoleForEmail(email)
-
+  const passwordHash = await bcrypt.hash(password, 12)
   const user = await User.create({
-    email: email.toLowerCase(),
+    email,
     passwordHash,
-    role
+    role: 'student'
   })
 
   const accessToken = signAccessToken(user._id.toString())
   const refreshToken = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(refreshToken, 10)
+  user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
   await user.save()
 
   await setAuthCookies(res, { accessToken, refreshToken })
 
-  res.json({
+  res.status(201).json({
     success: true,
     user: {
       id: user._id,
@@ -60,28 +68,26 @@ export const register = asyncHandler(async (req, res) => {
 })
 
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body
+  const email = normalizeEmail(req.body.email)
+  const { password } = req.body
 
   if (!isAllowedIitEmail(email)) {
     throw new ApiError(400, 'Only IIT emails allowed')
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() })
+  const user = await User.findOne({ email })
   if (!user) throw new ApiError(401, 'Invalid credentials')
   if (user.isBanned) throw new ApiError(403, 'User is banned')
 
   const ok = await bcrypt.compare(password, user.passwordHash)
   if (!ok) throw new ApiError(401, 'Invalid credentials')
 
-  // promote to admin only if in ADMIN_EMAILS
   const desiredRole = getRoleForEmail(user.email)
-  if (user.role !== desiredRole) {
-    user.role = desiredRole
-  }
+  if (user.role !== desiredRole) user.role = desiredRole
 
   const accessToken = signAccessToken(user._id.toString())
   const refreshToken = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(refreshToken, 10)
+  user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
   user.lastSeenAt = new Date()
   await user.save()
 
@@ -129,7 +135,7 @@ export const refresh = asyncHandler(async (req, res) => {
 
   const newAccess = signAccessToken(user._id.toString())
   const newRefresh = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(newRefresh, 10)
+  user.refreshTokenHash = await bcrypt.hash(newRefresh, 12)
   await user.save()
 
   await setAuthCookies(res, { accessToken: newAccess, refreshToken: newRefresh })
