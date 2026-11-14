@@ -28,8 +28,10 @@ const travelPostSchema = new mongoose.Schema(
     to: { type: String, required: true },
     notes: { type: String, default: '' },
     contactPreference: { type: String, enum: ['Email', 'Phone', 'WhatsApp'], default: 'Email' },
-    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending', index: true },
-    rejectionReason: { type: String, default: '' }
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Deleted'], default: 'Pending', index: true },
+    rejectionReason: { type: String, default: '' },
+    deletedAt: { type: Date, default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
   },
   { timestamps: true }
 )
