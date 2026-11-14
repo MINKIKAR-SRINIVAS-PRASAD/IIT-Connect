@@ -40,9 +40,9 @@ export default function DeletedContent() {
 
   useEffect(() => {
     if (!socket) return undefined
-    const onDeleted = (notification) => {
+    const onDeleted = () => {
       load()
-      toast('A student deleted a Gallery/Travel submission', { icon: '🗑️' })
+      toast('A student deleted a Study, Gallery or Travel submission', { icon: '🗑️' })
     }
     socket.on('admin:content-deleted', onDeleted)
     return () => socket.off('admin:content-deleted', onDeleted)
@@ -53,7 +53,7 @@ export default function DeletedContent() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-white">Deleted content notifications</h1><p className="mt-1 text-sm text-slate-400">Audit trail of Gallery and Travel posts removed by their owners. Deleted posts remain hidden from students.</p></div>
+        <div><h1 className="text-2xl font-bold text-white">Deleted content notifications</h1><p className="mt-1 text-sm text-slate-400">Audit trail of content removed by its owner. Deleted submissions are hidden from all students.</p></div>
         <button onClick={load} className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-900">Refresh</button>
       </div>
       {!items.length ? <div className="rounded-2xl border border-slate-800 bg-slate-950 p-8 text-center text-slate-400">No student deletion notifications yet.</div> : (
@@ -84,6 +84,7 @@ export default function DeletedContent() {
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {Object.entries(snapshot).filter(([key, value]) => !['_id', '__v', 'authorId', 'imageUrl', 'imagePublicId', 'deletedBy'].includes(key) && value !== '' && value !== null && value !== undefined && typeof value !== 'object').map(([key, value]) => <Field key={key} label={key} value={value} />)}
                   </div>
+                  {Array.isArray(snapshot.links) && snapshot.links.length > 0 && <div className="mt-3 space-y-1">{snapshot.links.map((url, index) => <a key={url + index} href={url} target="_blank" rel="noreferrer" className="block break-all text-sm text-indigo-300 underline">Resource link {index + 1}: {url}</a>)}</div>}
                   {item.mediaCleanupPending && <p className="mt-3 text-xs text-amber-300">Cloudinary image cleanup needs attention.</p>}
                 </div>
               </article>
