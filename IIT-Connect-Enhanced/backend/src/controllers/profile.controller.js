@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import { cloudinary } from '../config/cloudinary.js'
+import { isProfileComplete } from '../utils/profileCompletion.js'
 
 export const updateProfile = asyncHandler(async (req, res) => {
   const { name, iit, branch, batch, bio } = req.body
@@ -15,7 +16,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
   user.profile.batch = batch ?? user.profile.batch
   user.profile.bio = bio ?? user.profile.bio
 
-  // photo upload via multipart/form-data with field: photo
   if (req.file) {
     const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
     const uploaded = await cloudinary.uploader.upload(base64, {
@@ -23,12 +23,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
       resource_type: 'image'
     })
 
-    // delete old if exists
     if (user.profile.photoPublicId) {
       try {
         await cloudinary.uploader.destroy(user.profile.photoPublicId)
       } catch {
-        // ignore
+        // Keep the profile update successful if old-image cleanup fails.
       }
     }
 
@@ -36,10 +35,20 @@ export const updateProfile = asyncHandler(async (req, res) => {
     user.profile.photoPublicId = uploaded.public_id
   }
 
+  // Students must complete all required fields and upload a profile photo.
+  // Admins are provisioned separately and are exempt from onboarding requirements.
+  if (user.role !== 'admin' && !isProfileComplete(user)) {
+    throw new ApiError(
+      400,
+      'Complete your profile: name, IIT, branch, batch and profile photo are required'
+    )
+  }
+
   await user.save()
 
   res.json({
     success: true,
-    profile: user.profile
+    profile: user.profile,
+    profileComplete: user.role === 'admin' || isProfileComplete(user)
   })
 })
