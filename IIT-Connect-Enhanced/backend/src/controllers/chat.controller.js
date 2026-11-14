@@ -24,6 +24,7 @@ export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
   const filter = {
     _id: { $ne: req.user._id },
+    role: { $ne: 'admin' },
     isBanned: false
   }
 
