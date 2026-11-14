@@ -47,7 +47,7 @@ export default function ChatWindow({ conversation }) {
 
   const title = conversation?.type === 'dm'
     ? getName(otherParticipant)
-    : conversation?.title || (conversation?.type === 'community' ? 'IIT Connect Community' : 'Group Chat')
+    : conversation?.title || (conversation?.type === 'community' ? 'Indian IIT Students Community' : 'Group Chat')
 
   async function loadMessages() {
     if (!conversation?._id) return
@@ -165,7 +165,7 @@ export default function ChatWindow({ conversation }) {
           {typingOther && <div className="mt-1"><TypingIndicator show /></div>}
         </div>
         <div className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-300 sm:block">
-          Private chat
+          {conversation.type === 'community' ? 'All IITs community' : conversation.type === 'group' ? 'Institute group' : 'Private chat'}
         </div>
       </header>
 
