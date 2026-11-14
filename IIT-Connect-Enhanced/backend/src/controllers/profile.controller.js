@@ -10,23 +10,20 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
 
-  const nextProfile = {
-    ...user.profile.toObject(),
-    name: name ?? user.profile.name,
-    iit: iit ?? user.profile.iit,
-    branch: branch ?? user.profile.branch,
-    batch: batch ?? user.profile.batch,
-    bio: bio ?? user.profile.bio
-  }
+  const nextName = name ?? user.profile.name
+  const nextIit = iit ?? user.profile.iit
+  const nextBranch = branch ?? user.profile.branch
+  const nextBatch = batch ?? user.profile.batch
+  const nextBio = bio ?? user.profile.bio
 
   // Reject incomplete student submissions before uploading or replacing any photo.
   if (user.role !== 'admin') {
     const requiredFieldsPresent = Boolean(
-      typeof nextProfile.name === 'string' && nextProfile.name.trim() &&
-      typeof nextProfile.iit === 'string' && nextProfile.iit.trim() &&
-      typeof nextProfile.branch === 'string' && nextProfile.branch.trim() &&
-      typeof nextProfile.batch === 'string' && nextProfile.batch.trim() &&
-      (req.file || nextProfile.photoUrl)
+      typeof nextName === 'string' && nextName.trim() &&
+      typeof nextIit === 'string' && nextIit.trim() &&
+      typeof nextBranch === 'string' && nextBranch.trim() &&
+      typeof nextBatch === 'string' && nextBatch.trim() &&
+      (req.file || user.profile.photoUrl)
     )
     if (!requiredFieldsPresent) {
       throw new ApiError(
@@ -36,11 +33,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
     }
   }
 
-  user.profile.name = nextProfile.name
-  user.profile.iit = nextProfile.iit
-  user.profile.branch = nextProfile.branch
-  user.profile.batch = nextProfile.batch
-  user.profile.bio = nextProfile.bio
+  user.profile.name = nextName
+  user.profile.iit = nextIit
+  user.profile.branch = nextBranch
+  user.profile.batch = nextBatch
+  user.profile.bio = nextBio
 
   let oldPhotoPublicId = null
   if (req.file) {
