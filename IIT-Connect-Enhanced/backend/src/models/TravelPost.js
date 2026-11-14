@@ -7,9 +7,23 @@ const travelPostSchema = new mongoose.Schema(
     branch: { type: String, required: true },
     batch: { type: String, required: true },
     iit: { type: String, required: true, index: true },
-    travelMode: { type: String, enum: ['Train', 'Flight', 'Bus'], required: true },
-    seatDetails: { type: String, default: '' }, // coach/seat number
-    travelDate: { type: Date, required: true, index: true },
+
+    // Legacy Travel Community fields retained for the original trip-planning UI.
+    destination: { type: String, required: true, maxlength: 120 },
+    location: { type: String, required: true, maxlength: 120 },
+    category: {
+      type: String,
+      enum: ['Trekking', 'Weekend Trips', 'Pilgrimage', 'Adventure', 'Sightseeing'],
+      required: true
+    },
+    description: { type: String, required: true, maxlength: 1000 },
+    budget: { type: String, default: '', maxlength: 40 },
+    members: { type: Number, min: 1, max: 50, default: 1 },
+
+    // Compatibility fields used by the travel moderation and older records.
+    travelMode: { type: String, enum: ['Train', 'Flight', 'Bus', 'Trip'], default: 'Trip' },
+    seatDetails: { type: String, default: '' },
+    travelDate: { type: Date, default: null, index: true },
     from: { type: String, required: true },
     to: { type: String, required: true },
     notes: { type: String, default: '' },
