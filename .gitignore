@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules/
 **/node_modules/
@@ -18,3 +19,10 @@ npm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+=======
+node_modules
+.env
+dist
+build
+.vscode
+>>>>>>> d5f1b18e5626a17663d215e0dc4dec599cab696b
