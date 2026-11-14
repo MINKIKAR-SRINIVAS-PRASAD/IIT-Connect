@@ -25,6 +25,18 @@ export default function Chat() {
     }
   }
 
+  async function joinCommunity() {
+    try {
+      const { data } = await api.post('/chat/community')
+      setActive(data.conversation)
+      toast.success('You joined Indian IIT Students Community')
+      return data.conversation
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to join the community')
+      return null
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/60 flex flex-col md:flex-row min-h-[70vh]">
       <ChatSidebar
@@ -32,6 +44,7 @@ export default function Chat() {
         onSelectConversation={setActive}
         onStartDM={startDM}
         onJoinGroup={joinGroup}
+        onJoinCommunity={joinCommunity}
       />
       <ChatWindow conversation={active} />
     </div>
