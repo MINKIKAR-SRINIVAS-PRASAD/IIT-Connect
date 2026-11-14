@@ -10,12 +10,39 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
 
-  user.profile.name = name ?? user.profile.name
-  user.profile.iit = iit ?? user.profile.iit
-  user.profile.branch = branch ?? user.profile.branch
-  user.profile.batch = batch ?? user.profile.batch
-  user.profile.bio = bio ?? user.profile.bio
+  const nextProfile = {
+    ...user.profile.toObject(),
+    name: name ?? user.profile.name,
+    iit: iit ?? user.profile.iit,
+    branch: branch ?? user.profile.branch,
+    batch: batch ?? user.profile.batch,
+    bio: bio ?? user.profile.bio
+  }
 
+  // Reject incomplete student submissions before uploading or replacing any photo.
+  if (user.role !== 'admin') {
+    const requiredFieldsPresent = Boolean(
+      typeof nextProfile.name === 'string' && nextProfile.name.trim() &&
+      typeof nextProfile.iit === 'string' && nextProfile.iit.trim() &&
+      typeof nextProfile.branch === 'string' && nextProfile.branch.trim() &&
+      typeof nextProfile.batch === 'string' && nextProfile.batch.trim() &&
+      (req.file || nextProfile.photoUrl)
+    )
+    if (!requiredFieldsPresent) {
+      throw new ApiError(
+        400,
+        'Complete your profile: name, IIT, branch, batch and profile photo are required'
+      )
+    }
+  }
+
+  user.profile.name = nextProfile.name
+  user.profile.iit = nextProfile.iit
+  user.profile.branch = nextProfile.branch
+  user.profile.batch = nextProfile.batch
+  user.profile.bio = nextProfile.bio
+
+  let oldPhotoPublicId = null
   if (req.file) {
     const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
     const uploaded = await cloudinary.uploader.upload(base64, {
@@ -23,28 +50,21 @@ export const updateProfile = asyncHandler(async (req, res) => {
       resource_type: 'image'
     })
 
-    if (user.profile.photoPublicId) {
-      try {
-        await cloudinary.uploader.destroy(user.profile.photoPublicId)
-      } catch {
-        // Keep the profile update successful if old-image cleanup fails.
-      }
-    }
-
+    oldPhotoPublicId = user.profile.photoPublicId || null
     user.profile.photoUrl = uploaded.secure_url
     user.profile.photoPublicId = uploaded.public_id
   }
 
-  // Students must complete all required fields and upload a profile photo.
-  // Admins are provisioned separately and are exempt from onboarding requirements.
-  if (user.role !== 'admin' && !isProfileComplete(user)) {
-    throw new ApiError(
-      400,
-      'Complete your profile: name, IIT, branch, batch and profile photo are required'
-    )
-  }
-
   await user.save()
+
+  // Delete the previous Cloudinary image only after the new profile has been saved.
+  if (oldPhotoPublicId) {
+    try {
+      await cloudinary.uploader.destroy(oldPhotoPublicId)
+    } catch {
+      // Old-image cleanup failure must not undo a successful profile update.
+    }
+  }
 
   res.json({
     success: true,
