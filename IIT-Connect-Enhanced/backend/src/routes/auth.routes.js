@@ -21,7 +21,7 @@ router.post(
   '/verify-otp',
   authRateLimiter,
   body('email').isEmail(),
-  body('otp').isString().matches(/^\\d{6}$/),
+  body('otp').isString().matches(/^\d{6}$/),
   validate,
   verifyRegistrationOtp
 )
