@@ -34,7 +34,7 @@ const fieldSets = {
 }
 const inputClass = 'mt-2 w-full rounded-xl border border-slate-700/80 bg-[#111a30] px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10'
 function Field({name,label,type='text',value,onChange}) {
-  if (type === 'select') return <label className="block text-sm text-slate-300">{label}<select className={inputClass} value={value} onChange={onChange}><option>Confirmed</option><option>RAC</option><option>Waiting List</option><option>Booked</option></select></label>
+  if (type === 'select') return <label className="block text-sm text-slate-300">{label}<select name={name} className={inputClass} value={value} onChange={onChange}><option>Confirmed</option><option>RAC</option><option>Waiting List</option><option>Booked</option></select></label>
   return <label className="block text-sm text-slate-300">{label}<input required className={inputClass} type={type} name={name} value={value || ''} onChange={onChange}/></label>
 }
 function dateLabel(value) { return value ? new Date(value).toLocaleDateString() : 'Date not set' }
@@ -108,7 +108,7 @@ export default function Travel() {
           <div className="mb-4 grid grid-cols-3 gap-2">{['Train','Bus','Flight'].map(mode=><button type="button" key={mode} onClick={()=>setForm(p=>({...p,travelMode:mode}))} className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold transition ${form.travelMode===mode?'border-cyan-300/50 bg-cyan-300/15 text-cyan-100 shadow-inner':'border-white/10 bg-[#101a30] text-slate-400 hover:border-white/25'}`}><ModeIcon mode={mode}/>{mode}</button>)}</div>
           <div className="grid gap-4 rounded-2xl border border-white/10 bg-[#0d172b]/70 p-4 md:grid-cols-2">{fieldSets[form.travelMode].map(([key,label,type])=><Field key={key} name={key} label={label} type={type} value={form.booking[key]} onChange={changeBooking}/>)}</div>
         </div>
-        <div className="flex gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[.06] p-4"><ShieldCheck className="mt-0.5 shrink-0 text-amber-200" size={19}/><div className="text-xs leading-5 text-slate-300"><b className="text-amber-100">Your booking privacy matters.</b> PNRs and booking references are private. Other students must not see these identifiers on public trip cards. Admin reviews the complete booking; seat and coach details are only shared through the consent-based process.</div></div>
+        <div className="flex gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[.06] p-4"><ShieldCheck className="mt-0.5 shrink-0 text-amber-200" size={19}/><div className="text-xs leading-5 text-slate-300"><b className="text-amber-100">Your booking privacy matters.</b> PNRs and booking references are private. Other students must not see these identifiers on public trip cards. Admin reviews the complete booking; seat and coach details are not displayed on public trip cards. Private sharing between students will be enabled only after the consent workflow is implemented.</div></div>
         <button disabled={saving} className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-3.5 font-bold text-white shadow-lg shadow-indigo-950/40 transition hover:brightness-110 disabled:opacity-50">{saving?'Submitting for review…':'Submit trip for admin approval'}</button>
       </form>
     </section>}
