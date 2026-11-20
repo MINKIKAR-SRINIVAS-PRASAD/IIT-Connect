@@ -6,6 +6,7 @@ import Input from '../../components/common/Input'
 import { IIT_LIST } from '../../utils/constants'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
+import NotificationSettings from '../../components/notifications/NotificationSettings.jsx'
 
 export default function Profile() {
   const { user, refresh } = useAuth()
@@ -154,6 +155,8 @@ export default function Profile() {
           <Button disabled={busy}>{busy ? 'Saving...' : 'Save profile'}</Button>
         </div>
       </div>
+
+      <NotificationSettings />
 
       <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
         <div className="text-sm text-slate-300">
