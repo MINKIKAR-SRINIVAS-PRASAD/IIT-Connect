@@ -9,6 +9,7 @@ import { isProfileComplete } from '../utils/profileCompletion.js'
 let socketServer = null
 const onlineUsers = new Map() // userId -> Set<socketId>
 const eventLimits = new Map() // userId:event -> { startedAt, count }
+const activeConversationByUser = new Map() // userId:event -> { startedAt, count }
 
 function parseCookie(cookieHeader = '') {
   const out = {}
@@ -65,6 +66,10 @@ function allowUserEvent(userId, event, limit, windowMs = 60_000) {
   if (current.count >= limit) return false
   current.count += 1
   return true
+}
+
+export function isUserViewingConversation(userId, conversationId) {
+  return activeConversationByUser.get(String(userId)) === String(conversationId)
 }
 
 export function broadcastMessageToConversation(conversationId, message) {
@@ -125,9 +130,23 @@ export function initSocket(httpServer, corsOrigin) {
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
         socket.join(conversation._id.toString())
+        socket.emit('conversation:joined', { conversationId: conversation._id.toString() })
       } catch (error) {
         console.error('Conversation join failed:', error.message)
       }
+    })
+
+    socket.on('conversation:active', async (payload = {}) => {
+      try {
+        const conversation = await findAuthorizedConversation(payload?.conversationId, userId)
+        if (conversation) activeConversationByUser.set(userId, conversation._id.toString())
+      } catch (error) {
+        console.error('Active conversation update failed:', error.message)
+      }
+    })
+
+    socket.on('conversation:inactive', () => {
+      activeConversationByUser.delete(userId)
     })
 
     socket.on('conversation:typing', async (payload = {}) => {
@@ -238,6 +257,7 @@ export function initSocket(httpServer, corsOrigin) {
         activeSockets.delete(socket.id)
         if (activeSockets.size === 0) {
           onlineUsers.delete(userId)
+          activeConversationByUser.delete(userId)
           for (const key of eventLimits.keys()) {
             if (key.startsWith(`${userId}:`)) eventLimits.delete(key)
           }
