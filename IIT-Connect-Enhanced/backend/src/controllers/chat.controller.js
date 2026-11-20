@@ -40,7 +40,7 @@ export const listUsers = asyncHandler(async (req, res) => {
 
   const users = await User.find(filter)
     .select('profile.name profile.rollNumber profile.iit profile.branch profile.photoUrl lastSeenAt')
-    .limit(q ? 100 : 25)
+    .limit(q ? 0 : 25)
     .sort({ createdAt: -1 })
 
   res.json({ success: true, users })
