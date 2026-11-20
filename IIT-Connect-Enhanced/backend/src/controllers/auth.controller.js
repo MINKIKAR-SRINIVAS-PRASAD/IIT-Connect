@@ -184,7 +184,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   }
   const expected = Buffer.from(user.passwordResetOtpHash, 'hex')
   const received = Buffer.from(crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`reset:${email}:${otp}`).digest('hex'), 'hex')
-  if (!/^\\d{6}$/.test(otp) || expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
+  if (!/^\d{6}$/.test(otp) || expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
     user.passwordResetAttempts += 1
     await user.save()
     throw new ApiError(400, 'Incorrect reset code')
