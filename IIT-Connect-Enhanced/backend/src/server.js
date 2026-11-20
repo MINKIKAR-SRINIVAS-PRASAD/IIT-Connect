@@ -24,6 +24,7 @@ import commentRoutes from './routes/comment.routes.js'
 import likeRoutes from './routes/like.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import healthRoutes from './routes/health.routes.js'
+import notificationsRoutes from './routes/notifications.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
 import { requireTrustedOrigin } from './middleware/origin.middleware.js'
@@ -55,6 +56,7 @@ async function bootstrap() {
   })
 
   app.use('/api/health', healthRoutes)
+  app.use('/api/notifications', notificationsRoutes)
   app.use('/api/auth', authRoutes)
   app.use('/api/profile', profileRoutes)
   app.use('/api/chat', chatRoutes)
