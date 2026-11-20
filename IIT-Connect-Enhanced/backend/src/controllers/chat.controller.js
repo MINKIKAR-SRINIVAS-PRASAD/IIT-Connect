@@ -247,6 +247,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     await sendPushToUser(recipientId, {
       title: senderName,
       body: conversation.type === 'dm' ? 'Sent you a message' : `New message in ${conversation.title || 'your group'}`,
+      tag: `chat-${conversation._id.toString()}`,
       url: '/app/chat'
     })
   }))
