@@ -36,7 +36,6 @@ export default function Sidebar() {
     </aside>
     <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-white/10 bg-[#090c19]/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl md:hidden">
       {links.filter(({label}) => ['Home','Chat','Trip','Travel Home'].includes(label)).map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><Icon size={19}/><span>{label}</span></NavLink>)}
-      <NavLink to="/app/profile" className={({isActive}) => `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><UserRound size={19}/><span>Profile</span></NavLink>
     </nav>
   </>
 }
