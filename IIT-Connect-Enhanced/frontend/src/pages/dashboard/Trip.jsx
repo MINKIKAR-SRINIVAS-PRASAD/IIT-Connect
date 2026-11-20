@@ -7,12 +7,15 @@ const inputClass = 'mt-2 w-full rounded-xl border border-slate-700/80 bg-[#111a3
 
 export default function Trip() {
   const navigate = useNavigate()
-  const [form,setForm] = useState({destination:'',location:'',category:'Weekend Trips',date:'',budget:'',members:'1',description:''})
+  const [form,setForm] = useState(() => { try { return JSON.parse(sessionStorage.getItem('iitconnect_trip_draft') || 'null') || {destination:'',location:'',category:'Weekend Trips',date:'',budget:'',members:'1',description:''} } catch { return {destination:'',location:'',category:'Weekend Trips',date:'',budget:'',members:'1',description:''} } })
   const [error,setError] = useState('')
   function change(e) { setForm(p=>({...p,[e.target.name]:e.target.value})); setError('') }
   function next(e) {
     e.preventDefault()
     if (Object.values(form).some(v=>!String(v).trim())) { setError('Please complete every field before continuing.'); return }
+    if (!Number.isFinite(Number(form.budget)) || Number(form.budget) <= 0) { setError('Enter a valid budget greater than zero.'); return }
+    if (form.date < new Date().toISOString().slice(0,10)) { setError('Trip start date cannot be in the past.'); return }
+    if (form.description.trim().length < 5) { setError('Trip description must contain at least 5 characters.'); return }
     if (Number(form.members)<1 || Number(form.members)>50) { setError('Maximum members must be between 1 and 50.'); return }
     sessionStorage.setItem('iitconnect_trip_draft',JSON.stringify(form))
     navigate('/app/travel-home')
