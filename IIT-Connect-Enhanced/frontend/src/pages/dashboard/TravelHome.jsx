@@ -21,9 +21,14 @@ export default function TravelHome() {
  async function submit(e){
   e.preventDefault()
   if(!draft){setError('Trip overview is missing. Please complete the Trip page first.');return}
+  if(Object.values(draft).some(v=>!String(v??'').trim())){setError('Trip overview is incomplete. Return to the Trip page and complete every field.');return}
+  if(!Number.isFinite(Number(draft.budget))||Number(draft.budget)<=0){setError('Trip budget must be greater than zero.');return}
+  if(draft.date<new Date().toISOString().slice(0,10)){setError('Trip start date cannot be in the past.');return}
   const missing=fields[mode].filter(([key])=>!String(booking[key]||'').trim())
   if(missing.length){setError('Please complete every required '+mode+' booking field.');return}
   if(booking.arrivalDate<booking.departureDate){setError('Arrival date cannot be before departure date.');return}
+  if(booking.departureDate<draft.date){setError('Departure date cannot be before the trip start date.');return}
+  if(booking.arrivalDate===booking.departureDate && booking.arrivalTime<booking.departureTime){setError('Arrival time must be later than departure time.');return}
   setSaving(true)
   try{
    await api.post('/travel',{...draft,members:Number(draft.members),travelMode:mode,booking})
