@@ -200,6 +200,23 @@ export const resetPassword = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Password reset successfully. Please sign in again.' })
 })
 
+export const changePassword = asyncHandler(async (req, res) => {
+  const currentPassword = String(req.body.currentPassword || '')
+  const newPassword = String(req.body.newPassword || '')
+  if (newPassword.length < 8) throw new ApiError(400, 'New password must be at least 8 characters')
+  const user = await User.findById(req.user._id)
+  if (!user || !await bcrypt.compare(currentPassword, user.passwordHash)) throw new ApiError(400, 'Current password is incorrect')
+  user.passwordHash = await bcrypt.hash(newPassword, 12)
+  user.refreshSessions = []
+  user.refreshTokenHash = null
+  await user.save()
+  const refreshToken = await createRefreshSession(user)
+  await user.save()
+  const accessToken = signAccessToken(user._id.toString())
+  await setAuthCookies(res, { accessToken, refreshToken })
+  res.json({ success: true, message: 'Password changed successfully' })
+})
+
 export const me = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user })
 })
