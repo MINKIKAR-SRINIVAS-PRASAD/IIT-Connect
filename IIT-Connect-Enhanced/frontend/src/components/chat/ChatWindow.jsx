@@ -4,6 +4,7 @@ import Input from '../common/Input'
 import MessageBubble from './MessageBubble'
 import TypingIndicator from './TypingIndicator'
 import { api } from '../../utils/api'
+import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { useSocket } from '../../hooks/useSocket'
 
@@ -131,12 +132,13 @@ export default function ChatWindow({ conversation }) {
         ? previous
         : [...previous, savedMessage])
       setText('')
+      toast.success('Message sent')
       if (socket) {
         socket.emit('conversation:typing', { conversationId: conversation._id, isTyping: false })
       }
       setTyping(false)
     } catch (error) {
-      window.alert(error?.response?.data?.message || error?.message || 'Message could not be sent. Please try again.')
+      toast.error(error?.response?.data?.message || error?.message || 'Message could not be sent. Please try again.')
     } finally {
       setSending(false)
     }
