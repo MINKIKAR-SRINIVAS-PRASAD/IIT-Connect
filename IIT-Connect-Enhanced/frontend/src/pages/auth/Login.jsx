@@ -29,6 +29,7 @@ export default function Login() {
     <form onSubmit={onSubmit} className="mt-8 space-y-5">
       <label className="auth-label block"><span>Institute email</span><div className="auth-input-wrap mt-2"><Mail size={17}/><input type="email" required autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@iit.ac.in"/></div></label>
       <label className="auth-label block"><span>Password</span><div className="auth-input-wrap mt-2"><LockKeyhole size={17}/><input type={showPassword?'text':'password'} required autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/><button type="button" onClick={()=>setShowPassword(v=>!v)} aria-label={showPassword?'Hide password':'Show password'}>{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>
+      <div className="flex justify-end"><Link to="/forgot-password" className="text-sm font-semibold text-[#47733d] hover:text-[#244c32]">Forgot password?</Link></div>
       <button disabled={busy} className="auth-submit flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white disabled:opacity-60">{busy?'Signing in…':'Sign in'}<ArrowRight size={16}/></button>
     </form>
     <p className="mt-7 text-center text-sm text-[#718075]">New to the community? <Link to="/register" className="font-bold text-[#47733d] hover:text-[#244c32]">Create an account</Link></p>
