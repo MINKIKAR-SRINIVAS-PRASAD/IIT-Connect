@@ -17,7 +17,7 @@ const quickLinks = [
   { to: '/app/chat', title: 'Meet your people', subtitle: 'Conversations across IITs', icon: MessageCircle, tone: 'violet' },
   { to: '/app/study', title: 'Learn together', subtitle: 'Notes and study material', icon: BookOpen, tone: 'cyan' },
   { to: '/app/placements', title: 'Career stories', subtitle: 'Experiences and insights', icon: BriefcaseBusiness, tone: 'amber' },
-  { to: '/app/travel', title: 'Find your next trip', subtitle: 'Explore with fellow students', icon: Compass, tone: 'rose' }
+  { to: '/app/trip', title: 'Find your next trip', subtitle: 'Explore plans and join students', icon: Compass, tone: 'rose' }
 ]
 
 export default function HomeFeed() {
