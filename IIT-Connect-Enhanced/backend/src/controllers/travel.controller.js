@@ -22,19 +22,26 @@ export const createTravelPost = asyncHandler(async (req, res) => {
   const category = req.body.category
   const description = cleanText(req.body.description, 1000)
   const budget = cleanText(req.body.budget, 40)
-  const members = Number(req.body.members || 1)
+  const members = Number(req.body.members)
   const dateValue = req.body.date || req.body.travelDate || null
   const travelDate = dateValue ? new Date(dateValue) : null
 
-  if (!destination || !location || !description) {
-    throw new ApiError(400, 'Destination, location and description are required')
+  if (!destination || !location || !description || !budget) {
+    throw new ApiError(400, 'Destination, location, budget and description are required')
   }
   if (!categories.includes(category)) throw new ApiError(400, 'Choose a valid travel category')
-  if (!Number.isInteger(members) || members < 1 || members > 50) {
+  if (req.body.members === undefined || req.body.members === null || req.body.members === '' || !Number.isInteger(members) || members < 1 || members > 50) {
     throw new ApiError(400, 'Maximum members must be between 1 and 50')
   }
-  if (dateValue && Number.isNaN(travelDate.getTime())) {
-    throw new ApiError(400, 'Enter a valid travel date')
+  if (!dateValue || Number.isNaN(travelDate?.getTime())) {
+    throw new ApiError(400, 'A valid travel date is required')
+  }
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const selectedDate = new Date(travelDate)
+  selectedDate.setHours(0, 0, 0, 0)
+  if (selectedDate < today) {
+    throw new ApiError(400, 'Travel date must be today or later')
   }
 
   const post = await TravelPost.create({
