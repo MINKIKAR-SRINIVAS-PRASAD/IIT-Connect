@@ -67,7 +67,7 @@ function ApprovalCard({ item, type, onAction }) {
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
       : type === 'Event'
         ? item.title
-        : type === 'Travel'
+        : type === 'Trip'
           ? [item.destination, item.location].filter(Boolean).join(' · ')
           : item.title
 
@@ -116,9 +116,15 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Travel mode">{item.travelMode}</Detail>
           <Detail label="From">{item.from}</Detail>
           <Detail label="To">{item.to}</Detail>
-          <Detail label="Seat details (admin only)">{item.seatDetails}</Detail>
           <Detail label="Contact preference">{item.contactPreference}</Detail>
-          <div className="sm:col-span-2 lg:col-span-3"><Detail label="Travel plan description / notes">{item.description || item.notes}</Detail></div>
+          {item.booking && <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-cyan-400/20 bg-cyan-400/[.04] p-4">
+            <div className="mb-3 text-xs font-bold uppercase tracking-wider text-cyan-200">Private booking details · Admin only</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(item.booking).map(([key,value]) => value ? <Detail key={key} label={key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}>{value}</Detail> : null)}
+            </div>
+          </div>}
+          <Detail label="Legacy seat details">{item.seatDetails}</Detail>
+          <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
         </>}
         {type === 'Study' && <>
           <Detail label="Resource title">{item.title}</Detail>
@@ -175,7 +181,7 @@ export default function Approvals() {
       Gallery: `/admin/approvals/gallery/${id}`,
       Placement: `/admin/approvals/placements/${id}`,
       Event: `/admin/approvals/events/${id}`,
-      Travel: `/admin/approvals/travel/${id}`,
+      Trip: `/admin/approvals/travel/${id}`,
       Study: `/admin/approvals/study/${id}`
     }[kind]
     try {
@@ -195,7 +201,7 @@ export default function Approvals() {
     { type: 'Gallery', items: gallery },
     { type: 'Placement', items: placements },
     { type: 'Events', items: events, cardType: 'Event' },
-    { type: 'Travel', items: travel },
+    { type: 'Trip', items: travel },
     { type: 'Study Resources', items: study, cardType: 'Study' }
   ]
 
