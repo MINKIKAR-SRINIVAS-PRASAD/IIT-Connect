@@ -106,7 +106,7 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Description">{item.description}</Detail>
           {item.posterUrl ? <div className="sm:col-span-2"><img src={item.posterUrl} alt="Event poster" className="max-h-64 rounded-lg object-contain" /></div> : null}
         </>}
-        {type === 'Travel' && <>
+        {type === 'Trip' && <>
           <Detail label="Destination">{item.destination}</Detail>
           <Detail label="Location / State">{item.location}</Detail>
           <Detail label="Category">{item.category}</Detail>
@@ -209,7 +209,7 @@ export default function Approvals() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Content approvals</h1>
-        <p className="mt-1 text-sm text-slate-400">Review the submitted content and verify the student's IIT email and profile before taking action.</p>
+        <p className="mt-1 text-sm text-slate-400">Review submitted content and verify the student's institute email and profile. Trip booking identifiers are visible to admins only.</p>
       </div>
       {sections.map((section) => (
         <section key={section.type}>
