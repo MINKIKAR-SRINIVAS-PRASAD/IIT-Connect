@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['student', 'admin'], default: 'student' },
     isBanned: { type: Boolean, default: false },
+    passwordResetOtpHash: { type: String, default: null },
+    passwordResetExpiresAt: { type: Date, default: null },
+    passwordResetAttempts: { type: Number, default: 0 },
+    passwordResetSentAt: { type: Date, default: null },
 
     profile: {
       name: { type: String, default: '' },
