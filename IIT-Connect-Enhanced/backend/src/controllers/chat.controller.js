@@ -4,7 +4,7 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
 import ConversationPreference from '../models/ConversationPreference.js'
-import { removeUserFromConversation } from '../socket/index.js'
+import { removeUserFromConversation, broadcastMessageToConversation } from '../socket/index.js'
 
 function isConversationMember(conversation, userId) {
   return Boolean(conversation?.participants?.some((participant) => participant.toString() === userId.toString()))
@@ -189,6 +189,48 @@ export const leaveConversation = asyncHandler(async (req, res) => {
   await ConversationPreference.deleteOne({ userId: req.user._id, conversationId })
   removeUserFromConversation(req.user._id.toString(), conversationId)
   res.json({ success: true, message: 'You left the group' })
+})
+
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { conversationId, text } = req.body || {}
+  if (typeof conversationId !== 'string' || !conversationId) throw new ApiError(400, 'conversationId is required')
+  if (typeof text !== 'string') throw new ApiError(400, 'Message text is invalid')
+  const cleanText = text.trim()
+  if (!cleanText || cleanText.length > 2000) throw new ApiError(400, 'Message must contain 1–2000 characters')
+
+  const conversation = await Conversation.findById(conversationId)
+  if (!conversation) throw new ApiError(404, 'Conversation not found')
+  if (!isConversationMember(conversation, req.user._id)) throw new ApiError(403, 'Not a member of this conversation')
+
+  const message = await Message.create({
+    conversationId: conversation._id,
+    senderId: req.user._id,
+    text: cleanText,
+    seenBy: [req.user._id]
+  })
+  conversation.lastMessageAt = message.createdAt || new Date()
+  conversation.lastMessageText = cleanText
+  await conversation.save()
+
+  const payload = {
+    _id: message._id.toString(),
+    conversationId: conversation._id.toString(),
+    senderId: req.user._id.toString(),
+    sender: {
+      _id: req.user._id.toString(),
+      name: req.user.profile?.name || (req.user.role === 'admin' ? 'Admin' : 'Student'),
+      photoUrl: req.user.profile?.photoUrl || '',
+      iit: req.user.profile?.iit || '',
+      role: req.user.role
+    },
+    text: cleanText,
+    createdAt: message.createdAt,
+    seenBy: [req.user._id.toString()]
+  }
+
+  // HTTP confirms persistence; Socket.IO only distributes the saved event to active members.
+  broadcastMessageToConversation(conversation._id.toString(), payload)
+  res.status(201).json({ success: true, message: payload })
 })
 
 export const messages = asyncHandler(async (req, res) => {
