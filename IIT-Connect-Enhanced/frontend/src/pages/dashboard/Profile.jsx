@@ -62,7 +62,7 @@ export default function Profile() {
       fd.append('bio', bio.trim())
       if (photo) fd.append('photo', photo)
 
-      await api.put('/profile', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put('/profile', fd)
       await refresh()
       setPhoto(null)
       toast.success('Profile updated successfully')
