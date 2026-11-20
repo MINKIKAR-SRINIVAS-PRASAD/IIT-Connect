@@ -19,7 +19,14 @@ const userSchema = new mongoose.Schema(
     },
 
     lastSeenAt: { type: Date, default: null },
-    refreshTokenHash: { type: String, default: null }
+    // Legacy single-token field retained temporarily for existing sessions.
+    refreshTokenHash: { type: String, default: null },
+    // Independent hashed refresh-token sessions allow safe multi-device logins.
+    refreshSessions: [{
+      sessionId: { type: String, required: true },
+      tokenHash: { type: String, required: true },
+      expiresAt: { type: Date, required: true }
+    }]
   },
   { timestamps: true }
 )
