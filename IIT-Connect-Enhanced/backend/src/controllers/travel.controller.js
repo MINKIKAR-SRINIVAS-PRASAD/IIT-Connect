@@ -5,6 +5,7 @@ import { createContentDeletionNotification } from '../utils/contentDeletion.js'
 
 const clean = (v,n=160) => String(v ?? '').trim().slice(0,n)
 const categories = ['Trekking','Weekend Trips','Pilgrimage','Adventure','Sightseeing']
+const bookingFields = ['trainName','trainNumber','pnr','bookingStatus','coach','seat','berthType','boardingStation','arrivalStation','operator','serviceNumber','busType','ticketReference','seatNumber','boardingPoint','dropPoint','airline','flightNumber','airlinePnr','bookingReference','flightSeat','departureAirport','arrivalAirport','departureDate','departureTime','arrivalDate','arrivalTime']
 const requiredFields = {
   Train: ['trainName','trainNumber','pnr','bookingStatus','coach','seat','berthType','boardingStation','arrivalStation','departureDate','departureTime','arrivalDate','arrivalTime'],
   Bus: ['operator','serviceNumber','busType','ticketReference','seatNumber','boardingPoint','dropPoint','departureDate','departureTime','arrivalDate','arrivalTime'],
@@ -29,7 +30,9 @@ export const createTravelPost = asyncHandler(async (req,res) => {
   const missing=requiredFields[travelMode].filter(key=>!clean(booking[key],160))
   if(missing.length) throw new ApiError(400,'Complete all required '+travelMode+' booking fields: '+missing.join(', '))
   const safeBooking={}
-  for(const key of Object.keys(booking)) safeBooking[key]=clean(booking[key],160)
+  for(const key of bookingFields) {
+    if (booking[key] !== undefined) safeBooking[key]=clean(booking[key],160)
+  }
   const post=await TravelPost.create({
     authorId:req.user._id,name,branch,batch,iit,destination,location,category,description,budget,members,
     travelMode,travelDate,from:location,to:destination,notes:description,booking:safeBooking,status:'Pending'
