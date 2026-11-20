@@ -153,11 +153,13 @@ export const refresh = asyncHandler(async (req, res) => {
   if (user.isBanned) throw new ApiError(403, 'User is banned')
 
   let session = payload.jti ? (user.refreshSessions || []).find((item) => item.sessionId === payload.jti) : null
+  let refreshTokenToSet = refreshToken
 
   // Migrate a still-valid pre-multi-device token into its own session.
   if (!session && !payload.jti && user.refreshTokenHash && await bcrypt.compare(refreshToken, user.refreshTokenHash)) {
     const sessionId = crypto.randomUUID()
     const migratedToken = signRefreshToken(user._id.toString(), sessionId)
+    refreshTokenToSet = migratedToken
     const migratedPayload = jwt.decode(migratedToken)
     user.refreshSessions = user.refreshSessions || []
     user.refreshSessions.push({
@@ -174,7 +176,7 @@ export const refresh = asyncHandler(async (req, res) => {
   // Keep the refresh token stable until its JWT expiry. This avoids concurrent
   // tab/page refreshes invalidating one another while still revoking per-device on logout.
   const accessToken = signAccessToken(user._id.toString())
-  const refreshTokenToSet = payload.jti ? refreshToken : (session ? refreshToken : refreshToken)
+  // refreshTokenToSet may be replaced only when migrating a legacy session.
   user.refreshSessions = (user.refreshSessions || []).filter((item) => item.expiresAt && item.expiresAt.getTime() > Date.now())
   await user.save()
   await setAuthCookies(res, { accessToken, refreshToken: refreshTokenToSet })
