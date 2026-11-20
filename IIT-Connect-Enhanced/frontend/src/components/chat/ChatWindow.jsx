@@ -146,7 +146,7 @@ export default function ChatWindow({ conversation }) {
   }
 
   return (
-    <section className="flex min-h-[520px] min-w-0 flex-1 flex-col bg-slate-950/70">
+    <section className="chat-window flex min-h-[520px] min-w-0 flex-1 flex-col bg-slate-950/70">
       <header className="flex items-center gap-3 border-b border-slate-800 bg-slate-950/90 px-4 py-3">
         {conversation.type === 'dm' ? (
           <Avatar person={otherParticipant} />
@@ -155,7 +155,7 @@ export default function ChatWindow({ conversation }) {
             {conversation.type === 'community' ? '🌐' : '👥'}
           </div>
         )}
-        <div className="min-w-0 flex-1">
+        <div className="chat-message-input min-w-0 flex-1">
           <h2 className="truncate font-semibold text-white">{title}</h2>
           <p className="truncate text-xs text-slate-400">
             {conversation.type === 'dm'
@@ -169,7 +169,7 @@ export default function ChatWindow({ conversation }) {
         </div>
       </header>
 
-      <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950 to-slate-950 px-4 py-5 md:px-6">
+      <div ref={listRef} className="chat-message-list flex-1 space-y-4 overflow-y-auto px-4 py-5 md:px-6">
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[260px] flex-col items-center justify-center text-center">
             <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 text-2xl">✉️</div>
@@ -196,8 +196,8 @@ export default function ChatWindow({ conversation }) {
         )}
       </div>
 
-      <footer className="border-t border-slate-800 bg-slate-950/95 p-3 md:p-4">
-        <div className="flex items-end gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 p-2 focus-within:border-indigo-500/70">
+      <footer className="chat-composer border-t border-slate-800 p-3 md:p-4">
+        <div className="chat-composer-inner flex items-end gap-2 rounded-2xl border border-slate-700 p-2">
           <Input
             className="min-w-0 flex-1"
             label={null}
@@ -211,7 +211,7 @@ export default function ChatWindow({ conversation }) {
               }
             }}
           />
-          <Button onClick={send} disabled={!text.trim() || !socket || sending}>
+          <Button className="chat-action-button" onClick={send} disabled={!text.trim() || !socket || sending}>
             {sending ? 'Sending…' : 'Send'}
           </Button>
         </div>
