@@ -25,10 +25,18 @@ export const createTravelPost = asyncHandler(async (req,res) => {
   if(!categories.includes(category)) throw new ApiError(400,'Choose a valid trip category')
   if(!Number.isInteger(members)||members<1||members>50) throw new ApiError(400,'Maximum members must be between 1 and 50')
   if(!travelDate||Number.isNaN(travelDate.getTime())) throw new ApiError(400,'A valid trip date is required')
+  if(travelDate < new Date(new Date().toDateString())) throw new ApiError(400,'Trip start date cannot be in the past')
+  if(!/^\\d+(\\.\\d{1,2})?$/.test(budget)||Number(budget)<=0) throw new ApiError(400,'Enter a valid budget greater than zero')
   if(!['Train','Bus','Flight'].includes(travelMode)) throw new ApiError(400,'Choose Train, Bus or Flight')
   const booking=req.body.booking||{}
   const missing=requiredFields[travelMode].filter(key=>!clean(booking[key],160))
   if(missing.length) throw new ApiError(400,'Complete all required '+travelMode+' booking fields: '+missing.join(', '))
+  const departureDate=new Date(booking.departureDate+'T00:00:00')
+  const arrivalDate=new Date(booking.arrivalDate+'T00:00:00')
+  if(Number.isNaN(departureDate.getTime())||Number.isNaN(arrivalDate.getTime())) throw new ApiError(400,'Enter valid departure and arrival dates')
+  if(arrivalDate<departureDate) throw new ApiError(400,'Arrival date cannot be before departure date')
+  if(departureDate<travelDate) throw new ApiError(400,'Departure date cannot be before the trip start date')
+  if(booking.arrivalDate===booking.departureDate && booking.arrivalTime<=booking.departureTime) throw new ApiError(400,'Arrival time must be later than departure time')
   const safeBooking={}
   for(const key of bookingFields) {
     if (booking[key] !== undefined) safeBooking[key]=clean(booking[key],160)
