@@ -16,7 +16,8 @@ import Gallery from './pages/dashboard/Gallery.jsx'
 import Placement from './pages/dashboard/Placement.jsx'
 import Events from './pages/dashboard/Events.jsx'
 import Profile from './pages/dashboard/Profile.jsx'
-import Travel from './pages/dashboard/Travel.jsx'
+import Trip from './pages/dashboard/Trip.jsx'
+import TravelHome from './pages/dashboard/TravelHome.jsx'
 import Study from './pages/dashboard/Study.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
@@ -87,8 +88,9 @@ export default function App() {
         <Route path="gallery" element={<Gallery />} />
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
-        <Route path="trip" element={<Travel />} />
-        <Route path="travel" element={<Navigate to="/app/trip" replace />} />
+        <Route path="trip" element={<Trip />} />
+        <Route path="travel-home" element={<TravelHome />} />
+        <Route path="travel" element={<Navigate to="/app/travel-home" replace />} />
         <Route path="study" element={<Study />} />
         <Route path="profile" element={<Profile />} />
       </Route>

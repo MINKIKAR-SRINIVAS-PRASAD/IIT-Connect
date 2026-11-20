@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, UserRound, ShieldCheck, Network } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, Plane, UserRound, ShieldCheck, Network } from 'lucide-react'
 
 const links = [
   { to: '/app', label: 'Home', icon: Home, end: true },
@@ -11,6 +11,7 @@ const links = [
   { to: '/app/placements', label: 'Placements', icon: BriefcaseBusiness },
   { to: '/app/events', label: 'Events', icon: CalendarDays },
   { to: '/app/trip', label: 'Trip', icon: Compass },
+  { to: '/app/travel-home', label: 'Travel Home', icon: Plane },
   { to: '/app/profile', label: 'Profile', icon: UserRound }
 ]
 
@@ -35,7 +36,7 @@ export default function Sidebar() {
       </div>
     </aside>
     <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-white/10 bg-[#090c19]/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl md:hidden">
-      {links.slice(0,5).map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><Icon size={19}/><span>{label}</span></NavLink>)}
+      {links.filter(({label}) => ['Home','Chat','Trip','Travel Home','Profile'].includes(label)).map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><Icon size={19}/><span>{label}</span></NavLink>)}
       <NavLink to="/app/profile" className={({isActive}) => `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><UserRound size={19}/><span>Profile</span></NavLink>
     </nav>
   </>
