@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, UserRound, ShieldCheck, Network } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, Plane, UserRound, ShieldCheck, Network } from 'lucide-react'
 
 const links = [
   { to: '/app', label: 'Home', icon: Home, end: true },
@@ -11,6 +11,7 @@ const links = [
   { to: '/app/placements', label: 'Placements', icon: BriefcaseBusiness },
   { to: '/app/events', label: 'Events', icon: CalendarDays },
   { to: '/app/trip', label: 'Trip', icon: Compass },
+  { to: '/app/travel-home', label: 'Travel Home', icon: Plane },
   { to: '/app/profile', label: 'Profile', icon: UserRound }
 ]
 
