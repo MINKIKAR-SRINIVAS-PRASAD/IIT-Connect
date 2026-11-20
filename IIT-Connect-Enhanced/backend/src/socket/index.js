@@ -67,6 +67,11 @@ function allowUserEvent(userId, event, limit, windowMs = 60_000) {
   return true
 }
 
+export function broadcastMessageToConversation(conversationId, message) {
+  if (!socketServer) return
+  socketServer.to(String(conversationId)).emit('message:new', message)
+}
+
 export function notifyAdminsOfContentDeletion(notification) {
   if (!socketServer) return
   socketServer.to('admins').emit('admin:content-deleted', notification)
