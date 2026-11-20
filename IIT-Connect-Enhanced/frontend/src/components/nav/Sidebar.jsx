@@ -20,6 +20,7 @@ function Brand() {
 
 export default function Sidebar() {
   const { user } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const initials = (user?.profile?.name || user?.email || 'I').slice(0, 1).toUpperCase()
   return <>
     <aside className="dashboard-sidebar sticky top-0 hidden h-screen w-[258px] shrink-0 flex-col border-r border-white/[0.07] bg-[#090c19] px-4 py-5 md:flex">
