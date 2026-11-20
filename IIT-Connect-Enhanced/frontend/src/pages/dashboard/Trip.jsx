@@ -1,47 +1,37 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { MapPin, CalendarDays, Users, ArrowRight, Compass } from 'lucide-react'
-
-const categories = ['Trekking', 'Weekend Trips', 'Pilgrimage', 'Adventure', 'Sightseeing']
-const inputClass = 'mt-2 w-full rounded-xl border border-slate-700/80 bg-[#111a30] px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10'
-
-export default function Trip() {
-  const navigate = useNavigate()
-  const [form,setForm] = useState(() => { try { return JSON.parse(sessionStorage.getItem('iitconnect_trip_draft') || 'null') || {destination:'',location:'',category:'Weekend Trips',date:'',budget:'',members:'1',description:''} } catch { return {destination:'',location:'',category:'Weekend Trips',date:'',budget:'',members:'1',description:''} } })
-  const [error,setError] = useState('')
-  function change(e) { setForm(p=>({...p,[e.target.name]:e.target.value})); setError('') }
-  function next(e) {
-    e.preventDefault()
-    if (Object.values(form).some(v=>!String(v).trim())) { setError('Please complete every field before continuing.'); return }
-    if (!Number.isFinite(Number(form.budget)) || Number(form.budget) <= 0) { setError('Enter a valid budget greater than zero.'); return }
-    if (form.date < new Date().toISOString().slice(0,10)) { setError('Trip start date cannot be in the past.'); return }
-    if (form.description.trim().length < 5) { setError('Trip description must contain at least 5 characters.'); return }
-    if (Number(form.members)<1 || Number(form.members)>50) { setError('Maximum members must be between 1 and 50.'); return }
-    sessionStorage.setItem('iitconnect_trip_draft',JSON.stringify(form))
-    navigate('/app/travel-home')
-  }
-  return <div className="space-y-7 text-slate-100">
-    <section className="relative overflow-hidden rounded-[28px] border border-indigo-300/15 bg-[radial-gradient(ellipse_at_82%_8%,rgba(34,211,238,.22),transparent_34%),radial-gradient(ellipse_at_5%_100%,rgba(139,92,246,.25),transparent_38%),linear-gradient(120deg,#151b3b,#102b43_58%,#102f39)] p-6 shadow-xl md:p-9">
-      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-cyan-100"><Compass size={14}/> IIT CONNECT · TRIP COMMUNITY</div>
-      <h1 className="text-4xl font-black tracking-tight md:text-5xl">Plan your next<br/><span className="bg-gradient-to-r from-cyan-200 via-indigo-200 to-violet-300 bg-clip-text text-transparent">journey together.</span></h1>
-      <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 md:text-base">Start with your trip overview. Add your train, bus or flight booking information on the separate Travel Home page.</p>
-    </section>
-    <section className="overflow-hidden rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-[#182443] to-[#10192c] shadow-2xl shadow-black/30">
-      <header className="border-b border-white/10 bg-white/[.035] px-5 py-5 md:px-7"><p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">New journey · Step 1 of 2</p><h2 className="mt-1 text-2xl font-bold">Trip overview</h2><p className="mt-1 text-sm text-slate-400">All fields are mandatory.</p></header>
-      <form onSubmit={next} className="space-y-5 p-5 md:p-7">
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block text-sm text-slate-300">Destination<input required name="destination" value={form.destination} onChange={change} className={inputClass} placeholder="e.g. Hyderabad"/></label>
-          <label className="block text-sm text-slate-300">City / State / Country<input required name="location" value={form.location} onChange={change} className={inputClass} placeholder="e.g. Hyderabad, Telangana, India"/></label>
-          <label className="block text-sm text-slate-300">Category<select required name="category" value={form.category} onChange={change} className={inputClass}>{categories.map(c=><option key={c}>{c}</option>)}</select></label>
-          <label className="block text-sm text-slate-300">Trip start date<input required type="date" min={new Date().toISOString().slice(0,10)} name="date" value={form.date} onChange={change} className={inputClass}/></label>
-          <label className="block text-sm text-slate-300">Budget per person (₹)<input required type="number" min="1" name="budget" value={form.budget} onChange={change} className={inputClass} placeholder="Enter amount"/></label>
-          <label className="block text-sm text-slate-300">Maximum members<input required type="number" min="1" max="50" name="members" value={form.members} onChange={change} className={inputClass}/></label>
-          <label className="block text-sm text-slate-300 md:col-span-2">Trip description<textarea required minLength="5" maxLength="1000" rows="4" name="description" value={form.description} onChange={change} className={inputClass} placeholder="Share your plan, itinerary and what kind of travel partners you're looking for."/></label>
-        </div>
-        {error&&<p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-sm text-rose-200">{error}</p>}
-        <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-4 font-bold text-white shadow-lg transition hover:brightness-110">Continue to Travel Home <ArrowRight size={18}/></button>
-      </form>
-    </section>
-    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#121d33] p-4 text-sm text-slate-400"><MapPin size={18} className="shrink-0 text-cyan-300"/> Your trip overview is kept as a draft while you add the booking details on the next page.</div>
-  </div>
+import React,{useEffect,useMemo,useState} from 'react'
+import toast from 'react-hot-toast'
+import {Compass,MapPin,CalendarDays,Users,Plus,X,Search,CheckCircle2} from 'lucide-react'
+import {api} from '../../utils/api'
+import {useAuth} from '../../hooks/useAuth'
+const categories=['All','Trekking','Weekend Trips','Pilgrimage','Adventure','Sightseeing']
+const input='mt-2 w-full rounded-xl border border-slate-700/80 bg-[#111a30] px-3.5 py-3 text-sm text-slate-100 outline-none focus:border-cyan-400'
+const blank={destination:'',location:'',category:'Weekend Trips',date:'',budget:'',maxMembers:'2',description:''}
+export default function Trip(){
+ const {user}=useAuth()
+ const [trips,setTrips]=useState([]),[mine,setMine]=useState([]),[incoming,setIncoming]=useState([]),[requests,setRequests]=useState([])
+ const [form,setForm]=useState(blank),[show,setShow]=useState(false),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[category,setCategory]=useState('All'),[search,setSearch]=useState('')
+ async function load(){setLoading(true);try{const [a,b,c,d]=await Promise.all([api.get('/trips'),api.get('/trips/mine'),api.get('/trips/join-requests/incoming'),api.get('/trips/join-requests/mine')]);setTrips(a.data.trips||[]);setMine(b.data.trips||[]);setIncoming(c.data.requests||[]);setRequests(d.data.requests||[])}catch(e){toast.error(e?.response?.data?.message||'Could not load trip plans')}finally{setLoading(false)}}
+ useEffect(()=>{load()},[])
+ const filtered=useMemo(()=>trips.filter(t=>(category==='All'||t.category===category)&&(!search||[t.destination,t.location,t.description,t.authorId?.profile?.name,t.authorId?.profile?.iit].some(x=>String(x||'').toLowerCase().includes(search.toLowerCase())))),[trips,category,search])
+ async function submit(e){e.preventDefault();setSaving(true);try{await api.post('/trips',{...form,budget:Number(form.budget),maxMembers:Number(form.maxMembers)});toast.success('Your trip is now published for students to discover');setForm(blank);setShow(false);await load()}catch(e){toast.error(e?.response?.data?.message||'Could not publish trip')}finally{setSaving(false)}}
+ async function join(id){try{await api.post('/trips/'+id+'/join-requests');toast.success('Join request sent to organiser');await load()}catch(e){toast.error(e?.response?.data?.message||'Could not request to join')}}
+ async function respond(id,decision){try{await api.put('/trips/join-requests/'+id+'/respond',{decision});toast.success(decision==='accept'?'Student added to your trip':'Request declined');await load()}catch(e){toast.error(e?.response?.data?.message||'Could not update request')}}
+ async function cancel(id){if(!window.confirm('Cancel this trip? It will no longer appear in discovery.'))return;try{await api.delete('/trips/'+id);toast.success('Trip cancelled');await load()}catch(e){toast.error(e?.response?.data?.message||'Could not cancel trip')}}
+ const requested=new Map(requests.map(r=>[r.tripId?._id,r.status]))
+ return <div className="space-y-7 text-slate-100">
+ <section className="relative overflow-hidden rounded-[28px] border border-indigo-300/15 bg-[radial-gradient(ellipse_at_82%_8%,rgba(34,211,238,.22),transparent_34%),linear-gradient(120deg,#151b3b,#102b43_58%,#102f39)] p-7 md:p-9"><div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold text-cyan-100"><Compass size={14}/> IIT CONNECT · TRIP COMMUNITY</div><h1 className="mt-5 text-4xl font-black md:text-5xl">Plan together.<br/><span className="bg-gradient-to-r from-cyan-200 to-violet-300 bg-clip-text text-transparent">Explore together.</span></h1><p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">Publish a trip plan, discover journeys posted by students across IITs, and request to join. Trip planning is independent of Travel Home and booking details.</p><button onClick={()=>setShow(true)} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-3 text-sm font-bold"><Plus size={17}/> Create trip plan</button></section>
+ {show&&<section className="rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-[#182443] to-[#10192c] p-5 md:p-7"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-cyan-300">New community trip</p><h2 className="text-2xl font-bold">Trip details</h2></div><button onClick={()=>setShow(false)} className="rounded-lg border border-white/10 p-2"><X size={18}/></button></div><form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
+ <label className="text-sm text-slate-300">Destination<input required maxLength="120" className={input} placeholder="e.g. Araku Valley" value={form.destination} onChange={e=>setForm({...form,destination:e.target.value})}/></label>
+ <label className="text-sm text-slate-300">City / State / Country<input required maxLength="120" className={input} placeholder="e.g. Visakhapatnam, Andhra Pradesh, India" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/></label>
+ <label className="text-sm text-slate-300">Category<select className={input} value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.slice(1).map(x=><option key={x}>{x}</option>)}</select></label>
+ <label className="text-sm text-slate-300">Trip date<input required type="date" min={new Date().toISOString().slice(0,10)} className={input} value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/></label>
+ <label className="text-sm text-slate-300">Budget per person (₹)<input required type="number" min="1" className={input} value={form.budget} onChange={e=>setForm({...form,budget:e.target.value})}/></label>
+ <label className="text-sm text-slate-300">Maximum members (including you)<input required type="number" min="2" max="50" className={input} value={form.maxMembers} onChange={e=>setForm({...form,maxMembers:e.target.value})}/></label>
+ <label className="text-sm text-slate-300 md:col-span-2">Trip description<textarea required minLength="5" maxLength="1000" rows="4" className={input} placeholder="Itinerary, plan and the kind of travel partners you are looking for…" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label>
+ <button disabled={saving} className="rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-3.5 font-bold md:col-span-2 disabled:opacity-50">{saving?'Publishing…':'Publish trip plan'}</button></form></section>}
+ <section className="space-y-4"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Discover community plans</p><h2 className="text-2xl font-bold">Explore trips</h2></div><span className="text-sm text-slate-400">{filtered.length} trips</span></div><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search destination, campus or student…" className="w-full rounded-xl border border-white/10 bg-[#131e35] py-3 pl-11 pr-4 text-sm outline-none focus:border-cyan-400"/></div><div className="flex flex-wrap gap-2">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={'rounded-full px-4 py-2 text-xs font-semibold '+(category===c?'bg-cyan-400 text-[#071321]':'border border-white/10 bg-[#17223a] text-slate-400')}>{c}</button>)}</div>
+ {loading?<p className="p-8 text-center text-slate-400">Loading trips…</p>:filtered.length===0?<div className="rounded-2xl border border-dashed border-white/15 bg-[#121d33] p-10 text-center text-slate-400">No published trips yet. Create the first one!</div>:<div className="grid gap-4 lg:grid-cols-2">{filtered.map(t=><article key={t._id} className="rounded-2xl border border-indigo-200/10 bg-gradient-to-br from-[#1b2745] to-[#111a2e] p-5"><div className="flex justify-between gap-3"><span className="text-xs text-cyan-200">{t.category}</span><span className="text-xs text-slate-400">{new Date(t.travelDate).toLocaleDateString()}</span></div><h3 className="mt-3 text-xl font-bold">{t.destination}</h3><p className="text-sm text-slate-400"><MapPin size={13} className="mr-1 inline"/>{t.location}</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-300">{t.description}</p><div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-xs"><div><span className="block text-slate-500">Budget/person</span><b>₹{t.budget}</b></div><div><span className="block text-slate-500">Members</span><b>{t.currentMembers}/{t.maxMembers}</b></div><div><span className="block text-slate-500">Organiser</span><b>{t.authorId?.profile?.name||'Student'}</b><span className="block text-slate-500">{t.authorId?.profile?.iit}</span></div></div>{String(t.authorId?._id)!==String(user?._id)&&<div className="mt-4"><button disabled={requested.get(t._id)==='Pending'||requested.get(t._id)==='Accepted'||t.currentMembers>=t.maxMembers} onClick={()=>join(t._id)} className="w-full rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-4 py-2.5 text-sm font-semibold text-cyan-100 disabled:opacity-40">{requested.get(t._id)==='Pending'?'Request pending':requested.get(t._id)==='Accepted'?'Already joined':t.currentMembers>=t.maxMembers?'Trip full':'Request to join'}</button></div>}</article>)}</div>}</section>
+ {mine.length>0&&<section className="space-y-3"><h2 className="text-lg font-bold">My published trips</h2>{mine.map(t=><div key={t._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#151f36] p-4"><div><b>{t.destination}</b><p className="text-xs text-slate-400">{t.currentMembers}/{t.maxMembers} members · {new Date(t.travelDate).toLocaleDateString()}</p></div><button onClick={()=>cancel(t._id)} className="text-xs text-rose-300">Cancel trip</button></div>)}</section>}
+ {incoming.length>0&&<section className="space-y-3"><h2 className="text-lg font-bold">Requests to join my trips</h2>{incoming.map(r=><div key={r._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-200/15 bg-[#17243d] p-4"><div><b>{r.requesterId?.profile?.name||'Student'}</b><p className="text-xs text-slate-400">{r.tripId?.destination} · {r.requesterId?.profile?.iit}</p></div><div className="flex gap-2"><button onClick={()=>respond(r._id,'accept')} className="rounded-lg bg-emerald-500/20 px-3 py-2 text-xs text-emerald-200">Accept</button><button onClick={()=>respond(r._id,'decline')} className="rounded-lg bg-rose-500/15 px-3 py-2 text-xs text-rose-200">Decline</button></div></div>)}</section>}
+ </div>
 }
