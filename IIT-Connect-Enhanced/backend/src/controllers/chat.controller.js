@@ -4,7 +4,8 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
 import ConversationPreference from '../models/ConversationPreference.js'
-import { removeUserFromConversation, broadcastMessageToConversation } from '../socket/index.js'
+import { removeUserFromConversation, broadcastMessageToConversation, isUserViewingConversation } from '../socket/index.js'
+import { sendPushToUser } from '../services/pushNotifications.js'
 
 function isConversationMember(conversation, userId) {
   return Boolean(conversation?.participants?.some((participant) => participant.toString() === userId.toString()))
@@ -230,6 +231,26 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   // HTTP confirms persistence; Socket.IO only distributes the saved event to active members.
   broadcastMessageToConversation(conversation._id.toString(), payload)
+  // Notify only recipients who are not actively viewing this conversation.
+  const recipientIds = conversation.participants
+    .map((participant) => participant.toString())
+    .filter((participantId) => participantId !== req.user._id.toString())
+  const recipientPreferences = await ConversationPreference.find({
+    userId: { $in: recipientIds },
+    conversationId: conversation._id,
+    muted: true
+  }).select('userId').lean()
+  const mutedUsers = new Set(recipientPreferences.map((item) => item.userId.toString()))
+  const senderName = req.user.profile?.name || (req.user.role === 'admin' ? 'Admin' : 'A student')
+  await Promise.all(recipientIds.map(async (recipientId) => {
+    if (mutedUsers.has(recipientId) || isUserViewingConversation(recipientId, conversation._id.toString())) return
+    await sendPushToUser(recipientId, {
+      title: senderName,
+      body: conversation.type === 'dm' ? 'Sent you a message' : `New message in ${conversation.title || 'your group'}`,
+      url: '/app/chat'
+    })
+  }))
+
   res.status(201).json({ success: true, message: payload })
 })
 
