@@ -42,6 +42,9 @@ async function sendOtpEmail(email, otp) {
     throw new ApiError(503, 'Email verification is not configured yet. Please contact the administrator.')
   }
 
+  const recipient = env.OTP_TEST_MODE ? env.OTP_TEST_RECIPIENT : email
+  if (!recipient) throw new ApiError(503, 'Temporary OTP test recipient is not configured')
+
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -50,7 +53,7 @@ async function sendOtpEmail(email, otp) {
     },
     body: JSON.stringify({
       from: env.EMAIL_FROM,
-      to: [email],
+      to: [recipient],
       subject: 'Your IIT Connect verification code',
       text: `Your IIT Connect verification code is ${otp}. It expires in 5 minutes. If you did not request this code, you can ignore this email.`,
       html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;color:#183323"><h2>Verify your IIT Connect email</h2><p>Use this one-time password to finish creating your account:</p><div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:18px;background:#f1f5ed;border-radius:12px;text-align:center">${otp}</div><p>This code expires in 5 minutes. Do not share it with anyone.</p><p style="color:#718075;font-size:12px">If you did not request this code, you can safely ignore this email.</p></div>`
@@ -68,7 +71,8 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
   const { password } = req.body
 
-  if (!isAllowedIitEmail(email)) throw new ApiError(400, 'Only approved IIT student email addresses are allowed')
+  const isTemporaryTestEmail = env.OTP_TEST_MODE && env.OTP_TEST_EMAIL && email === env.OTP_TEST_EMAIL
+  if (!isAllowedIitEmail(email) && !isTemporaryTestEmail) throw new ApiError(400, 'Only approved IIT student email addresses are allowed')
   if (getRoleForEmail(email) === 'admin') throw new ApiError(403, 'Administrator accounts are provisioned separately')
   if (await User.exists({ email })) throw new ApiError(409, 'Email already registered')
 
