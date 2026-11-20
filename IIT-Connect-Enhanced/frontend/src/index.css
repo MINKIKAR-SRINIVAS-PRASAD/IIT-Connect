@@ -1249,3 +1249,99 @@ main, section, article, aside { scrollbar-color: #596257 #171b18; }
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { animation: none !important; transition: none !important; }
 }
+
+/* Chat page refinement: dark message canvas, readable bubbles, cohesive controls */
+.dashboard-shell .chat-workspace {
+  background: #171e19 !important;
+  border-color: rgba(205,220,194,.14) !important;
+}
+.dashboard-shell .chat-workspace .chat-window { background: #171e19 !important; color: #edf0e8 !important; }
+.dashboard-shell .chat-workspace .chat-window > header {
+  background: #202922 !important;
+  border-color: rgba(205,220,194,.12) !important;
+}
+.dashboard-shell .chat-workspace .chat-message-list {
+  background: radial-gradient(ellipse at top,rgba(117,143,103,.09),transparent 48%),#121814 !important;
+  color: #edf0e8 !important;
+}
+.dashboard-shell .chat-workspace .chat-composer {
+  background: #171e19 !important;
+  border-color: rgba(205,220,194,.13) !important;
+}
+.dashboard-shell .chat-workspace .chat-composer-inner {
+  background: #202922 !important;
+  border-color: rgba(205,220,194,.18) !important;
+}
+.dashboard-shell .chat-workspace .chat-message-input,
+.dashboard-shell .chat-workspace .chat-message-input input,
+.dashboard-shell .chat-workspace .chat-message-input textarea {
+  background: #111713 !important;
+  color: #f0f1e9 !important;
+  border-color: rgba(205,220,194,.16) !important;
+}
+.dashboard-shell .chat-workspace .chat-message-input::placeholder,
+.dashboard-shell .chat-workspace .chat-message-input input::placeholder { color: #879283 !important; }
+.dashboard-shell .chat-workspace .chat-message-input:focus,
+.dashboard-shell .chat-workspace .chat-message-input input:focus {
+  border-color: #9ab58a !important;
+  box-shadow: 0 0 0 3px rgba(154,181,138,.12) !important;
+}
+.dashboard-shell .chat-workspace .chat-action-button,
+.dashboard-shell .chat-workspace button.chat-action-button {
+  background: linear-gradient(110deg,#78936c,#a2bd91) !important;
+  color: #111810 !important;
+  border: 1px solid #9bb88b !important;
+  box-shadow: 0 7px 18px rgba(0,0,0,.18) !important;
+}
+.dashboard-shell .chat-workspace .chat-action-button:hover:not(:disabled) {
+  background: linear-gradient(110deg,#8da982,#b2c99f) !important;
+  color: #10170f !important;
+}
+.dashboard-shell .chat-workspace .chat-action-button:disabled {
+  background: #394439 !important;
+  color: #aab5a3 !important;
+  border-color: #465345 !important;
+  opacity: .72 !important;
+}
+.dashboard-shell .chat-workspace .chat-secondary-button {
+  background: #2a352b !important;
+  color: #dce8d2 !important;
+  border-color: rgba(183,207,165,.24) !important;
+}
+.dashboard-shell .chat-workspace .chat-ghost-button {
+  background: transparent !important;
+  color: #d5ddcf !important;
+  border-color: rgba(205,220,194,.16) !important;
+}
+.dashboard-shell .chat-workspace .chat-ghost-button:hover { background: #29332b !important; }
+.dashboard-shell .chat-workspace aside {
+  background: #1a211c !important;
+  border-color: rgba(205,220,194,.13) !important;
+}
+.dashboard-shell .chat-workspace aside > div { border-color: rgba(205,220,194,.12) !important; }
+.dashboard-shell .chat-workspace aside input {
+  background: #111713 !important;
+  color: #edf0e8 !important;
+  border-color: rgba(205,220,194,.17) !important;
+}
+.dashboard-shell .chat-workspace aside input::placeholder { color: #879283 !important; }
+.dashboard-shell .chat-workspace aside .bg-indigo-500\/10 {
+  background: rgba(154,181,138,.13) !important;
+}
+.dashboard-shell .chat-workspace aside .border-indigo-500\/50 {
+  border-color: rgba(174,202,154,.4) !important;
+}
+.dashboard-shell .chat-workspace aside .bg-slate-900\/50,
+.dashboard-shell .chat-workspace aside .bg-slate-900\/30 {
+  background: #202922 !important;
+}
+.dashboard-shell .chat-workspace aside .hover\:bg-slate-800:hover,
+.dashboard-shell .chat-workspace aside summary:hover { background: #303b31 !important; }
+.dashboard-shell .chat-workspace aside .text-indigo-300,
+.dashboard-shell .chat-workspace aside .hover\:text-indigo-200:hover { color: #c3d7b2 !important; }
+.dashboard-shell .chat-workspace .chat-message-list .bg-slate-900,
+.dashboard-shell .chat-workspace .chat-message-list .bg-slate-950 {
+  background: #1d261f !important;
+}
+.dashboard-shell .chat-workspace .chat-message-list .text-cyan-300 { color: #c1d5ad !important; }
+.dashboard-shell .chat-workspace .chat-message-list .border-slate-700 { border-color: rgba(205,220,194,.16) !important; }
