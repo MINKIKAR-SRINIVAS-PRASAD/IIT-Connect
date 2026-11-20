@@ -171,13 +171,12 @@ export const refresh = asyncHandler(async (req, res) => {
   if (!session || !session.expiresAt || session.expiresAt.getTime() <= Date.now()) throw new ApiError(401, 'Unauthorized')
   if (!await bcrypt.compare(refreshToken, session.tokenHash)) throw new ApiError(401, 'Unauthorized')
 
+  // Keep the refresh token stable until its JWT expiry. This avoids concurrent
+  // tab/page refreshes invalidating one another while still revoking per-device on logout.
   const accessToken = signAccessToken(user._id.toString())
-  const newRefreshToken = signRefreshToken(user._id.toString(), session.sessionId)
-  const newPayload = jwt.decode(newRefreshToken)
-  session.tokenHash = await bcrypt.hash(newRefreshToken, 12)
-  session.expiresAt = new Date(newPayload.exp * 1000)
+  const refreshTokenToSet = payload.jti ? refreshToken : (session ? refreshToken : refreshToken)
   user.refreshSessions = (user.refreshSessions || []).filter((item) => item.expiresAt && item.expiresAt.getTime() > Date.now())
   await user.save()
-  await setAuthCookies(res, { accessToken, refreshToken: newRefreshToken })
+  await setAuthCookies(res, { accessToken, refreshToken: refreshTokenToSet })
   res.json({ success: true })
 })
