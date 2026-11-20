@@ -114,12 +114,36 @@ export default function ChatWindow({ conversation }) {
     if (!socket || !conversation?._id || sending) return
     const cleanText = text.trim()
     if (!cleanText) return
+
     setSending(true)
-    socket.emit('message:send', { conversationId: conversation._id, text: cleanText })
-    setText('')
-    socket.emit('conversation:typing', { conversationId: conversation._id, isTyping: false })
-    setTyping(false)
-    setSending(false)
+    try {
+      const response = await new Promise((resolve, reject) => {
+        socket.timeout(8000).emit(
+          'message:send',
+          { conversationId: conversation._id, text: cleanText },
+          (timeoutError, result) => {
+            if (timeoutError) return reject(new Error('Chat server did not confirm delivery. Please retry.'))
+            resolve(result)
+          }
+        )
+      })
+
+      if (!response?.success || !response.message) {
+        throw new Error(response?.message || 'Message could not be sent. Please try again.')
+      }
+
+      const savedMessage = response.message
+      setMessages((previous) => previous.some((item) => item._id === savedMessage._id)
+        ? previous
+        : [...previous, savedMessage])
+      setText('')
+      socket.emit('conversation:typing', { conversationId: conversation._id, isTyping: false })
+      setTyping(false)
+    } catch (error) {
+      window.alert(error?.message || 'Message could not be sent. Please try again.')
+    } finally {
+      setSending(false)
+    }
   }
 
   function onTextChange(event) {
