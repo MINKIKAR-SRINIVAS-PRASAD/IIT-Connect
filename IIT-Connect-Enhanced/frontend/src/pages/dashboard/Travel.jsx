@@ -78,8 +78,19 @@ export default function Travel() {
 
   async function createTrip(event) {
     event.preventDefault()
-    if (!form.destination.trim() || !form.location.trim() || !form.description.trim()) {
-      toast.error('Please fill all required fields')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedDate = form.date ? new Date(`${form.date}T00:00:00`) : null
+    if (!form.destination.trim() || !form.location.trim() || !form.category || !form.date || !form.budget.trim() || !form.members || !form.description.trim()) {
+      toast.error('Please complete every field before publishing')
+      return
+    }
+    if (!selectedDate || Number.isNaN(selectedDate.getTime()) || selectedDate < today) {
+      toast.error('Choose a valid travel date that is today or later')
+      return
+    }
+    if (!Number.isInteger(Number(form.members)) || Number(form.members) < 1 || Number(form.members) > 50) {
+      toast.error('Maximum members must be between 1 and 50')
       return
     }
 
