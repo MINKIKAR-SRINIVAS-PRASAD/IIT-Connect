@@ -143,16 +143,29 @@ export function initSocket(httpServer, corsOrigin) {
       }
     })
 
-    socket.on('message:send', async (payload = {}) => {
+    socket.on('message:send', async (payload = {}, acknowledge = () => {}) => {
+      const ack = typeof acknowledge === 'function' ? acknowledge : () => {}
       try {
-        if (!allowUserEvent(userId, 'message', 20)) return
+        if (!allowUserEvent(userId, 'message', 20)) {
+          ack({ success: false, message: 'You are sending messages too quickly. Please wait and try again.' })
+          return
+        }
         const { conversationId, text } = payload || {}
-        if (typeof text !== 'string') return
+        if (typeof text !== 'string') {
+          ack({ success: false, message: 'Message text is invalid.' })
+          return
+        }
         const cleanText = text.trim()
-        if (!cleanText || cleanText.length > 2000) return
+        if (!cleanText || cleanText.length > 2000) {
+          ack({ success: false, message: 'Message must contain 1–2000 characters.' })
+          return
+        }
 
         const conversation = await findAuthorizedConversation(conversationId, userId)
-        if (!conversation) return
+        if (!conversation) {
+          ack({ success: false, message: 'You are not a member of this conversation. Refresh and reopen it.' })
+          return
+        }
 
         const roomId = conversation._id.toString()
         const msg = await Message.create({
@@ -166,8 +179,8 @@ export function initSocket(httpServer, corsOrigin) {
         conversation.lastMessageText = msg.text
         await conversation.save()
 
-        io.to(roomId).emit('message:new', {
-          _id: msg._id,
+        const messagePayload = {
+          _id: msg._id.toString(),
           conversationId: roomId,
           senderId: userId,
           sender: {
@@ -179,10 +192,16 @@ export function initSocket(httpServer, corsOrigin) {
           },
           text: msg.text,
           createdAt: msg.createdAt,
-          seenBy: msg.seenBy
-        })
+          seenBy: [userId]
+        }
+
+        // Acknowledge and update the sender even if room membership has not synced yet.
+        ack({ success: true, message: messagePayload })
+        socket.emit('message:new', messagePayload)
+        socket.to(roomId).emit('message:new', messagePayload)
       } catch (error) {
         console.error('Message send failed:', error.message)
+        ack({ success: false, message: 'Message could not be saved. Please try again.' })
       }
     })
 
