@@ -22,6 +22,10 @@ export default function Profile() {
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [busy, setBusy] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordBusy, setPasswordBusy] = useState(false)
 
   useEffect(() => {
     if (!photo) {
@@ -41,6 +45,22 @@ export default function Profile() {
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
   }, [user?.id])
+
+  async function changePassword(e) {
+    e.preventDefault()
+    if (newPassword.length < 8) return toast.error('New password must be at least 8 characters')
+    if (newPassword !== confirmPassword) return toast.error('New passwords do not match')
+    setPasswordBusy(true)
+    try {
+      await api.post('/auth/change-password', { currentPassword, newPassword })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      toast.success('Password changed successfully')
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Could not change password')
+    } finally { setPasswordBusy(false) }
+  }
 
   const hasPhoto = Boolean(user?.profile?.photoUrl || photo)
 
@@ -155,6 +175,17 @@ export default function Profile() {
           <Button disabled={busy}>{busy ? 'Saving...' : 'Save profile'}</Button>
         </div>
       </div>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
+        <h2 className="text-lg font-semibold">Change password</h2>
+        <p className="mt-1 text-sm text-slate-400">Use your current password to set a new one.</p>
+        <form onSubmit={changePassword} className="mt-4 grid gap-3 md:grid-cols-3">
+          <Input label="Current password" type="password" autoComplete="current-password" value={currentPassword} required onChange={e=>setCurrentPassword(e.target.value)} />
+          <Input label="New password (8+ characters)" type="password" autoComplete="new-password" value={newPassword} minLength={8} required onChange={e=>setNewPassword(e.target.value)} />
+          <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirmPassword} minLength={8} required onChange={e=>setConfirmPassword(e.target.value)} />
+          <div className="md:col-span-3"><Button disabled={passwordBusy}>{passwordBusy ? 'Updating password…' : 'Change password'}</Button></div>
+        </form>
+      </section>
 
       <NotificationSettings />
 
