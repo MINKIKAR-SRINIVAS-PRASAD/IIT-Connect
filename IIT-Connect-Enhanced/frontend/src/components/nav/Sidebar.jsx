@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, Plane, UserRound, ShieldCheck, Network, X } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, Plane, UserRound, ShieldCheck, Network, X, LogOut } from 'lucide-react'
 
 const links = [
   { to: '/app', label: 'Home', icon: Home, end: true },
@@ -19,7 +20,8 @@ function Brand() {
 }
 
 export default function Sidebar() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const initials = (user?.profile?.name || user?.email || 'I').slice(0, 1).toUpperCase()
   return <>
@@ -50,6 +52,7 @@ export default function Sidebar() {
           <NavLink to="/app/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-slate-300"><UserRound size={17}/>Profile</NavLink>
           {user?.role === 'admin' && <NavLink to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-3 text-sm text-emerald-200"><ShieldCheck size={17}/>Admin</NavLink>}
         </div>
+        <button type="button" onClick={async () => { setMobileMenuOpen(false); try { await logout(); navigate('/login', { replace: true }) } catch { navigate('/login', { replace: true }) } }} className="mt-3 flex w-full items-center gap-2 rounded-xl border border-rose-400/15 bg-rose-400/[0.05] px-3 py-3 text-sm font-medium text-rose-200"><LogOut size={17}/>Sign out</button>
       </section>
     </div>}
   </>
