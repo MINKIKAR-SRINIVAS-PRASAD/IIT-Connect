@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
 
     profile: {
       name: { type: String, default: '' },
+      rollNumber: { type: String, default: '', trim: true, uppercase: true, index: true },
       iit: { type: String, default: '' },
       branch: { type: String, default: '' },
       batch: { type: String, default: '' },
