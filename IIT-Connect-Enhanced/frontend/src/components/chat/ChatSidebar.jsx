@@ -81,7 +81,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
           <Button className="chat-ghost-button" variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
         </div>
         <div className="mt-3">
-          <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or institute..." />
+          <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or roll number..." />
         </div>
         {(() => {
           const hasCommunity = convos.some((conversation) => conversation.type === 'community')
@@ -162,6 +162,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-slate-100">{person.profile?.name || 'Student'}</div>
+                {person.profile?.rollNumber && <div className="truncate text-[11px] text-slate-500">{person.profile.rollNumber}</div>}
                 <div className="truncate text-xs text-slate-400">{[person.profile?.iit, person.profile?.branch].filter(Boolean).join(' • ') || 'IIT student'}</div>
               </div>
               <Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button>
