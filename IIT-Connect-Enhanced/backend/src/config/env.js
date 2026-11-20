@@ -7,6 +7,8 @@ export const env = {
   PORT: Number(process.env.PORT || 8080),
   CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   MONGO_URI: process.env.MONGO_URI,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM,
   DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL?.trim().toLowerCase(),
   DEFAULT_ADMIN_PASSWORD: process.env.DEFAULT_ADMIN_PASSWORD,
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
