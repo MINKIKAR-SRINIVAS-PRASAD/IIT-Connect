@@ -34,8 +34,8 @@ export default function Sidebar() {
         <div className="mt-3 flex items-center gap-2 text-[9px] font-semibold tracking-[.12em] text-emerald-300/80"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400"/> CONNECTED COMMUNITY</div>
       </NavLink>
     </aside>
-    <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-white/10 bg-[#090c19]/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl md:hidden">
-      {links.filter(({label}) => ['Home','Chat','Trip','Travel Home'].includes(label)).map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><Icon size={19}/><span>{label}</span></NavLink>)}
+    <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-start overflow-x-auto border-t border-white/10 bg-[#090c19]/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl md:hidden">
+      {links.map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `flex min-w-[64px] shrink-0 flex-col items-center gap-1 rounded-lg py-1.5 text-[9px] font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}`}><Icon size={19}/><span>{label}</span></NavLink>)}
     </nav>
   </>
 }
