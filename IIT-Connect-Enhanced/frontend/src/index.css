@@ -929,3 +929,323 @@ body {
 @media (max-width: 1023px) {
   .auth-shell .auth-card { color: #20304b !important; }
 }
+
+ 
+/* =========================================================
+   IIT CONNECT — UNIFIED GRAPHITE NIGHT THEME
+   Neutral charcoal surfaces, warm ivory typography, sage accents.
+   Applied consistently to landing, auth, student and admin pages.
+   ========================================================= */
+:root {
+  color-scheme: dark;
+  --ic-bg: #101211;
+  --ic-panel: #191d1a;
+  --ic-panel-2: #202622;
+  --ic-ink: #f2f1e9;
+  --ic-muted: #b0b7ae;
+  --ic-line: rgba(220,229,214,.12);
+  --ic-accent: #a8c49a;
+  --ic-accent-strong: #c2d8ae;
+  --ic-accent-soft: rgba(168,196,154,.13);
+  --ic-warm: #d6b987;
+}
+html, body, #root {
+  min-height: 100%;
+  background: #101211 !important;
+  color: var(--ic-ink) !important;
+}
+body {
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(133,157,119,.09),transparent 35%),
+    radial-gradient(ellipse at 90% 75%,rgba(181,151,105,.055),transparent 32%),
+    linear-gradient(145deg,#101211 0%,#151a17 52%,#101311 100%) !important;
+  color: var(--ic-ink) !important;
+}
+::selection { background: rgba(168,196,154,.32); color: #fff; }
+
+/* Global readable text hierarchy */
+.dashboard-shell, .landing-shell, .auth-shell, .admin-layout,
+main, section, article, aside { scrollbar-color: #596257 #171b18; }
+.dashboard-shell .text-white,
+.landing-shell .text-white { color: #f4f2e9 !important; }
+.dashboard-shell .text-slate-100,
+.landing-shell .text-slate-100 { color: #eceee6 !important; }
+.dashboard-shell .text-slate-200,
+.landing-shell .text-slate-200 { color: #d9ded4 !important; }
+.dashboard-shell .text-slate-300,
+.landing-shell .text-slate-300 { color: #c2c9be !important; }
+.dashboard-shell .text-slate-400,
+.landing-shell .text-slate-400 { color: #a7b0a4 !important; }
+.dashboard-shell .text-slate-500,
+.landing-shell .text-slate-500 { color: #8b9689 !important; }
+.dashboard-shell .text-slate-600,
+.landing-shell .text-slate-600 { color: #778275 !important; }
+.dashboard-shell .text-indigo-200,
+.dashboard-shell .text-indigo-300,
+.dashboard-shell .text-indigo-400,
+.dashboard-shell .text-cyan-100,
+.dashboard-shell .text-cyan-200,
+.dashboard-shell .text-cyan-300,
+.dashboard-shell .text-cyan-400,
+.dashboard-shell .text-violet-200,
+.dashboard-shell .text-violet-300 { color: #b9cda9 !important; }
+
+/* Landing page */
+.landing-shell {
+  color: #f2f1e9 !important;
+  background:
+    radial-gradient(ellipse at 18% 8%,rgba(133,157,119,.11),transparent 35%),
+    linear-gradient(145deg,#101311,#171c18 56%,#111512) !important;
+}
+.landing-shell .landing-nav,
+.dashboard-topbar {
+  background: rgba(24,29,25,.94) !important;
+  border-color: var(--ic-line) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,.22) !important;
+}
+.landing-shell .hero-gradient-text,
+.dashboard-shell .home-gradient-text {
+  background: linear-gradient(100deg,#e4d6b8 0%,#c2d5ae 52%,#9ebd9b 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+.landing-shell .section-kicker,
+.dashboard-shell .section-kicker { color: #c0d2ad !important; }
+.landing-shell .ambient-glow-a { background: #879c77 !important; opacity: .15 !important; }
+.landing-shell .ambient-glow-b { background: #b49b70 !important; opacity: .1 !important; }
+.landing-shell .feature-panel,
+.landing-shell .mission-panel,
+.landing-shell .network-stage .bg-slate-900\/85 {
+  background: linear-gradient(145deg,#242b25,#1a211c) !important;
+  border-color: var(--ic-line) !important;
+  box-shadow: 0 18px 44px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.035) !important;
+}
+.landing-shell .feature-violet,
+.landing-shell .feature-cyan,
+.landing-shell .feature-amber,
+.landing-shell .feature-rose {
+  background: linear-gradient(145deg,#293129,#1c231e) !important;
+}
+.landing-shell .feature-panel h3 { color: #f1f0e8 !important; }
+.landing-shell .feature-panel p { color: #b9c2b5 !important; }
+.landing-shell #community,
+.landing-shell #platform,
+.landing-shell #mission {
+  background: linear-gradient(180deg,rgba(25,31,26,.72),rgba(17,22,19,.94)) !important;
+  border-color: var(--ic-line) !important;
+}
+.landing-shell .orbit-core {
+  background: radial-gradient(circle at 30% 20%,#59684f,#28332a 75%) !important;
+  border-color: rgba(196,216,178,.28) !important;
+  box-shadow: 0 0 0 14px rgba(168,196,154,.06),0 25px 80px rgba(0,0,0,.3) !important;
+}
+.landing-shell footer {
+  background: #111613 !important;
+  border-color: var(--ic-line) !important;
+}
+
+/* Auth pages — dark cards and warm accent buttons */
+.auth-shell {
+  background:
+    radial-gradient(ellipse at 12% 15%,rgba(129,151,111,.18),transparent 38%),
+    radial-gradient(ellipse at 88% 82%,rgba(173,145,102,.1),transparent 34%),
+    linear-gradient(135deg,#101411,#202820 55%,#141a15) !important;
+}
+.auth-card,
+.auth-shell .auth-card {
+  background: linear-gradient(145deg,#202722,#181e1a) !important;
+  color: #f1f0e8 !important;
+  border: 1px solid var(--ic-line) !important;
+  box-shadow: 0 30px 80px rgba(0,0,0,.38) !important;
+}
+.auth-card h2, .auth-shell .auth-card h2 { color: #f3f1e8 !important; }
+.auth-card p, .auth-shell .auth-card p { color: #aeb8aa !important; }
+.auth-label, .auth-shell .auth-card .auth-label { color: #d0d8ca !important; }
+.auth-gradient {
+  background: linear-gradient(100deg,#e2d2b1,#bcd0a9) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.auth-input-wrap,
+.auth-shell .auth-card .auth-input-wrap {
+  background: #121814 !important;
+  border-color: rgba(210,224,201,.18) !important;
+}
+.auth-input-wrap input,
+.auth-shell .auth-card .auth-input-wrap input { color: #f3f2ea !important; }
+.auth-input-wrap input::placeholder { color: #788476 !important; }
+.auth-shell .auth-card .auth-submit {
+  background: linear-gradient(110deg,#78936c,#9ab58a) !important;
+  color: #101710 !important;
+  box-shadow: 0 12px 28px rgba(103,139,89,.2) !important;
+}
+.auth-shell .auth-card a { color: #c2d6b1 !important; }
+.auth-shell section h1 { color: #f5f3e9 !important; }
+.auth-shell section > div > p,
+.auth-shell section p.text-base { color: #c1c9bc !important; }
+
+/* Student + admin workspaces */
+.dashboard-shell {
+  color: #f1f0e8 !important;
+  background:
+    radial-gradient(ellipse at 82% 0%,rgba(133,157,119,.09),transparent 36%),
+    radial-gradient(ellipse at 3% 78%,rgba(176,150,108,.045),transparent 32%),
+    linear-gradient(145deg,#101411 0%,#171d19 52%,#111612 100%) !important;
+}
+.dashboard-atmosphere {
+  background: radial-gradient(ellipse at 40% 10%,rgba(168,196,154,.055),transparent 42%) !important;
+}
+.dashboard-sidebar {
+  background: linear-gradient(180deg,#1d251f 0%,#171e19 55%,#141a16 100%) !important;
+  border-color: var(--ic-line) !important;
+  box-shadow: 12px 0 42px rgba(0,0,0,.24) !important;
+}
+.dashboard-topbar {
+  background: rgba(26,33,28,.94) !important;
+}
+.dashboard-shell .sidebar-link-active {
+  color: #e6f0dc !important;
+  background: linear-gradient(100deg,rgba(168,196,154,.18),rgba(168,196,154,.07)) !important;
+  box-shadow: inset 3px 0 0 #a8c49a,inset 0 0 0 1px rgba(168,196,154,.1) !important;
+}
+.dashboard-shell .sidebar-link-active svg { color: #c3d7b2 !important; }
+.dashboard-shell .home-hero,
+.dashboard-shell .admin-dashboard .admin-hero,
+.dashboard-shell .admin-dashboard > section:first-child {
+  background:
+    radial-gradient(ellipse at 88% 0%,rgba(185,204,157,.18),transparent 40%),
+    radial-gradient(ellipse at 4% 100%,rgba(190,163,117,.12),transparent 42%),
+    linear-gradient(115deg,#303b30,#26332a 58%,#202b23) !important;
+  border-color: rgba(207,222,194,.16) !important;
+  box-shadow: 0 22px 55px rgba(0,0,0,.22) !important;
+}
+.dashboard-shell .home-hero h1,
+.dashboard-shell .home-hero h2,
+.dashboard-shell .home-hero p { color: #f3f2e9 !important; }
+.dashboard-shell .home-hero .text-slate-300,
+.dashboard-shell .home-hero .text-slate-400 { color: #d0d8c9 !important; }
+.dashboard-shell .home-hero-grid {
+  background-image: linear-gradient(rgba(221,232,211,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(221,232,211,.07) 1px,transparent 1px) !important;
+}
+.dashboard-shell .quick-tile,
+.dashboard-shell .event-card,
+.dashboard-shell .admin-dashboard .stat-card,
+.dashboard-shell .admin-dashboard > section:nth-child(2) > article {
+  background: linear-gradient(145deg,#252e27,#1b241e) !important;
+  border-color: var(--ic-line) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.025) !important;
+}
+.dashboard-shell .quick-violet,
+.dashboard-shell .quick-cyan,
+.dashboard-shell .quick-amber,
+.dashboard-shell .quick-rose,
+.dashboard-shell .admin-dashboard > section:nth-child(2) > article:nth-child(2),
+.dashboard-shell .admin-dashboard > section:nth-child(2) > article:nth-child(3) {
+  background: linear-gradient(145deg,#2b352b,#202921) !important;
+}
+.dashboard-shell .quick-tile h3,
+.dashboard-shell .quick-tile p,
+.dashboard-shell .event-card h3,
+.dashboard-shell .event-card p { color: #e8ece2 !important; }
+.dashboard-shell .quick-tile:hover,
+.dashboard-shell .event-card:hover {
+  border-color: rgba(190,214,174,.3) !important;
+  box-shadow: 0 22px 44px rgba(0,0,0,.28) !important;
+}
+.dashboard-shell .mobile-bottom-nav {
+  background: rgba(22,29,24,.97) !important;
+  border-color: var(--ic-line) !important;
+  box-shadow: 0 -12px 38px rgba(0,0,0,.3) !important;
+}
+.dashboard-shell .bg-white,
+.dashboard-shell .bg-white\/80,
+.dashboard-shell .bg-white\/85,
+.dashboard-shell .bg-white\/90 {
+  background: linear-gradient(145deg,#222b24,#1a211c) !important;
+}
+.dashboard-shell .bg-slate-950,
+.dashboard-shell .bg-slate-950\/30,
+.dashboard-shell .bg-slate-950\/40,
+.dashboard-shell .bg-slate-950\/50,
+.dashboard-shell .bg-slate-950\/60,
+.dashboard-shell .bg-slate-950\/70,
+.dashboard-shell .bg-slate-900,
+.dashboard-shell .bg-slate-900\/30,
+.dashboard-shell .bg-slate-900\/40,
+.dashboard-shell .bg-slate-900\/50,
+.dashboard-shell .bg-slate-900\/60,
+.dashboard-shell .bg-slate-900\/80 {
+  background: linear-gradient(145deg,#222b24,#19211b) !important;
+}
+.dashboard-shell input:not([type="checkbox"]):not([type="radio"]),
+.dashboard-shell textarea,
+.dashboard-shell select {
+  background: #111713 !important;
+  border-color: rgba(207,222,194,.18) !important;
+  color: #f0f1e9 !important;
+}
+.dashboard-shell input::placeholder,
+.dashboard-shell textarea::placeholder { color: #849080 !important; }
+.dashboard-shell input:focus,
+.dashboard-shell textarea:focus,
+.dashboard-shell select:focus {
+  border-color: #a8c49a !important;
+  box-shadow: 0 0 0 3px rgba(168,196,154,.1) !important;
+}
+.dashboard-shell .bg-indigo-600,
+.dashboard-shell .bg-cyan-500,
+.dashboard-shell .bg-cyan-600,
+.dashboard-shell .bg-blue-600 {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #101710 !important;
+}
+.dashboard-shell .bg-indigo-500\/10,
+.dashboard-shell .bg-indigo-500\/15,
+.dashboard-shell .bg-indigo-500\/20,
+.dashboard-shell .bg-cyan-500\/10,
+.dashboard-shell .bg-cyan-500\/15 { background-color: rgba(168,196,154,.12) !important; }
+.dashboard-shell .border-indigo-300\/15,
+.dashboard-shell .border-cyan-300\/20,
+.dashboard-shell .border-slate-800,
+.dashboard-shell .border-slate-700,
+.dashboard-shell .border-slate-900 { border-color: var(--ic-line) !important; }
+.dashboard-shell .chat-workspace,
+.dashboard-shell .chat-workspace section,
+.dashboard-shell .chat-workspace aside,
+.dashboard-shell .chat-workspace header,
+.dashboard-shell .chat-workspace footer {
+  background: #1b231d !important;
+  border-color: var(--ic-line) !important;
+}
+.dashboard-shell .admin-dashboard,
+.dashboard-shell main .admin-page { color: #f1f0e8 !important; }
+.dashboard-shell .admin-dashboard h1,
+.dashboard-shell .admin-dashboard h2,
+.dashboard-shell .admin-dashboard h3,
+.dashboard-shell .admin-dashboard p,
+.dashboard-shell .admin-dashboard span { color: #e9ece3; }
+.dashboard-shell .admin-dashboard > section:nth-child(3) > a {
+  background: linear-gradient(125deg,#29342b,#202921) !important;
+  border-color: var(--ic-line) !important;
+}
+
+/* Remove leftover blue/purple text accents from all authenticated routes */
+.dashboard-shell .text-blue-300,
+.dashboard-shell .text-blue-400,
+.dashboard-shell .text-cyan-300,
+.dashboard-shell .text-cyan-400,
+.dashboard-shell .text-violet-300,
+.dashboard-shell .text-violet-400,
+.dashboard-shell .text-purple-300,
+.dashboard-shell .text-purple-400 { color: #bfd0b2 !important; }
+.dashboard-shell button:focus-visible,
+.dashboard-shell a:focus-visible,
+.landing-shell button:focus-visible,
+.auth-shell button:focus-visible {
+  outline: 2px solid #c2d8ae !important;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation: none !important; transition: none !important; }
+}
