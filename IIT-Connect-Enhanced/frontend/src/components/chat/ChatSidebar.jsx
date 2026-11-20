@@ -78,7 +78,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
             <h2 className="font-semibold text-white">Messages</h2>
             <p className="text-xs text-slate-500">Your IIT Connect inbox</p>
           </div>
-          <Button variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
+          <Button className="chat-ghost-button" variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
         </div>
         <div className="mt-3">
           <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or institute..." />
@@ -91,7 +91,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
           return (
             <div className="mt-3 space-y-2">
               {!hasCommunity && (
-                <Button className="w-full" onClick={async () => {
+                <Button className="chat-action-button w-full" onClick={async () => {
                   const conversation = await onJoinCommunity()
                   if (conversation) await loadConvos()
                 }}>
@@ -99,7 +99,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
                 </Button>
               )}
               {!hasIitGroup && (
-                <Button variant="secondary" className="w-full" onClick={async () => {
+                <Button variant="secondary" className="chat-secondary-button w-full" onClick={async () => {
                   await onJoinGroup(user?.profile?.iit)
                   await loadConvos()
                 }}>
@@ -164,7 +164,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
                 <div className="truncate text-sm font-medium text-slate-100">{person.profile?.name || 'Student'}</div>
                 <div className="truncate text-xs text-slate-400">{[person.profile?.iit, person.profile?.branch].filter(Boolean).join(' • ') || 'IIT student'}</div>
               </div>
-              <Button size="sm" onClick={() => onStartDM(person._id)}>Message</Button>
+              <Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button>
             </div>
           ))}
         </>}
