@@ -27,8 +27,17 @@ function signAccessToken(userId) {
   return jwt.sign({ sub: userId }, env.JWT_ACCESS_SECRET, { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN })
 }
 
-function signRefreshToken(userId) {
-  return jwt.sign({ sub: userId }, env.JWT_REFRESH_SECRET, { expiresIn: env.REFRESH_TOKEN_EXPIRES_IN })
+function signRefreshToken(userId, sessionId) {
+  return jwt.sign({ sub: userId, jti: sessionId }, env.JWT_REFRESH_SECRET, { expiresIn: env.REFRESH_TOKEN_EXPIRES_IN })
+}
+
+async function createRefreshSession(user) {
+  const sessionId = crypto.randomUUID()
+  const refreshToken = signRefreshToken(user._id.toString(), sessionId)
+  const payload = jwt.decode(refreshToken)
+  user.refreshSessions = user.refreshSessions || []
+  user.refreshSessions.push({ sessionId, tokenHash: await bcrypt.hash(refreshToken, 12), expiresAt: new Date(payload.exp * 1000) })
+  return refreshToken
 }
 
 async function setAuthCookies(res, { accessToken, refreshToken }) {
@@ -144,8 +153,7 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
   await PendingEmailVerification.deleteOne({ _id: pending._id })
 
   const accessToken = signAccessToken(user._id.toString())
-  const refreshToken = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
+  const refreshToken = await createRefreshSession(user)
   await user.save()
   await setAuthCookies(res, { accessToken, refreshToken })
 
