@@ -11,7 +11,7 @@ function isConversationMember(conversation, userId) {
 }
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-const participantFields = 'profile.name profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
+const participantFields = 'profile.name profile.rollNumber profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
 
 async function withParticipants(conversation) {
   return Conversation.populate(conversation, {
@@ -33,13 +33,14 @@ export const listUsers = asyncHandler(async (req, res) => {
     filter.$or = [
       { email: { $regex: safeQuery, $options: 'i' } },
       { 'profile.name': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.rollNumber': { $regex: safeQuery, $options: 'i' } },
       { 'profile.iit': { $regex: safeQuery, $options: 'i' } }
     ]
   }
 
   const users = await User.find(filter)
-    .select('profile.name profile.iit profile.branch profile.photoUrl lastSeenAt')
-    .limit(25)
+    .select('profile.name profile.rollNumber profile.iit profile.branch profile.photoUrl lastSeenAt')
+    .limit(q ? 100 : 25)
     .sort({ createdAt: -1 })
 
   res.json({ success: true, users })
