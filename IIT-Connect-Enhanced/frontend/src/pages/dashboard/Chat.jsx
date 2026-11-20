@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { MessageCircle, Sparkles } from 'lucide-react'
@@ -6,7 +6,6 @@ import ChatSidebar from '../../components/chat/ChatSidebar.jsx'
 import ChatWindow from '../../components/chat/ChatWindow.jsx'
 import { api } from '../../utils/api'
 import { useSocket } from '../../hooks/useSocket'
-import { useEffect } from 'react'
 
 export default function Chat() {
   const [active, setActive] = useState(null)
