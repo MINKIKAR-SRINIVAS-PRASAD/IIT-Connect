@@ -136,6 +136,70 @@ export const logout = asyncHandler(async (req, res) => {
   res.json({ success: true })
 })
 
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email)
+  const user = await User.findOne({ email })
+  // Always return the same response so the endpoint does not reveal registered accounts.
+  if (user && !user.isBanned && isAllowedIitEmail(email) && env.RESEND_API_KEY && env.EMAIL_FROM) {
+    const now = Date.now()
+    if (!user.passwordResetSentAt || now - user.passwordResetSentAt.getTime() >= 60_000) {
+      const otp = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0')
+      user.passwordResetOtpHash = crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`reset:${email}:${otp}`).digest('hex')
+      user.passwordResetExpiresAt = new Date(now + 10 * 60_000)
+      user.passwordResetAttempts = 0
+      user.passwordResetSentAt = new Date(now)
+      await user.save()
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: env.EMAIL_FROM,
+          to: [email],
+          subject: 'Reset your IIT Connect password',
+          text: `Your IIT Connect password reset code is ${otp}. It expires in 10 minutes. If you did not request this, ignore this email.`
+        })
+      })
+      if (!response.ok) {
+        console.error('Password reset email failed:', response.status)
+        throw new ApiError(502, 'Could not send the reset email. Please try again later.')
+      }
+    }
+  }
+  res.json({ success: true, message: 'If that institute email has an account, a reset code will be sent.' })
+})
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email)
+  const otp = String(req.body.otp || '').trim()
+  const password = String(req.body.password || '')
+  const user = await User.findOne({ email })
+  if (!user || !user.passwordResetOtpHash || !user.passwordResetExpiresAt || user.passwordResetExpiresAt.getTime() <= Date.now()) {
+    throw new ApiError(400, 'Reset code is invalid or expired. Request a new one.')
+  }
+  if (user.passwordResetAttempts >= 5) {
+    user.passwordResetOtpHash = null
+    user.passwordResetExpiresAt = null
+    await user.save()
+    throw new ApiError(429, 'Too many incorrect attempts. Request a new reset code.')
+  }
+  const expected = Buffer.from(user.passwordResetOtpHash, 'hex')
+  const received = Buffer.from(crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`reset:${email}:${otp}`).digest('hex'), 'hex')
+  if (!/^\\d{6}$/.test(otp) || expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
+    user.passwordResetAttempts += 1
+    await user.save()
+    throw new ApiError(400, 'Incorrect reset code')
+  }
+  user.passwordHash = await bcrypt.hash(password, 12)
+  user.passwordResetOtpHash = null
+  user.passwordResetExpiresAt = null
+  user.passwordResetAttempts = 0
+  user.passwordResetSentAt = null
+  user.refreshSessions = []
+  user.refreshTokenHash = null
+  await user.save()
+  res.json({ success: true, message: 'Password reset successfully. Please sign in again.' })
+})
+
 export const me = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user })
 })
