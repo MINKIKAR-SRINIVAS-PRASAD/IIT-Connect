@@ -111,36 +111,32 @@ export default function ChatWindow({ conversation }) {
   const lastMsg = useMemo(() => messages[messages.length - 1], [messages])
 
   async function send() {
-    if (!socket || !conversation?._id || sending) return
+    if (!conversation?._id || sending) return
     const cleanText = text.trim()
     if (!cleanText) return
 
     setSending(true)
     try {
-      const response = await new Promise((resolve, reject) => {
-        socket.timeout(8000).emit(
-          'message:send',
-          { conversationId: conversation._id, text: cleanText },
-          (timeoutError, result) => {
-            if (timeoutError) return reject(new Error('Chat server did not confirm delivery. Please retry.'))
-            resolve(result)
-          }
-        )
+      // Use authenticated HTTP for durable delivery; realtime sockets are for fan-out.
+      const { data } = await api.post('/chat/messages', {
+        conversationId: conversation._id,
+        text: cleanText
       })
-
-      if (!response?.success || !response.message) {
-        throw new Error(response?.message || 'Message could not be sent. Please try again.')
+      const savedMessage = data?.message
+      if (!data?.success || !savedMessage?._id) {
+        throw new Error(data?.message || 'Message could not be saved. Please try again.')
       }
 
-      const savedMessage = response.message
       setMessages((previous) => previous.some((item) => item._id === savedMessage._id)
         ? previous
         : [...previous, savedMessage])
       setText('')
-      socket.emit('conversation:typing', { conversationId: conversation._id, isTyping: false })
+      if (socket) {
+        socket.emit('conversation:typing', { conversationId: conversation._id, isTyping: false })
+      }
       setTyping(false)
     } catch (error) {
-      window.alert(error?.message || 'Message could not be sent. Please try again.')
+      window.alert(error?.response?.data?.message || error?.message || 'Message could not be sent. Please try again.')
     } finally {
       setSending(false)
     }
