@@ -13,6 +13,7 @@ export default function Profile() {
   const isStudent = user?.role !== 'admin'
 
   const [name, setName] = useState('')
+  const [rollNumber, setRollNumber] = useState('')
   const [iit, setIit] = useState(IIT_LIST[0])
   const [branch, setBranch] = useState('')
   const [batch, setBatch] = useState('')
@@ -33,6 +34,7 @@ export default function Profile() {
 
   useEffect(() => {
     setName(user?.profile?.name || '')
+    setRollNumber(user?.profile?.rollNumber || '')
     setIit(user?.profile?.iit || IIT_LIST[0])
     setBranch(user?.profile?.branch || '')
     setBatch(user?.profile?.batch || '')
@@ -53,6 +55,7 @@ export default function Profile() {
     try {
       const fd = new FormData()
       fd.append('name', name.trim())
+      fd.append('rollNumber', rollNumber.trim().toUpperCase())
       fd.append('iit', iit)
       fd.append('branch', branch.trim())
       fd.append('batch', batch.trim())
@@ -105,6 +108,7 @@ export default function Profile() {
 
         <div className="mt-5 grid md:grid-cols-2 gap-3">
           <Input label="Name *" value={name} required={isStudent} maxLength={80} onChange={(e) => setName(e.target.value)} />
+          <Input label="Roll number" value={rollNumber} maxLength={40} onChange={(e) => setRollNumber(e.target.value.toUpperCase())} placeholder="e.g. 24ME01058" />
           <label className="block">
             <div className="text-sm text-slate-300 mb-1">IIT *</div>
             <select
