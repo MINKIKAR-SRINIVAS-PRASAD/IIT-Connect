@@ -10,7 +10,7 @@ const links = [
   { to: '/app/gallery', label: 'Gallery', icon: Images },
   { to: '/app/placements', label: 'Placements', icon: BriefcaseBusiness },
   { to: '/app/events', label: 'Events', icon: CalendarDays },
-  { to: '/app/travel', label: 'Travel', icon: Compass },
+  { to: '/app/trip', label: 'Trip', icon: Compass },
   { to: '/app/profile', label: 'Profile', icon: UserRound }
 ]
 

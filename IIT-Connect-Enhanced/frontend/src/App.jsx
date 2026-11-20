@@ -87,7 +87,8 @@ export default function App() {
         <Route path="gallery" element={<Gallery />} />
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
-        <Route path="travel" element={<Travel />} />
+        <Route path="trip" element={<Travel />} />
+        <Route path="travel" element={<Navigate to="/app/trip" replace />} />
         <Route path="study" element={<Study />} />
         <Route path="profile" element={<Profile />} />
       </Route>

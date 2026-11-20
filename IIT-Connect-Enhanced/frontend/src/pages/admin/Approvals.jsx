@@ -67,7 +67,7 @@ function ApprovalCard({ item, type, onAction }) {
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
       : type === 'Event'
         ? item.title
-        : type === 'Travel'
+        : type === 'Trip'
           ? [item.destination, item.location].filter(Boolean).join(' · ')
           : item.title
 
@@ -106,7 +106,7 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Description">{item.description}</Detail>
           {item.posterUrl ? <div className="sm:col-span-2"><img src={item.posterUrl} alt="Event poster" className="max-h-64 rounded-lg object-contain" /></div> : null}
         </>}
-        {type === 'Travel' && <>
+        {type === 'Trip' && <>
           <Detail label="Destination">{item.destination}</Detail>
           <Detail label="Location / State">{item.location}</Detail>
           <Detail label="Category">{item.category}</Detail>
@@ -116,9 +116,15 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Travel mode">{item.travelMode}</Detail>
           <Detail label="From">{item.from}</Detail>
           <Detail label="To">{item.to}</Detail>
-          <Detail label="Seat details (admin only)">{item.seatDetails}</Detail>
           <Detail label="Contact preference">{item.contactPreference}</Detail>
-          <div className="sm:col-span-2 lg:col-span-3"><Detail label="Travel plan description / notes">{item.description || item.notes}</Detail></div>
+          {item.booking && <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-cyan-400/20 bg-cyan-400/[.04] p-4">
+            <div className="mb-3 text-xs font-bold uppercase tracking-wider text-cyan-200">Private booking details · Admin only</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(item.booking).map(([key,value]) => value ? <Detail key={key} label={key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}>{value}</Detail> : null)}
+            </div>
+          </div>}
+          <Detail label="Legacy seat details">{item.seatDetails}</Detail>
+          <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
         </>}
         {type === 'Study' && <>
           <Detail label="Resource title">{item.title}</Detail>
@@ -175,7 +181,7 @@ export default function Approvals() {
       Gallery: `/admin/approvals/gallery/${id}`,
       Placement: `/admin/approvals/placements/${id}`,
       Event: `/admin/approvals/events/${id}`,
-      Travel: `/admin/approvals/travel/${id}`,
+      Trip: `/admin/approvals/travel/${id}`,
       Study: `/admin/approvals/study/${id}`
     }[kind]
     try {
@@ -195,7 +201,7 @@ export default function Approvals() {
     { type: 'Gallery', items: gallery },
     { type: 'Placement', items: placements },
     { type: 'Events', items: events, cardType: 'Event' },
-    { type: 'Travel', items: travel },
+    { type: 'Trip', items: travel },
     { type: 'Study Resources', items: study, cardType: 'Study' }
   ]
 
@@ -203,7 +209,7 @@ export default function Approvals() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Content approvals</h1>
-        <p className="mt-1 text-sm text-slate-400">Review the submitted content and verify the student's IIT email and profile before taking action.</p>
+        <p className="mt-1 text-sm text-slate-400">Review submitted content and verify the student's institute email and profile. Trip booking identifiers are visible to admins only.</p>
       </div>
       {sections.map((section) => (
         <section key={section.type}>
