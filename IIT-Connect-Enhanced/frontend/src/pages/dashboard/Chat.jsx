@@ -5,9 +5,17 @@ import { MessageCircle, Sparkles } from 'lucide-react'
 import ChatSidebar from '../../components/chat/ChatSidebar.jsx'
 import ChatWindow from '../../components/chat/ChatWindow.jsx'
 import { api } from '../../utils/api'
+import { useSocket } from '../../hooks/useSocket'
+import { useEffect } from 'react'
 
 export default function Chat() {
   const [active, setActive] = useState(null)
+  const { socket } = useSocket()
+  useEffect(() => {
+    if (!socket || !active?._id) return undefined
+    socket.emit('conversation:active', { conversationId: active._id })
+    return () => socket.emit('conversation:inactive')
+  }, [socket, active?._id])
   async function startDM(otherUserId) {
     try { const { data } = await api.post('/chat/dm', { otherUserId }); setActive(data.conversation) }
     catch (error) { toast.error(error?.response?.data?.message || 'Failed to start DM') }
