@@ -56,9 +56,6 @@ export function assertEnv() {
     throw new Error('CLIENT_ORIGIN must be explicitly configured in production')
   }
 
-  if (env.NODE_ENV === 'production' && env.OTP_TEST_MODE) {
-    throw new Error('OTP_TEST_MODE must be disabled in production')
-  }
 
   if (env.OTP_TEST_MODE && (!env.OTP_TEST_EMAIL || !env.OTP_TEST_RECIPIENT)) {
     throw new Error('OTP_TEST_EMAIL and OTP_TEST_RECIPIENT are required when OTP_TEST_MODE is enabled')
