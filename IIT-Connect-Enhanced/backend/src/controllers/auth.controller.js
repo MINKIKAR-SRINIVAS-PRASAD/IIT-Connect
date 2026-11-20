@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
@@ -16,8 +17,17 @@ function signAccessToken(userId) {
   return jwt.sign({ sub: userId }, env.JWT_ACCESS_SECRET, { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN })
 }
 
-function signRefreshToken(userId) {
-  return jwt.sign({ sub: userId }, env.JWT_REFRESH_SECRET, { expiresIn: env.REFRESH_TOKEN_EXPIRES_IN })
+function signRefreshToken(userId, sessionId) {
+  return jwt.sign({ sub: userId, jti: sessionId }, env.JWT_REFRESH_SECRET, { expiresIn: env.REFRESH_TOKEN_EXPIRES_IN })
+}
+
+async function createRefreshSession(user) {
+  const sessionId = crypto.randomUUID()
+  const refreshToken = signRefreshToken(user._id.toString(), sessionId)
+  const payload = jwt.decode(refreshToken)
+  user.refreshSessions = (user.refreshSessions || []).filter((session) => session.expiresAt && session.expiresAt.getTime() > Date.now())
+  user.refreshSessions.push({ sessionId, tokenHash: await bcrypt.hash(refreshToken, 12), expiresAt: new Date(payload.exp * 1000) })
+  return refreshToken
 }
 
 async function setAuthCookies(res, { accessToken, refreshToken }) {
@@ -50,8 +60,7 @@ export const register = asyncHandler(async (req, res) => {
   })
 
   const accessToken = signAccessToken(user._id.toString())
-  const refreshToken = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
+  const refreshToken = await createRefreshSession(user)
   await user.save()
 
   await setAuthCookies(res, { accessToken, refreshToken })
@@ -86,8 +95,7 @@ export const login = asyncHandler(async (req, res) => {
   if (user.role !== desiredRole) user.role = desiredRole
 
   const accessToken = signAccessToken(user._id.toString())
-  const refreshToken = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
+  const refreshToken = await createRefreshSession(user)
   user.lastSeenAt = new Date()
   await user.save()
 
@@ -106,23 +114,22 @@ export const login = asyncHandler(async (req, res) => {
 
 export const logout = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken
-
   if (refreshToken) {
     try {
       const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET)
       const user = await User.findById(payload.sub)
-      if (user?.refreshTokenHash) {
-        const matches = await bcrypt.compare(refreshToken, user.refreshTokenHash)
-        if (matches) {
+      if (user) {
+        if (payload.jti) {
+          user.refreshSessions = (user.refreshSessions || []).filter((session) => session.sessionId !== payload.jti)
+        } else if (user.refreshTokenHash && await bcrypt.compare(refreshToken, user.refreshTokenHash)) {
           user.refreshTokenHash = null
-          await user.save()
         }
+        await user.save()
       }
     } catch {
-      // Logout must still clear cookies when a token is expired or malformed.
+      // Clear cookies even if the refresh token is expired or malformed.
     }
   }
-
   const opts = cookieOptions()
   res.clearCookie('accessToken', opts)
   res.clearCookie('refreshToken', opts)
@@ -138,25 +145,39 @@ export const refresh = asyncHandler(async (req, res) => {
   if (!refreshToken) throw new ApiError(401, 'Unauthorized')
 
   let payload
-  try {
-    payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET)
-  } catch {
-    throw new ApiError(401, 'Unauthorized')
-  }
+  try { payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) }
+  catch { throw new ApiError(401, 'Unauthorized') }
 
   const user = await User.findById(payload.sub)
   if (!user) throw new ApiError(401, 'Unauthorized')
   if (user.isBanned) throw new ApiError(403, 'User is banned')
 
-  const matches = await bcrypt.compare(refreshToken, user.refreshTokenHash || '')
-  if (!matches) throw new ApiError(401, 'Unauthorized')
+  let session = payload.jti ? (user.refreshSessions || []).find((item) => item.sessionId === payload.jti) : null
 
-  const newAccess = signAccessToken(user._id.toString())
-  const newRefresh = signRefreshToken(user._id.toString())
-  user.refreshTokenHash = await bcrypt.hash(newRefresh, 12)
+  // Migrate a still-valid pre-multi-device token into its own session.
+  if (!session && !payload.jti && user.refreshTokenHash && await bcrypt.compare(refreshToken, user.refreshTokenHash)) {
+    const sessionId = crypto.randomUUID()
+    const migratedToken = signRefreshToken(user._id.toString(), sessionId)
+    const migratedPayload = jwt.decode(migratedToken)
+    user.refreshSessions = user.refreshSessions || []
+    user.refreshSessions.push({
+      sessionId,
+      tokenHash: await bcrypt.hash(migratedToken, 12),
+      expiresAt: new Date(migratedPayload.exp * 1000)
+    })
+    session = user.refreshSessions[user.refreshSessions.length - 1]
+  }
+
+  if (!session || !session.expiresAt || session.expiresAt.getTime() <= Date.now()) throw new ApiError(401, 'Unauthorized')
+  if (!await bcrypt.compare(refreshToken, session.tokenHash)) throw new ApiError(401, 'Unauthorized')
+
+  const accessToken = signAccessToken(user._id.toString())
+  const newRefreshToken = signRefreshToken(user._id.toString(), session.sessionId)
+  const newPayload = jwt.decode(newRefreshToken)
+  session.tokenHash = await bcrypt.hash(newRefreshToken, 12)
+  session.expiresAt = new Date(newPayload.exp * 1000)
+  user.refreshSessions = (user.refreshSessions || []).filter((item) => item.expiresAt && item.expiresAt.getTime() > Date.now())
   await user.save()
-
-  await setAuthCookies(res, { accessToken: newAccess, refreshToken: newRefresh })
-
+  await setAuthCookies(res, { accessToken, refreshToken: newRefreshToken })
   res.json({ success: true })
 })
