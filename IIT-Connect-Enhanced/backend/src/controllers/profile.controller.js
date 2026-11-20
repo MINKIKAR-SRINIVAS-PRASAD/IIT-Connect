@@ -5,7 +5,7 @@ import { cloudinary } from '../config/cloudinary.js'
 import { isProfileComplete } from '../utils/profileCompletion.js'
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, iit, branch, batch, bio } = req.body
+  const { name, rollNumber, iit, branch, batch, bio } = req.body
 
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
@@ -34,6 +34,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
   }
 
   user.profile.name = nextName
+  if (rollNumber !== undefined) user.profile.rollNumber = String(rollNumber).trim().toUpperCase()
   user.profile.iit = nextIit
   user.profile.branch = nextBranch
   user.profile.batch = nextBatch
