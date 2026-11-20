@@ -10,9 +10,11 @@ export default function Sidebar() {
   const links = [
     { to: '/app', label: 'Home' },
     { to: '/app/chat', label: 'Chat' },
+    { to: '/app/study', label: 'Study Hub' },
     { to: '/app/gallery', label: 'Gallery' },
     { to: '/app/placements', label: 'Placement Cell' },
     { to: '/app/events', label: 'Events' },
+    { to: '/app/travel', label: 'Travel' },
     { to: '/app/profile', label: 'Profile' }
   ]
 

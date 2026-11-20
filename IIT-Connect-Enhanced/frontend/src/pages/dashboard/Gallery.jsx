@@ -36,8 +36,9 @@ export default function Gallery() {
   async function load() {
     setLoading(true)
     try {
-      const { data } = await api.get('/gallery')
-      setPosts(data.posts)
+      const [approved, mine] = await Promise.all([api.get('/gallery'), api.get('/gallery/mine')])
+      const merged = [...(mine.data.posts || []), ...(approved.data.posts || [])]
+      setPosts(Array.from(new Map(merged.map((post) => [post._id, post])).values()).filter((post) => post.status !== 'Deleted'))
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load gallery')
     } finally {

@@ -1,11 +1,15 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.middleware.js'
-import { createTravelPost, listApprovedTravel, listMyTravel } from '../controllers/travel.controller.js'
+import { requireProfileComplete } from '../middleware/profileCompletion.middleware.js'
+import { createTravelPost, deleteMyTravelPost, listApprovedTravel, listMyTravel } from '../controllers/travel.controller.js'
 
 const router = Router()
 
+router.use(requireAuth, requireProfileComplete)
+
 router.get('/', listApprovedTravel)
-router.get('/mine', requireAuth, listMyTravel)
-router.post('/', requireAuth, createTravelPost)
+router.get('/mine', listMyTravel)
+router.delete('/:id', deleteMyTravelPost)
+router.post('/', createTravelPost)
 
 export default router

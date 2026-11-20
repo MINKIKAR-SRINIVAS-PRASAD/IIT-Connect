@@ -8,7 +8,8 @@ export default function AdminSidebar() {
     { to: '/admin', label: 'Overview' },
     { to: '/admin/users', label: 'Users' },
     { to: '/admin/approvals', label: 'Approvals' },
-    { to: '/admin/analytics', label: 'Analytics' }
+    { to: '/admin/analytics', label: 'Analytics' },
+    { to: '/admin/deleted-content', label: 'Deleted Content' }
   ]
 
   return (

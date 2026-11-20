@@ -1,28 +1,22 @@
-<<<<<<< HEAD
 # Dependencies
 node_modules/
 **/node_modules/
 
-# Environment secrets
+# Environment secrets (all directories)
 .env
 .env.*
 !.env.example
 
-# Build files
+# Build output
 dist/
 build/
+coverage/
 
 # Logs
 *.log
 npm-debug.log*
 
-# OS files
+# Local tooling and OS files
+.vscode/
 .DS_Store
 Thumbs.db
-=======
-node_modules
-.env
-dist
-build
-.vscode
->>>>>>> d5f1b18e5626a17663d215e0dc4dec599cab696b

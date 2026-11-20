@@ -5,12 +5,17 @@ import Modal from '../common/Modal'
 import Input from '../common/Input'
 import { api } from '../../utils/api'
 import { formatDate } from '../../utils/formatters'
+import { useAuth } from '../../hooks/useAuth'
 
 export default function GalleryCard({ post }) {
   const [likes, setLikes] = useState(0)
   const [open, setOpen] = useState(false)
   const [comments, setComments] = useState([])
   const [text, setText] = useState('')
+  const { user } = useAuth()
+  const [deleting, setDeleting] = useState(false)
+  const postAuthorId = post.authorId?._id || post.authorId
+  const currentUserId = user?._id || user?.id
 
   async function loadLikes() {
     const { data } = await api.get('/likes', { params: { targetType: 'GalleryPost', targetId: post._id } })
@@ -34,6 +39,20 @@ export default function GalleryCard({ post }) {
     loadComments()
   }
 
+  async function deletePost() {
+    if (!window.confirm('Delete this photo for everyone? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      await api.delete(`/gallery/${post._id}`)
+      toast.success('Photo deleted for everyone')
+      window.location.reload()
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Could not delete photo')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   useEffect(() => {
     loadLikes().catch(() => {})
   }, [])
@@ -48,6 +67,12 @@ export default function GalleryCard({ post }) {
         </div>
         <div className="mt-1 text-xs text-slate-400">{post.iit}</div>
         {post.caption ? <div className="mt-2 text-sm text-slate-200">{post.caption}</div> : null}
+
+        {String(postAuthorId) === String(currentUserId) && (
+          <button type="button" disabled={deleting} onClick={deletePost} className="mt-3 rounded-lg border border-rose-500/30 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 disabled:opacity-50">
+            {deleting ? 'Deleting…' : 'Delete for everyone'}
+          </button>
+        )}
 
         <div className="mt-3 flex gap-2">
           <Button variant="ghost" onClick={toggleLike}>Like • {likes}</Button>

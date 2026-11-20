@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import { cloudinary } from '../config/cloudinary.js'
+import { isProfileComplete } from '../utils/profileCompletion.js'
 
 export const updateProfile = asyncHandler(async (req, res) => {
   const { name, iit, branch, batch, bio } = req.body
@@ -9,13 +10,36 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
 
-  user.profile.name = name ?? user.profile.name
-  user.profile.iit = iit ?? user.profile.iit
-  user.profile.branch = branch ?? user.profile.branch
-  user.profile.batch = batch ?? user.profile.batch
-  user.profile.bio = bio ?? user.profile.bio
+  const nextName = name ?? user.profile.name
+  const nextIit = iit ?? user.profile.iit
+  const nextBranch = branch ?? user.profile.branch
+  const nextBatch = batch ?? user.profile.batch
+  const nextBio = bio ?? user.profile.bio
 
-  // photo upload via multipart/form-data with field: photo
+  // Reject incomplete student submissions before uploading or replacing any photo.
+  if (user.role !== 'admin') {
+    const requiredFieldsPresent = Boolean(
+      typeof nextName === 'string' && nextName.trim() &&
+      typeof nextIit === 'string' && nextIit.trim() &&
+      typeof nextBranch === 'string' && nextBranch.trim() &&
+      typeof nextBatch === 'string' && nextBatch.trim() &&
+      (req.file || user.profile.photoUrl)
+    )
+    if (!requiredFieldsPresent) {
+      throw new ApiError(
+        400,
+        'Complete your profile: name, IIT, branch, batch and profile photo are required'
+      )
+    }
+  }
+
+  user.profile.name = nextName
+  user.profile.iit = nextIit
+  user.profile.branch = nextBranch
+  user.profile.batch = nextBatch
+  user.profile.bio = nextBio
+
+  let oldPhotoPublicId = null
   if (req.file) {
     const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
     const uploaded = await cloudinary.uploader.upload(base64, {
@@ -23,23 +47,25 @@ export const updateProfile = asyncHandler(async (req, res) => {
       resource_type: 'image'
     })
 
-    // delete old if exists
-    if (user.profile.photoPublicId) {
-      try {
-        await cloudinary.uploader.destroy(user.profile.photoPublicId)
-      } catch {
-        // ignore
-      }
-    }
-
+    oldPhotoPublicId = user.profile.photoPublicId || null
     user.profile.photoUrl = uploaded.secure_url
     user.profile.photoPublicId = uploaded.public_id
   }
 
   await user.save()
 
+  // Delete the previous Cloudinary image only after the new profile has been saved.
+  if (oldPhotoPublicId) {
+    try {
+      await cloudinary.uploader.destroy(oldPhotoPublicId)
+    } catch {
+      // Old-image cleanup failure must not undo a successful profile update.
+    }
+  }
+
   res.json({
     success: true,
-    profile: user.profile
+    profile: user.profile,
+    profileComplete: user.role === 'admin' || isProfileComplete(user)
   })
 })

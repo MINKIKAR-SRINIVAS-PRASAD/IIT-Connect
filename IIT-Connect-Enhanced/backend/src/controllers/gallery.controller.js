@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import GalleryPost from '../models/GalleryPost.js'
 import { cloudinary } from '../config/cloudinary.js'
+import { createContentDeletionNotification } from '../utils/contentDeletion.js'
 
 export const createGalleryPost = asyncHandler(async (req, res) => {
   if (!req.file) throw new ApiError(400, 'Image is required')
@@ -37,8 +38,43 @@ export const listApprovedGallery = asyncHandler(async (req, res) => {
   res.json({ success: true, posts })
 })
 
+export const deleteMyGalleryPost = asyncHandler(async (req, res) => {
+  const post = await GalleryPost.findOne({ _id: req.params.id, authorId: req.user._id, status: { $ne: 'Deleted' } })
+  if (!post) throw new ApiError(404, 'Gallery post not found or you do not own it')
+
+  const notification = await createContentDeletionNotification({
+    userId: req.user._id,
+    post,
+    contentType: 'Gallery',
+    contentTitle: post.caption || 'Gallery photo'
+  })
+
+  post.status = 'Deleted'
+  post.deletedAt = new Date()
+  post.deletedBy = req.user._id
+  await post.save()
+
+  let mediaCleanupPending = false
+  try {
+    if (post.imagePublicId) {
+      const result = await cloudinary.uploader.destroy(post.imagePublicId, { resource_type: 'image' })
+      mediaCleanupPending = result?.result !== 'ok' && result?.result !== 'not found'
+    }
+  } catch (error) {
+    mediaCleanupPending = true
+    console.error('Gallery media cleanup failed:', error.message)
+  }
+
+  if (mediaCleanupPending) {
+    notification.mediaCleanupPending = true
+    await notification.save()
+  }
+
+  res.json({ success: true, message: 'Gallery post deleted for everyone', mediaCleanupPending })
+})
+
 export const listMyGallery = asyncHandler(async (req, res) => {
-  const posts = await GalleryPost.find({ authorId: req.user._id })
+  const posts = await GalleryPost.find({ authorId: req.user._id, status: { $ne: 'Deleted' } })
     .sort({ createdAt: -1 })
     .limit(60)
 
