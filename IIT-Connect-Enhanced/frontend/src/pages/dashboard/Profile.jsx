@@ -10,7 +10,7 @@ import NotificationSettings from '../../components/notifications/NotificationSet
 export default function Profile() {
   const { user, refresh } = useAuth()
   const navigate = useNavigate()
-  const isStudent = user?.role !== 'admin'
+  const isStudent = user?.role === 'student'
 
   const [name, setName] = useState('')
   const [rollNumber, setRollNumber] = useState('')
@@ -25,6 +25,23 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordBusy, setPasswordBusy] = useState(false)
+
+  const instituteByDomain = {
+    'iitgn.ac.in': 'IIT Gandhinagar', 'iitbbs.ac.in': 'IIT Bhubaneswar', 'iitbhubaneswar.ac.in': 'IIT Bhubaneswar',
+    'iitm.ac.in': 'IIT Madras', 'iitg.ernet.in': 'IIT Guwahati', 'iitg.ac.in': 'IIT Guwahati',
+    'iiti.ac.in': 'IIT Indore', 'iitk.ac.in': 'IIT Kanpur', 'iitj.ac.in': 'IIT Jodhpur',
+    'iitkgp.ac.in': 'IIT Kharagpur', 'iith.ac.in': 'IIT Hyderabad', 'iitb.ac.in': 'IIT Bombay',
+    'iitp.ac.in': 'IIT Patna', 'iitd.ac.in': 'IIT Delhi', 'iitrpr.ac.in': 'IIT Ropar',
+    'iitmandi.ac.in': 'IIT Mandi', 'iitr.ac.in': 'IIT Roorkee', 'iitbhu.ac.in': 'IIT (BHU) Varanasi',
+    'iitjammu.ac.in': 'IIT Jammu', 'iitpkd.ac.in': 'IIT Palakkad', 'iittp.ac.in': 'IIT Tirupati',
+    'iitgoa.ac.in': 'IIT Goa', 'iitbhilai.ac.in': 'IIT Bhilai', 'iitdh.ac.in': 'IIT Dharwad',
+    'iitism.ac.in': 'IIT (ISM) Dhanbad'
+  }
+  const emailDomain = String(user?.email || '').toLowerCase().split('@').pop()
+  const verifiedInstitute = isStudent
+    ? Object.entries(instituteByDomain).find(([domain]) => emailDomain === domain || emailDomain.endsWith('.' + domain))?.[1] || ''
+    : ''
+  const instituteValue = verifiedInstitute || iit
 
   useEffect(() => {
     if (!photo) {
@@ -43,7 +60,7 @@ export default function Profile() {
     setBranch(user?.profile?.branch || '')
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
-  }, [user?.id])
+  }, [user?.id, user?.email, user?.profile?.iit])
 
   async function changePassword(e) {
     e.preventDefault()
@@ -129,7 +146,19 @@ export default function Profile() {
         <div className="mt-5 grid md:grid-cols-2 gap-3">
           <Input label="Name *" value={name} required={isStudent} maxLength={80} onChange={(e) => setName(e.target.value)} />
           <Input label="Roll number" value={rollNumber} maxLength={40} onChange={(e) => setRollNumber(e.target.value.toUpperCase())} placeholder="xxxxxx" />
-          <div className="block">\n            <Input label={isStudent ? "College / institute (verified)" : "College / institute *"} value={isStudent ? (user?.profile?.iit || iit) : iit} required={isStudent} maxLength={120} readOnly={isStudent} onChange={isStudent ? undefined : (e) => setIit(e.target.value)} placeholder={isStudent ? "Detected from your verified institute email" : "Enter your college or institute"} className={isStudent ? "cursor-not-allowed opacity-80" : ""} />\n            {isStudent && <p className="mt-1 text-xs text-slate-400">Automatically set from your verified IIT email address. Students cannot edit this field.</p>}\n          </div>
+          <div className="block">
+            <Input
+              label={isStudent ? "College / institute (verified)" : "College / institute *"}
+              value={isStudent ? instituteValue : iit}
+              required={isStudent}
+              maxLength={120}
+              readOnly={isStudent}
+              onChange={isStudent ? undefined : (e) => setIit(e.target.value)}
+              placeholder={isStudent ? "Detected from your verified institute email" : "Enter your college or institute"}
+              className={isStudent ? "cursor-not-allowed opacity-80" : ""}
+            />
+            {isStudent && <p className="mt-1 text-xs text-slate-400">Verified from your institute email and locked for students.</p>}
+          </div>
           <Input label="Branch *" value={branch} required={isStudent} maxLength={80} onChange={(e) => setBranch(e.target.value)} />
           <Input label="Batch *" value={batch} required={isStudent} maxLength={20} onChange={(e) => setBatch(e.target.value)} placeholder="2024-2028" />
         </div>
