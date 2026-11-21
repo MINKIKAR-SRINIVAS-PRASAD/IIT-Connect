@@ -163,9 +163,12 @@ export const login = asyncHandler(async (req, res) => {
     throw new ApiError(401, 'Invalid credentials')
   }
 
-  // Only configured admin emails receive admin privileges
+  // Resolve privileged roles only from server-side allowlists.
+  // This also updates existing accounts when faculty access is granted or revoked.
   if (isAdminEmail) {
     user.role = 'admin'
+  } else {
+    user.role = getRoleForEmail(email)
   }
 
   user.lastSeenAt = new Date()
