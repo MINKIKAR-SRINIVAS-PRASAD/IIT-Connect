@@ -4,8 +4,18 @@ const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, index: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['student', 'admin'], default: 'student' },
+    role: { type: String, enum: ['student', 'faculty', 'admin'], default: 'student' },
     isBanned: { type: Boolean, default: false },
+    // Faculty access is explicitly approved; account type alone never grants workspace access.
+    facultyVerified: { type: Boolean, default: false },
+    facultyProfile: {
+      name: { type: String, default: '' },
+      institute: { type: String, default: '' },
+      department: { type: String, default: '' },
+      designation: { type: String, default: '' },
+      researchInterests: { type: String, default: '' },
+      photoUrl: { type: String, default: '' }
+    },
     passwordResetOtpHash: { type: String, default: null },
     passwordResetExpiresAt: { type: Date, default: null },
     passwordResetAttempts: { type: Number, default: 0 },
