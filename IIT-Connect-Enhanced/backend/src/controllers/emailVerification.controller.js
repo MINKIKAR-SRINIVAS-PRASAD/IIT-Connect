@@ -51,8 +51,8 @@ async function sendOtpEmail(email, otp) {
   const recipient = env.OTP_TEST_MODE ? env.OTP_TEST_RECIPIENT : email
   if (!recipient) throw new ApiError(503, 'Temporary OTP test recipient is not configured')
 
-  const text = `Your IIT Connect verification code is ${otp}. It expires in 5 minutes. If you did not request this code, you can ignore this email.`
-  const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;color:#183323"><h2>Verify your IIT Connect email</h2><p>Use this one-time password to finish creating your account:</p><div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:18px;background:#f1f5ed;border-radius:12px;text-align:center">${otp}</div><p>This code expires in 5 minutes. Do not share it with anyone.</p><p style="color:#718075;font-size:12px">If you did not request this code, you can safely ignore this email.</p></div>`
+  const text = `Your IITStudentsOS verification code is ${otp}. It expires in 5 minutes. If you did not request this code, you can ignore this email.`
+  const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;color:#183323"><h2>Verify your IITStudentsOS email</h2><p>Use this one-time password to finish creating your account:</p><div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:18px;background:#f1f5ed;border-radius:12px;text-align:center">${otp}</div><p>This code expires in 5 minutes. Do not share it with anyone.</p><p style="color:#718075;font-size:12px">If you did not request this code, you can safely ignore this email.</p></div>`
 
   // Prefer Gmail SMTP when its credentials are configured; otherwise retain the existing Resend path.
   if (env.SMTP_USER && env.SMTP_APP_PASSWORD) {
@@ -66,7 +66,7 @@ async function sendOtpEmail(email, otp) {
       await transporter.sendMail({
         from: env.SMTP_FROM || env.SMTP_USER,
         to: recipient,
-        subject: 'Your IIT Connect verification code',
+        subject: 'Your IITStudentsOS verification code',
         text,
         html
       })
@@ -90,7 +90,7 @@ async function sendOtpEmail(email, otp) {
     body: JSON.stringify({
       from: env.EMAIL_FROM,
       to: [recipient],
-      subject: 'Your IIT Connect verification code',
+      subject: 'Your IITStudentsOS verification code',
       text,
       html
     })
