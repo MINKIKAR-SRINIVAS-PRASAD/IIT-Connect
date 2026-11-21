@@ -37,7 +37,18 @@ export default function FacultyPortal() {
       }
     } catch(e) { toast.error(e?.response?.data?.message||'Could not load faculty section') }
   }
-  useEffect(()=>{ if(['chat','study','publications','placement','directory'].includes(section)) load() },[section])
+  useEffect(() => {
+    if (!['chat','study','publications','placement','directory'].includes(section)) return
+    load()
+    // Keep the faculty discussion feed fresh while this section is open.
+    if (section !== 'chat') return
+    const refresh = window.setInterval(() => {
+      api.get('/faculty/community')
+        .then(({ data }) => setMessages(data.messages || []))
+        .catch(() => {})
+    }, 12000)
+    return () => window.clearInterval(refresh)
+  }, [section])
 
   async function submit(e) {
     e.preventDefault(); setBusy(true)
