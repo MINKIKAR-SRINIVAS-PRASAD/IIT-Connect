@@ -22,6 +22,7 @@ import commentRoutes from './routes/comment.routes.js'
 import likeRoutes from './routes/like.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import healthRoutes from './routes/health.routes.js'
+import facultyRoutes from './routes/faculty.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
 
@@ -60,6 +61,7 @@ async function bootstrap() {
   app.use('/api/comments', commentRoutes)
   app.use('/api/likes', likeRoutes)
   app.use('/api/admin', adminRoutes)
+  app.use('/api/faculty', facultyRoutes)
 
   app.use(notFound)
   app.use(errorHandler)
