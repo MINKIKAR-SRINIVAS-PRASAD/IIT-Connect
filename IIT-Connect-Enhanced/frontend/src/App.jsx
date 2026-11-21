@@ -20,6 +20,7 @@ import Profile from './pages/dashboard/Profile.jsx'
 import Trip from './pages/dashboard/Trip.jsx'
 import TravelHome from './pages/dashboard/TravelHome.jsx'
 import Study from './pages/dashboard/Study.jsx'
+import News from './pages/dashboard/News.jsx'
 import FacultyWorkspace from './pages/FacultyWorkspaceLive.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
@@ -110,6 +111,7 @@ export default function App() {
         <Route path="gallery" element={<Gallery />} />
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
+        <Route path="news" element={<News />} />
         <Route path="trip" element={<Trip />} />
         <Route path="travel-home" element={<TravelHome />} />
         <Route path="travel" element={<Navigate to="/app/travel-home" replace />} />
@@ -122,6 +124,7 @@ export default function App() {
       <Route path="/faculty" element={<FacultyOnly><FacultyWorkspace section="home" /></FacultyOnly>} />
       <Route path="/faculty/home" element={<FacultyOnly><FacultyWorkspace section="home" /></FacultyOnly>} />
       <Route path="/faculty/events" element={<FacultyOnly><FacultyWorkspace section="events" /></FacultyOnly>} />
+      <Route path="/faculty/news" element={<FacultyOnly><News /></FacultyOnly>} />
       <Route path="/faculty/gallery" element={<FacultyOnly><FacultyWorkspace section="gallery" /></FacultyOnly>} />
       <Route path="/faculty/study" element={<FacultyOnly><FacultyWorkspace section="study" /></FacultyOnly>} />
       <Route path="/faculty/publications" element={<FacultyOnly><FacultyWorkspace section="publications" /></FacultyOnly>} />
