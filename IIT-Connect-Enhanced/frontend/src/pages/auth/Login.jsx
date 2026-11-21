@@ -16,7 +16,7 @@ export default function Login() {
   async function onSubmit(event) {
     event.preventDefault()
     setBusy(true)
-    try { await login(email.trim(), password); const current = await import('../../utils/api'); const { data } = await current.api.get('/auth/me'); nav(data.user.role === 'faculty' ? (data.user.facultyVerified ? '/faculty/home' : '/faculty/access-pending') : '/app') }
+    try { const signedIn = await login(email.trim(), password); nav(signedIn.role === 'faculty' ? (signedIn.facultyVerified ? '/faculty/home' : '/faculty/access-pending') : '/app') }
     catch (error) { toast.error(error?.response?.data?.message || 'Login failed') }
     finally { setBusy(false) }
   }
