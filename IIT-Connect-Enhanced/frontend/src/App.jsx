@@ -20,7 +20,7 @@ import Profile from './pages/dashboard/Profile.jsx'
 import Trip from './pages/dashboard/Trip.jsx'
 import TravelHome from './pages/dashboard/TravelHome.jsx'
 import Study from './pages/dashboard/Study.jsx'
-import FacultyWorkspace from './pages/FacultyWorkspace.jsx'
+import FacultyWorkspace from './pages/FacultyWorkspaceLive.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import Users from './pages/admin/Users.jsx'
