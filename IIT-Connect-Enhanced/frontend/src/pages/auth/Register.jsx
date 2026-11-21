@@ -34,8 +34,8 @@ export default function Register() {
     event.preventDefault()
     setBusy(true)
     try {
-      await verifyRegistrationOtp(email.trim(), otp)
-      nav('/app/profile')
+      const data = await verifyRegistrationOtp(email.trim(), otp)
+      nav(data.user.role === 'faculty' ? '/faculty/access-pending' : '/app/profile')
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Verification failed')
     } finally { setBusy(false) }
@@ -60,6 +60,15 @@ export default function Register() {
 
     {step === 'details' ? <form onSubmit={requestOtp} className="mt-8 space-y-5">
       <label className="auth-label block"><span>Institute email</span><div className="auth-input-wrap mt-2"><Mail size={17}/><input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@iit.ac.in"/></div></label>
+      <label className="auth-label block"><span>Account type</span><select value={accountType} onChange={e=>setAccountType(e.target.value)} className="auth-input-wrap mt-2 w-full"><option value="student">Student community</option><option value="faculty">Faculty network — verification required</option></select></label>
+      {accountType === 'faculty' && <div className="space-y-3 rounded-xl border border-[#47733d]/15 bg-[#47733d]/[.04] p-4">
+        <p className="text-xs font-semibold text-[#47733d]">Faculty details (required)</p>
+        <input required value={facultyProfile.name} onChange={e=>setFacultyField('name',e.target.value)} placeholder="Full name" className="auth-input-wrap w-full"/>
+        <input required value={facultyProfile.institute} onChange={e=>setFacultyField('institute',e.target.value)} placeholder="Institute" className="auth-input-wrap w-full"/>
+        <input required value={facultyProfile.department} onChange={e=>setFacultyField('department',e.target.value)} placeholder="Department" className="auth-input-wrap w-full"/>
+        <input required value={facultyProfile.designation} onChange={e=>setFacultyField('designation',e.target.value)} placeholder="Designation" className="auth-input-wrap w-full"/>
+        <input value={facultyProfile.researchInterests} onChange={e=>setFacultyField('researchInterests',e.target.value)} placeholder="Research interests (optional)" className="auth-input-wrap w-full"/>
+      </div>}
       <label className="auth-label block"><span>Create password</span><div className="auth-input-wrap mt-2"><LockKeyhole size={17}/><input type={showPassword?'text':'password'} required minLength={8} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="At least 8 characters"/><button type="button" onClick={()=>setShowPassword(v=>!v)} aria-label={showPassword?'Hide password':'Show password'}>{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>
       <button disabled={busy} className="auth-submit flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white disabled:opacity-60">{busy?'Sending code…':'Send verification code'}<ArrowRight size={16}/></button>
     </form> : <form onSubmit={confirmOtp} className="mt-8 space-y-5">
