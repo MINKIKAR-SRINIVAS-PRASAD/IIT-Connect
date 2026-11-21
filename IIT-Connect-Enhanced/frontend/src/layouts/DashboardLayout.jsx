@@ -21,7 +21,7 @@ export default function DashboardLayout() {
             </AnimatePresence>
           </div>
         </main>
-        <footer className="hidden border-t border-white/[0.05] px-8 py-4 text-[10px] tracking-wide text-slate-600 md:block">IIT CONNECT <span className="mx-2 text-slate-800">/</span> ONE COMMUNITY, MANY CAMPUSES</footer>
+        <footer className="hidden border-t border-white/[0.05] px-8 py-4 text-[10px] tracking-wide text-slate-600 md:block">IITSTUDENTSOS <span className="mx-2 text-slate-800">/</span> ONE COMMUNITY, MANY CAMPUSES</footer>
       </div>
     </div>
   </div>
