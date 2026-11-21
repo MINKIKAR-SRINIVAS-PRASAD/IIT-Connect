@@ -63,6 +63,10 @@ function ProfileCompletionGuard({ children }) {
   const { user } = useAuth()
   const location = useLocation()
 
+  // Faculty and administrators must never enter the student route tree.
+  if (user?.role === 'faculty') return <Navigate to="/faculty" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />
+
   if (user?.role === 'admin') {
     return children
   }
