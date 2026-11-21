@@ -71,6 +71,9 @@ export const register = asyncHandler(async (req, res) => {
       id: user._id,
       email: user.email,
       role: user.role,
+      facultyVerified: user.facultyVerified,
+      facultyProfile: user.facultyProfile,
+      facultyRequestStatus: user.facultyRequestStatus,
       profile: user.profile
     }
   })
@@ -92,7 +95,9 @@ export const login = asyncHandler(async (req, res) => {
   if (!ok) throw new ApiError(401, 'Invalid credentials')
 
   const desiredRole = getRoleForEmail(user.email)
-  if (user.role !== desiredRole) user.role = desiredRole
+  // Seeded admin identities retain their provisioned privilege; ordinary sign-ins
+  // must never downgrade a faculty account to student.
+  if (desiredRole === 'admin' && user.role !== 'admin') user.role = 'admin'
 
   const accessToken = signAccessToken(user._id.toString())
   const refreshToken = await createRefreshSession(user)
