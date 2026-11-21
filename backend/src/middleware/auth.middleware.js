@@ -78,3 +78,11 @@ export function requireAdmin(req, res, next) {
 
   return next()
 }
+
+
+// Only explicitly configured faculty accounts may access faculty-only endpoints.
+export function requireFaculty(req, res, next) {
+  if (!req.user) return next(new ApiError(401, 'Unauthorized'))
+  if (req.user.role !== 'faculty') return next(new ApiError(403, 'Faculty access required'))
+  return next()
+}
