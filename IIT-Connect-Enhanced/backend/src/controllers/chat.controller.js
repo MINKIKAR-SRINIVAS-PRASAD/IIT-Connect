@@ -4,14 +4,15 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
 import ConversationPreference from '../models/ConversationPreference.js'
-import { removeUserFromConversation } from '../socket/index.js'
+import { removeUserFromConversation, broadcastMessageToConversation, isUserViewingConversation } from '../socket/index.js'
+import { sendPushToUser } from '../services/pushNotifications.js'
 
 function isConversationMember(conversation, userId) {
   return Boolean(conversation?.participants?.some((participant) => participant.toString() === userId.toString()))
 }
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-const participantFields = 'profile.name profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
+const participantFields = 'profile.name profile.rollNumber profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
 
 async function withParticipants(conversation) {
   return Conversation.populate(conversation, {
@@ -24,7 +25,7 @@ export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
   const filter = {
     _id: { $ne: req.user._id },
-    role: { $ne: 'admin' },
+    role: 'student',
     isBanned: false
   }
 
@@ -33,13 +34,14 @@ export const listUsers = asyncHandler(async (req, res) => {
     filter.$or = [
       { email: { $regex: safeQuery, $options: 'i' } },
       { 'profile.name': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.rollNumber': { $regex: safeQuery, $options: 'i' } },
       { 'profile.iit': { $regex: safeQuery, $options: 'i' } }
     ]
   }
 
   const users = await User.find(filter)
-    .select('profile.name profile.iit profile.branch profile.photoUrl lastSeenAt')
-    .limit(25)
+    .select('profile.name profile.rollNumber profile.iit profile.branch profile.photoUrl lastSeenAt')
+    .limit(q ? 0 : 25)
     .sort({ createdAt: -1 })
 
   res.json({ success: true, users })
@@ -50,7 +52,7 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
   if (!otherUserId) throw new ApiError(400, 'otherUserId is required')
 
   const other = await User.findById(otherUserId)
-  if (!other || other.isBanned) throw new ApiError(404, 'User not found')
+  if (!other || other.isBanned || other.role !== 'student' || req.user.role !== 'student') throw new ApiError(404, 'Student community user not found')
 
   const me = req.user._id
   if (other._id.equals(me)) throw new ApiError(400, 'You cannot start a conversation with yourself')
@@ -188,6 +190,69 @@ export const leaveConversation = asyncHandler(async (req, res) => {
   await ConversationPreference.deleteOne({ userId: req.user._id, conversationId })
   removeUserFromConversation(req.user._id.toString(), conversationId)
   res.json({ success: true, message: 'You left the group' })
+})
+
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { conversationId, text } = req.body || {}
+  if (typeof conversationId !== 'string' || !conversationId) throw new ApiError(400, 'conversationId is required')
+  if (typeof text !== 'string') throw new ApiError(400, 'Message text is invalid')
+  const cleanText = text.trim()
+  if (!cleanText || cleanText.length > 2000) throw new ApiError(400, 'Message must contain 1–2000 characters')
+
+  const conversation = await Conversation.findById(conversationId)
+  if (!conversation) throw new ApiError(404, 'Conversation not found')
+  if (!isConversationMember(conversation, req.user._id)) throw new ApiError(403, 'Not a member of this conversation')
+
+  const message = await Message.create({
+    conversationId: conversation._id,
+    senderId: req.user._id,
+    text: cleanText,
+    seenBy: [req.user._id]
+  })
+  conversation.lastMessageAt = message.createdAt || new Date()
+  conversation.lastMessageText = cleanText
+  await conversation.save()
+
+  const payload = {
+    _id: message._id.toString(),
+    conversationId: conversation._id.toString(),
+    senderId: req.user._id.toString(),
+    sender: {
+      _id: req.user._id.toString(),
+      name: req.user.profile?.name || (req.user.role === 'admin' ? 'Admin' : 'Student'),
+      photoUrl: req.user.profile?.photoUrl || '',
+      iit: req.user.profile?.iit || '',
+      role: req.user.role
+    },
+    text: cleanText,
+    createdAt: message.createdAt,
+    seenBy: [req.user._id.toString()]
+  }
+
+  // HTTP confirms persistence; Socket.IO only distributes the saved event to active members.
+  broadcastMessageToConversation(conversation._id.toString(), payload)
+  // Notify only recipients who are not actively viewing this conversation.
+  const recipientIds = conversation.participants
+    .map((participant) => participant.toString())
+    .filter((participantId) => participantId !== req.user._id.toString())
+  const recipientPreferences = await ConversationPreference.find({
+    userId: { $in: recipientIds },
+    conversationId: conversation._id,
+    muted: true
+  }).select('userId').lean()
+  const mutedUsers = new Set(recipientPreferences.map((item) => item.userId.toString()))
+  const senderName = req.user.profile?.name || (req.user.role === 'admin' ? 'Admin' : 'A student')
+  await Promise.all(recipientIds.map(async (recipientId) => {
+    if (mutedUsers.has(recipientId) || isUserViewingConversation(recipientId, conversation._id.toString())) return
+    await sendPushToUser(recipientId, {
+      title: senderName,
+      body: conversation.type === 'dm' ? 'Sent you a message' : `New message in ${conversation.title || 'your group'}`,
+      tag: `chat-${conversation._id.toString()}`,
+      url: '/app/chat'
+    })
+  }))
+
+  res.status(201).json({ success: true, message: payload })
 })
 
 export const messages = asyncHandler(async (req, res) => {

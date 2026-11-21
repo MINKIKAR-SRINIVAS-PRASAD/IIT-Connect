@@ -6,7 +6,13 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 8080),
   CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  CLIENT_ORIGINS: (process.env.CLIENT_ORIGIN || 'http://localhost:5173')\n    .split(',')\n    .map((origin) => origin.trim())\n    .filter(Boolean),
   MONGO_URI: process.env.MONGO_URI,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM,
+  OTP_TEST_MODE: process.env.OTP_TEST_MODE === 'true',
+  OTP_TEST_EMAIL: process.env.OTP_TEST_EMAIL?.trim().toLowerCase(),
+  OTP_TEST_RECIPIENT: process.env.OTP_TEST_RECIPIENT?.trim().toLowerCase(),
   DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL?.trim().toLowerCase(),
   DEFAULT_ADMIN_PASSWORD: process.env.DEFAULT_ADMIN_PASSWORD,
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
@@ -49,6 +55,11 @@ export function assertEnv() {
 
   if (env.NODE_ENV === 'production' && !process.env.CLIENT_ORIGIN) {
     throw new Error('CLIENT_ORIGIN must be explicitly configured in production')
+  }
+
+
+  if (env.OTP_TEST_MODE && (!env.OTP_TEST_EMAIL || !env.OTP_TEST_RECIPIENT)) {
+    throw new Error('OTP_TEST_EMAIL and OTP_TEST_RECIPIENT are required when OTP_TEST_MODE is enabled')
   }
 
   if (env.DEFAULT_ADMIN_EMAIL && !env.DEFAULT_ADMIN_PASSWORD) {

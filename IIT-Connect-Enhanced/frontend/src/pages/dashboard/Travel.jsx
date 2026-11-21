@@ -1,265 +1,148 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
+import { Plane, TrainFront, BusFront, MapPin, CalendarDays, Users, ShieldCheck, Search, Plus, X, Ticket, Clock3 } from 'lucide-react'
 
 const categories = ['All', 'Trekking', 'Weekend Trips', 'Pilgrimage', 'Adventure', 'Sightseeing']
-const emptyForm = {
-  destination: '',
-  location: '',
-  category: 'Weekend Trips',
-  description: '',
-  date: '',
-  budget: '',
-  members: 1
+const initial = {
+  destination: '', location: '', category: 'Weekend Trips', description: '', date: '',
+  budget: '', members: 1, travelMode: 'Train',
+  booking: {
+    trainName: '', trainNumber: '', pnr: '', bookingStatus: 'Confirmed', coach: '', seat: '', berthType: '',
+    boardingStation: '', arrivalStation: '', departureDate: '', departureTime: '', arrivalDate: '', arrivalTime: '',
+    operator: '', serviceNumber: '', busType: '', ticketReference: '', seatNumber: '', boardingPoint: '', dropPoint: '',
+    airline: '', flightNumber: '', airlinePnr: '', bookingReference: '', flightSeat: '', departureAirport: '', arrivalAirport: ''
+  }
 }
-
-function formatDate(value) {
-  if (!value) return 'Date not specified'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? 'Date not specified' : date.toLocaleDateString()
+const fieldSets = {
+  Train: [
+    ['trainName','Train name','text'],['trainNumber','Train number','text'],['pnr','PNR','text'],['bookingStatus','Booking status','select'],
+    ['coach','Coach number','text'],['seat','Seat / berth number','text'],['berthType','Berth type','text'],
+    ['boardingStation','Boarding station','text'],['arrivalStation','Destination station','text'],
+    ['departureDate','Departure date','date'],['departureTime','Departure time','time'],['arrivalDate','Arrival date','date'],['arrivalTime','Arrival time','time']
+  ],
+  Bus: [
+    ['operator','Bus operator','text'],['serviceNumber','Service number','text'],['busType','Bus type','text'],['ticketReference','Ticket reference','text'],
+    ['seatNumber','Seat number','text'],['boardingPoint','Boarding point','text'],['dropPoint','Drop point','text'],
+    ['departureDate','Journey date','date'],['departureTime','Departure time','time'],['arrivalDate','Arrival date','date'],['arrivalTime','Arrival time','time']
+  ],
+  Flight: [
+    ['airline','Airline','text'],['flightNumber','Flight number','text'],['airlinePnr','Airline PNR','text'],['bookingReference','Booking reference','text'],
+    ['flightSeat','Seat number','text'],['departureAirport','Departure airport','text'],['arrivalAirport','Arrival airport','text'],
+    ['departureDate','Departure date','date'],['departureTime','Departure time','time'],['arrivalDate','Arrival date','date'],['arrivalTime','Arrival time','time']
+  ]
 }
+const inputClass = 'mt-2 w-full rounded-xl border border-slate-700/80 bg-[#111a30] px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10'
+function Field({name,label,type='text',value,onChange}) {
+  if (type === 'select') return <label className="block text-sm text-slate-300">{label}<select name={name} className={inputClass} value={value} onChange={onChange}><option>Confirmed</option><option>RAC</option><option>Waiting List</option><option>Booked</option></select></label>
+  return <label className="block text-sm text-slate-300">{label}<input required className={inputClass} type={type} name={name} value={value || ''} onChange={onChange}/></label>
+}
+function dateLabel(value) { return value ? new Date(value).toLocaleDateString() : 'Date not set' }
+function ModeIcon({mode}) { const Icon = mode === 'Train' ? TrainFront : mode === 'Bus' ? BusFront : Plane; return <Icon size={18}/> }
 
 export default function Travel() {
-  const [trips, setTrips] = useState([])
-  const [myTrips, setMyTrips] = useState([])
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('All')
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(emptyForm)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-
-  async function loadTrips() {
+  const [trips,setTrips] = useState([]), [mine,setMine] = useState([])
+  const [search,setSearch] = useState(''), [category,setCategory] = useState('All')
+  const [showForm,setShowForm] = useState(false), [form,setForm] = useState(initial)
+  const [loading,setLoading] = useState(true), [saving,setSaving] = useState(false)
+  const [incoming,setIncoming] = useState([]), [outgoing,setOutgoing] = useState([]), [privateBooking,setPrivateBooking] = useState(null)
+  async function load() {
     setLoading(true)
     try {
-      const [approvedResponse, mineResponse] = await Promise.all([
-        api.get('/travel'),
-        api.get('/travel/mine')
-      ])
-      setTrips(approvedResponse.data.posts || [])
-      setMyTrips(mineResponse.data.posts || [])
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to load travel plans')
-    } finally {
-      setLoading(false)
-    }
+      const [a,b] = await Promise.all([api.get('/travel'),api.get('/travel/mine')])
+      setTrips(a.data.posts || []); setMine(b.data.posts || [])
+      const [c,d] = await Promise.all([api.get('/travel/access-requests/incoming'),api.get('/travel/access-requests/mine')])
+      setIncoming(c.data.requests || []); setOutgoing(d.data.requests || [])
+    } catch(e) { toast.error(e?.response?.data?.message || 'Unable to load trips') }
+    finally { setLoading(false) }
   }
-
-  useEffect(() => { loadTrips() }, [])
-
-  const filteredTrips = useMemo(() => {
-    const query = search.trim().toLowerCase()
-    return trips.filter((trip) => {
-      const matchesCategory = category === 'All' || trip.category === category
-      const matchesSearch = !query || [trip.destination, trip.location, trip.description, trip.authorId?.profile?.name, trip.authorId?.profile?.iit]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query))
-      return matchesCategory && matchesSearch
-    })
-  }, [trips, category, search])
-
-  async function deleteMyTrip(id) {
-    if (!window.confirm('Delete this travel plan for everyone? This cannot be undone.')) return
-    try {
-      await api.delete(`/travel/${id}`)
-      toast.success('Travel plan deleted for everyone')
-      await loadTrips()
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Could not delete travel plan')
-    }
-  }
-
-  const destinationsCount = new Set(trips.map((trip) => trip.destination?.trim().toLowerCase()).filter(Boolean)).size
-
-  function updateForm(event) {
-    const { name, value } = event.target
-    setForm((previous) => ({ ...previous, [name]: value }))
-  }
-
-  async function createTrip(event) {
-    event.preventDefault()
-    if (!form.destination.trim() || !form.location.trim() || !form.description.trim()) {
-      toast.error('Please fill all required fields')
-      return
-    }
-
+  useEffect(() => { load() }, [])
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return trips.filter(t => (category === 'All' || t.category === category) &&
+      (!q || [t.destination,t.location,t.description,t.authorId?.profile?.name,t.authorId?.profile?.iit].filter(Boolean).some(v => String(v).toLowerCase().includes(q))))
+  },[trips,category,search])
+  function change(e) { const {name,value} = e.target; setForm(p => ({...p,[name]:value})) }
+  function changeBooking(e) { const {name,value} = e.target; setForm(p => ({...p,booking:{...p.booking,[name]:value}})) }
+  async function submit(e) {
+    e.preventDefault()
+    if (!form.destination.trim() || !form.location.trim() || !form.date || !form.budget.trim() || !form.description.trim()) { toast.error('Complete all trip information'); return }
+    const required = fieldSets[form.travelMode]
+    if (required.some(([key]) => !String(form.booking[key] || '').trim())) { toast.error('Complete every required booking detail for the selected transport'); return }
     setSaving(true)
     try {
-      await api.post('/travel', {
-        ...form,
-        members: Number(form.members)
-      })
-      toast.success('Travel plan submitted for admin approval')
-      setForm(emptyForm)
-      setShowForm(false)
-      await loadTrips()
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Could not submit travel plan')
-    } finally {
-      setSaving(false)
-    }
+      await api.post('/travel',{...form,members:Number(form.members)})
+      toast.success('Trip submitted. It will appear after admin approval.')
+      setForm(initial); setShowForm(false); await load()
+    } catch(e) { toast.error(e?.response?.data?.message || 'Could not submit trip') }
+    finally { setSaving(false) }
   }
-
-  return (
-    <div className="space-y-6 text-white">
-      <section className="rounded-3xl border border-indigo-900/50 bg-gradient-to-r from-indigo-950 via-slate-950 to-purple-950 p-8">
-        <div className="mb-3 text-sm font-semibold text-indigo-300">✈ IIT Connect Travel Community</div>
-        <h1 className="text-3xl font-bold md:text-4xl">Explore. Travel. Connect.</h1>
-        <p className="mt-3 max-w-2xl text-slate-300">
-          Discover new destinations, find travel partners, share your travel plans and explore India with students from different IITs.
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="mt-6 rounded-xl bg-indigo-600 px-6 py-3 font-semibold transition hover:bg-indigo-500"
-        >
-          + Share Travel Plan
-        </button>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-          <p className="text-sm text-slate-400">Approved Travel Plans</p>
-          <h2 className="mt-2 text-3xl font-bold">{trips.length}</h2>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-          <p className="text-sm text-slate-400">Categories</p>
-          <h2 className="mt-2 text-3xl font-bold">{categories.length - 1}</h2>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-          <p className="text-sm text-slate-400">Destinations</p>
-          <h2 className="mt-2 text-3xl font-bold">{destinationsCount}</h2>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-xl font-bold">Discover Travel Plans</h2>
-          <p className="mt-1 text-sm text-slate-400">Find students and explore destinations together.</p>
-        </div>
-        <input
-          type="text"
-          placeholder="Search destinations or locations..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 outline-none focus:border-indigo-500"
-        />
-        <div className="flex flex-wrap gap-2">
-          {categories.map((item) => (
-            <button
-              type="button"
-              key={item}
-              onClick={() => setCategory(item)}
-              className={`rounded-full px-4 py-2 text-sm transition ${
-                category === item ? 'bg-indigo-600 text-white' : 'border border-slate-800 text-slate-300 hover:bg-slate-900'
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <section className="rounded-2xl border border-indigo-800 bg-slate-950 p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Create Travel Plan</h2>
-            <button type="button" onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white" aria-label="Close form">✕</button>
-          </div>
-          <form onSubmit={createTrip} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <label className="block text-sm text-slate-300">Destination *
-                <input required maxLength={120} name="destination" value={form.destination} onChange={updateForm} placeholder="e.g. Manali" className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white outline-none" />
-              </label>
-              <label className="block text-sm text-slate-300">Location *
-                <input required maxLength={120} name="location" value={form.location} onChange={updateForm} placeholder="State / Country" className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white outline-none" />
-              </label>
-              <label className="block text-sm text-slate-300">Category
-                <select name="category" value={form.category} onChange={updateForm} className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white">
-                  {categories.slice(1).map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
-              </label>
-              <label className="block text-sm text-slate-300">Travel Date
-                <input type="date" name="date" value={form.date} onChange={updateForm} min={new Date().toISOString().slice(0, 10)} className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white" />
-              </label>
-              <label className="block text-sm text-slate-300">Budget per person
-                <input maxLength={40} name="budget" value={form.budget} onChange={updateForm} placeholder="e.g. ₹5000" className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white outline-none" />
-              </label>
-              <label className="block text-sm text-slate-300">Maximum members
-                <input type="number" name="members" min="1" max="50" value={form.members} onChange={updateForm} className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white" />
-              </label>
-            </div>
-            <label className="block text-sm text-slate-300">Description *
-              <textarea required maxLength={1000} name="description" value={form.description} onChange={updateForm} rows="4" placeholder="Describe your travel plan..." className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-white outline-none" />
-            </label>
-            <p className="text-xs text-slate-400">Your plan will appear publicly only after admin approval.</p>
-            <button type="submit" disabled={saving} className="rounded-xl bg-indigo-600 px-6 py-3 font-semibold hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50">
-              {saving ? 'Submitting...' : 'Publish Travel Plan'}
-            </button>
-          </form>
-        </section>
-      )}
-
-      <section>
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-bold">Available Travel Plans</h2>
-          <span className="text-sm text-slate-400">{filteredTrips.length} results</span>
-        </div>
-        {loading ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-950 p-12 text-center text-slate-400">Loading travel plans...</div>
-        ) : filteredTrips.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-950 p-12 text-center">
-            <div className="mb-4 text-5xl">✈️</div>
-            <h3 className="text-xl font-semibold">No travel plans found</h3>
-            <p className="mt-2 text-slate-400">Try another destination or create a new travel plan.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredTrips.map((trip) => (
-              <article key={trip._id} className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 transition hover:border-indigo-600">
-                <div className="flex h-36 items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
-                  <span className="text-6xl">🏔️</span>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs text-indigo-300">{trip.category}</span>
-                    <span className="text-xs text-slate-400">{formatDate(trip.travelDate)}</span>
-                  </div>
-                  <h3 className="mt-4 text-xl font-bold">{trip.destination}</h3>
-                  <p className="mt-1 text-sm text-slate-400">📍 {trip.location}</p>
-                  <p className="mt-4 min-h-12 whitespace-pre-wrap text-sm text-slate-300">{trip.description}</p>
-                  <div className="mt-4 space-y-2 border-t border-slate-800 pt-4">
-                    <div className="flex justify-between gap-3 text-sm"><span className="text-slate-400">Budget / person</span><span className="font-semibold">{trip.budget || 'Not specified'}</span></div>
-                    <div className="flex justify-between gap-3 text-sm"><span className="text-slate-400">Maximum members</span><span>{trip.members}</span></div>
-                    <div className="flex justify-between gap-3 text-sm"><span className="text-slate-400">Organized by</span><span className="text-right text-indigo-300">{trip.authorId?.profile?.name || trip.name || 'IIT Student'}</span></div>
-                    <p className="text-xs text-slate-500">{trip.authorId?.profile?.iit || trip.iit || ''}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {myTrips.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-bold">My Travel Plan Submissions</h2>
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
-            {myTrips.map((trip) => (
-              <div key={trip._id} className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-950 p-4 last:border-0">
-                <div>
-                  <p className="font-medium">{trip.destination} · {trip.location}</p>
-                  <p className="text-xs text-slate-400">{trip.category} · {formatDate(trip.travelDate)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={trip.status === 'Approved' ? 'rounded-full bg-emerald-500/15 px-3 py-1 text-xs text-emerald-300' : trip.status === 'Rejected' ? 'rounded-full bg-rose-500/15 px-3 py-1 text-xs text-rose-300' : 'rounded-full bg-amber-500/15 px-3 py-1 text-xs text-amber-300'}>{trip.status}</span>
-                  <button type="button" onClick={() => deleteMyTrip(trip._id)} className="rounded-lg border border-rose-500/30 px-3 py-1.5 text-xs text-rose-300 hover:bg-rose-500/10">Delete for everyone</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+  async function askForAccess(id) {
+    try { await api.post('/travel/'+id+'/access-requests'); toast.success('Request sent to trip owner'); await load() }
+    catch(e) { toast.error(e?.response?.data?.message || 'Could not send request') }
+  }
+  async function respondToAccess(id,decision) {
+    try { await api.put('/travel/access-requests/'+id+'/respond',{decision}); toast.success(decision==='accept'?'Request accepted':'Request declined'); await load() }
+    catch(e) { toast.error(e?.response?.data?.message || 'Could not update request') }
+  }
+  async function revealBooking(id) {
+    try { const {data}=await api.get('/travel/'+id+'/private-details'); setPrivateBooking(data) }
+    catch(e) { toast.error(e?.response?.data?.message || 'Private details are not available') }
+  }
+  async function remove(id) {
+    if (!window.confirm('Delete this trip submission?')) return
+    try { await api.delete('/travel/'+id); toast.success('Trip deleted'); await load() }
+    catch(e) { toast.error(e?.response?.data?.message || 'Could not delete trip') }
+  }
+  const outgoingByTrip = new Map(outgoing.filter(r => r.tripId?._id).map(r => [r.tripId._id, r]))
+  const destinations = new Set(trips.map(t => t.destination?.toLowerCase()).filter(Boolean)).size
+  return <div className="space-y-7 text-slate-100">
+    <section className="relative overflow-hidden rounded-[28px] border border-indigo-300/15 bg-[radial-gradient(ellipse_at_82%_8%,rgba(34,211,238,.22),transparent_34%),radial-gradient(ellipse_at_5%_100%,rgba(139,92,246,.25),transparent_38%),linear-gradient(120deg,#151b3b,#102b43_58%,#102f39)] p-6 shadow-[0_24px_80px_rgba(4,10,30,.35)] md:p-9">
+      <div className="absolute -right-12 -top-16 h-64 w-64 rounded-full border border-cyan-100/10"/><div className="absolute -right-2 -top-7 h-44 w-44 rounded-full border border-cyan-100/10"/>
+      <div className="relative max-w-3xl">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-cyan-100"><MapPin size={14}/> IIT CONNECT · TRIP COMMUNITY</div>
+        <h1 className="text-4xl font-black tracking-tight md:text-5xl">Your next journey<br/><span className="bg-gradient-to-r from-cyan-200 via-indigo-200 to-violet-300 bg-clip-text text-transparent">starts together.</span></h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 md:text-base">Find fellow students on the same route, share verified booking information and make every journey a little less solo.</p>
+        <button onClick={() => setShowForm(true)} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-950/40 transition hover:-translate-y-0.5 hover:brightness-110"><Plus size={17}/> Create a trip</button>
+      </div>
+    </section>
+    <div className="grid gap-3 sm:grid-cols-3">
+      {[['Approved trips',trips.length,Ticket],['Destinations',destinations,MapPin],['Trip categories',categories.length-1,CalendarDays]].map(([label,value,Icon]) => <div key={label} className="rounded-2xl border border-indigo-200/10 bg-gradient-to-br from-[#1b2543] to-[#111b30] p-5 shadow-lg shadow-black/10"><div className="flex items-center justify-between text-sm text-slate-400"><span>{label}</span><Icon size={17} className="text-cyan-300"/></div><div className="mt-2 text-3xl font-bold text-white">{value}</div></div>)}
     </div>
-  )
+    {showForm && <section className="overflow-hidden rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-[#182443] to-[#10192c] shadow-2xl shadow-black/30">
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/[.035] px-5 py-4 md:px-7"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">New journey</p><h2 className="mt-1 text-xl font-bold">Create your trip</h2></div><button onClick={() => setShowForm(false)} className="rounded-xl border border-white/10 p-2 text-slate-400 hover:bg-white/10 hover:text-white"><X size={18}/></button></div>
+      <form onSubmit={submit} className="space-y-7 p-5 md:p-7">
+        <div><h3 className="mb-3 text-sm font-bold text-indigo-200">01 · Trip overview</h3><div className="grid gap-4 md:grid-cols-2">
+          <Field label="Destination" name="destination" value={form.destination} onChange={change}/><Field label="City / State / Country" name="location" value={form.location} onChange={change}/>
+          <label className="block text-sm text-slate-300">Category<select name="category" value={form.category} onChange={change} className={inputClass}>{categories.slice(1).map(x=><option key={x}>{x}</option>)}</select></label>
+          <Field label="Trip start date" name="date" type="date" value={form.date} onChange={change}/>
+          <Field label="Budget per person" name="budget" value={form.budget} onChange={change}/>
+          <label className="block text-sm text-slate-300">Maximum members<input className={inputClass} name="members" type="number" min="1" max="50" required value={form.members} onChange={change}/></label>
+          <label className="block text-sm text-slate-300 md:col-span-2">Trip description<textarea className={inputClass} rows="3" name="description" required maxLength="1000" value={form.description} onChange={change} placeholder="Share your plan, itinerary and what kind of travel partners you're looking for."/></label>
+        </div></div>
+        <div><h3 className="mb-3 text-sm font-bold text-indigo-200">02 · Booking details</h3><p className="mb-4 text-xs text-slate-400">Choose your transport. Every applicable booking field is required for admin verification.</p>
+          <div className="mb-4 grid grid-cols-3 gap-2">{['Train','Bus','Flight'].map(mode=><button type="button" key={mode} onClick={()=>setForm(p=>({...p,travelMode:mode}))} className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold transition ${form.travelMode===mode?'border-cyan-300/50 bg-cyan-300/15 text-cyan-100 shadow-inner':'border-white/10 bg-[#101a30] text-slate-400 hover:border-white/25'}`}><ModeIcon mode={mode}/>{mode}</button>)}</div>
+          <div className="grid gap-4 rounded-2xl border border-white/10 bg-[#0d172b]/70 p-4 md:grid-cols-2">{fieldSets[form.travelMode].map(([key,label,type])=><Field key={key} name={key} label={label} type={type} value={form.booking[key]} onChange={changeBooking}/>)}</div>
+        </div>
+        <div className="flex gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[.06] p-4"><ShieldCheck className="mt-0.5 shrink-0 text-amber-200" size={19}/><div className="text-xs leading-5 text-slate-300"><b className="text-amber-100">Your booking privacy matters.</b> PNRs and booking references are private. Other students must not see these identifiers on public trip cards. Admin reviews the complete booking; seat and coach details are not displayed on public trip cards. A student must request access and you must explicitly accept before private booking details are shared.</div></div>
+        <button disabled={saving} className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-3.5 font-bold text-white shadow-lg shadow-indigo-950/40 transition hover:brightness-110 disabled:opacity-50">{saving?'Submitting for review…':'Submit trip for admin approval'}</button>
+      </form>
+    </section>}
+    <section className="space-y-4"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Find your people</p><h2 className="mt-1 text-2xl font-bold">Explore trips</h2></div><span className="text-sm text-slate-400">{filtered.length} journeys</span></div>
+      <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search destinations, campuses or people…" className="w-full rounded-xl border border-white/10 bg-[#131e35] py-3 pl-11 pr-4 text-sm text-white outline-none focus:border-cyan-400"/></div>
+      <div className="flex flex-wrap gap-2">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={`rounded-full px-4 py-2 text-xs font-semibold transition ${category===c?'bg-cyan-400 text-[#071321]':'border border-white/10 bg-[#17223a] text-slate-400 hover:text-white'}`}>{c}</button>)}</div>
+      {loading?<div className="rounded-2xl border border-white/10 bg-[#121d33] p-12 text-center text-slate-400">Loading trips…</div>:filtered.length===0?<div className="rounded-2xl border border-dashed border-white/15 bg-[#121d33]/70 p-12 text-center"><div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200"><MapPin size={25}/></div><h3 className="font-bold text-white">No matching trips yet</h3><p className="mt-1 text-sm text-slate-400">Try another search or share the first journey.</p></div>:
+      <div className="grid gap-4 lg:grid-cols-2">{filtered.map(t=><article key={t._id} className="group overflow-hidden rounded-2xl border border-indigo-200/10 bg-gradient-to-br from-[#1b2745] to-[#111a2e] shadow-lg shadow-black/10 transition hover:-translate-y-1 hover:border-cyan-300/30">
+        <div className="flex items-center justify-between border-b border-white/[.07] bg-white/[.025] px-5 py-3"><span className="inline-flex items-center gap-2 text-xs font-semibold text-cyan-200"><ModeIcon mode={t.travelMode}/>{t.travelMode||'Trip'} journey</span><span className="rounded-full bg-indigo-300/10 px-3 py-1 text-[11px] text-indigo-200">{t.category}</span></div>
+        <div className="p-5"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-slate-400">{dateLabel(t.travelDate)}</span><span className="inline-flex items-center gap-1 text-xs text-slate-400"><Users size={13}/>{t.members} max members</span></div>
+          <h3 className="mt-3 text-xl font-bold text-white">{t.from || t.location} <span className="text-cyan-300">→</span> {t.to || t.destination}</h3><p className="mt-1 text-sm text-slate-400">{t.destination}, {t.location}</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-300">{t.description}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[.08] pt-4"><div><p className="text-[10px] uppercase tracking-wider text-slate-500">Budget / person</p><p className="mt-1 text-sm font-semibold text-white">{t.budget||'Not specified'}</p></div><div><p className="text-[10px] uppercase tracking-wider text-slate-500">Shared by</p><p className="mt-1 text-sm font-semibold text-indigo-200">{t.authorId?.profile?.name||'IIT student'}</p><p className="text-[11px] text-slate-500">{t.authorId?.profile?.iit||''}</p></div></div>
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-300/10 bg-emerald-300/[.045] px-3 py-2 text-[11px] text-emerald-200"><ShieldCheck size={14}/> Booking identifiers are hidden from public view</div>{outgoingByTrip.get(t._id)?.status==='Accepted'?<button onClick={()=>revealBooking(t._id)} className="mt-4 w-full rounded-xl border border-emerald-300/25 bg-emerald-300/10 px-4 py-2.5 text-sm font-semibold text-emerald-100">View shared booking details</button>:<button onClick={()=>askForAccess(t._id)} disabled={outgoingByTrip.get(t._id)?.status==='Pending'} className="mt-4 w-full rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-4 py-2.5 text-sm font-semibold text-cyan-100 disabled:opacity-50">{outgoingByTrip.get(t._id)?.status==='Pending'?'Request pending':outgoingByTrip.get(t._id)?.status==='Declined'?'Request access again':'Request private booking details'}</button>}
+        </div></article>)}</div>}
+    </section>
+    {incoming.length>0&&<section className="space-y-3"><h2 className="text-lg font-bold">Requests for my trips</h2>{incoming.map(r=><div key={r._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-200/15 bg-[#17243d] p-4"><div><p className="font-semibold">{r.requesterId?.profile?.name||'Student'} wants booking details</p><p className="text-xs text-slate-400">{r.tripId?.destination} · {r.requesterId?.profile?.iit}</p></div><div className="flex gap-2"><button onClick={()=>respondToAccess(r._id,'accept')} className="rounded-lg bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-200">Accept</button><button onClick={()=>respondToAccess(r._id,'decline')} className="rounded-lg bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-200">Decline</button></div></div>)}</section>}
+    {outgoing.length>0&&<section className="space-y-3"><h2 className="text-lg font-bold">My booking-detail requests</h2>{outgoing.map(r=><div key={r._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#151f36] p-4"><div><p className="font-semibold">{r.tripId?.destination||'Trip'}</p><p className="text-xs text-slate-400">Owner: {r.ownerId?.profile?.name||'Student'} · {r.status}</p></div>{r.status==='Accepted'&&<button onClick={()=>revealBooking(r.tripId?._id)} className="rounded-lg bg-cyan-400/15 px-3 py-2 text-xs font-semibold text-cyan-100">View private details</button>}</div>)}</section>}
+    {privateBooking&&<div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" onClick={()=>setPrivateBooking(null)}><section onClick={e=>e.stopPropagation()} className="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-cyan-200/20 bg-[#111b30] p-6"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Private booking details</h2><button onClick={()=>setPrivateBooking(null)} className="rounded-lg p-2 text-slate-300 hover:bg-white/10"><X size={18}/></button></div><p className="mt-1 text-xs text-emerald-300">Shared after mutual consent or shown to the trip owner</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{Object.entries(privateBooking.booking||{}).filter(([,v])=>v).map(([k,v])=><div key={k} className="rounded-lg bg-white/[.04] p-3"><p className="text-xs capitalize text-slate-400">{k.replace(/([A-Z])/g,' $1')}</p><p className="mt-1 break-all text-sm font-semibold text-white">{v}</p></div>)}</div>{privateBooking.seatDetails&&<p className="mt-3 text-sm">Seat details: {privateBooking.seatDetails}</p>}{privateBooking.contactPreference&&<p className="mt-2 text-sm text-slate-300">Contact preference: {privateBooking.contactPreference}</p>}</section></div>}
+    {mine.length>0&&<section className="space-y-3"><h2 className="text-lg font-bold">My trip submissions</h2>{mine.map(t=><div key={t._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#151f36] p-4"><div><p className="font-semibold">{t.destination} · {t.location}</p><p className="text-xs text-slate-400">{t.travelMode} · {dateLabel(t.travelDate)}</p></div><div className="flex items-center gap-3"><span className={'rounded-full px-3 py-1 text-xs '+(t.status==='Approved'?'bg-emerald-400/10 text-emerald-300':t.status==='Rejected'?'bg-rose-400/10 text-rose-300':'bg-amber-400/10 text-amber-200')}>{t.status}</span>{t.status==='Approved'&&<button onClick={()=>revealBooking(t._id)} className="text-xs text-cyan-200 hover:text-cyan-100">View booking details</button>}<button onClick={()=>remove(t._id)} className="text-xs text-rose-300 hover:text-rose-200">Delete</button></div></div>)}</section>}
+  </div>
 }

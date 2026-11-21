@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.middleware.js'
+import { requireStudentCommunity } from '../middleware/studentCommunity.middleware.js'
 import { requireProfileComplete } from '../middleware/profileCompletion.middleware.js'
 import { upload } from '../middleware/upload.middleware.js'
 import { validateImageUpload } from '../middleware/imageUpload.middleware.js'
@@ -7,7 +8,7 @@ import { createEvent, listApprovedEvents, myEvents } from '../controllers/event.
 
 const router = Router()
 
-router.use(requireAuth, requireProfileComplete)
+router.use(requireAuth, requireStudentCommunity, requireProfileComplete)
 
 router.get('/', listApprovedEvents)
 router.get('/mine', myEvents)

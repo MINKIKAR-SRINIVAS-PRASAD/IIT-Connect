@@ -60,7 +60,9 @@ export const setBan = asyncHandler(async (req, res) => {
   await user.save()
   await log(req.user._id, user.isBanned ? 'BAN_USER' : 'UNBAN_USER', 'User', user._id)
 
-  res.json({ success: true, user })
+  // Return only public account fields; never expose password or refresh-token hashes.
+  const safeUser = await User.findById(user._id).select('email role isBanned profile createdAt')
+  res.json({ success: true, user: safeUser })
 })
 
 export const pendingApprovals = asyncHandler(async (req, res) => {

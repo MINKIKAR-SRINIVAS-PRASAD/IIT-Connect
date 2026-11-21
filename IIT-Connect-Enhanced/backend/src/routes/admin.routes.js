@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { pendingFacultyRequests, reviewFacultyRequest } from '../controllers/facultyAdmin.controller.js'
 import { requireAuth } from '../middleware/auth.middleware.js'
 import { requireRole } from '../middleware/roles.middleware.js'
 import { deletionNotifications, markDeletionNotificationRead, approveEvent, approveGallery, approvePlacement, approveTravel, approveStudy, listUsers, logs, pendingApprovals, setBan, stats } from '../controllers/admin.controller.js'
@@ -9,6 +10,8 @@ router.use(requireAuth, requireRole('admin'))
 
 router.get('/stats', stats)
 router.get('/users', listUsers)
+router.get('/faculty-requests', pendingFacultyRequests)
+router.put('/faculty-requests/:userId', reviewFacultyRequest)
 router.put('/users/:userId/ban', setBan)
 
 router.get('/approvals/pending', pendingApprovals)

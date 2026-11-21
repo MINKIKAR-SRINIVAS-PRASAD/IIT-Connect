@@ -4,17 +4,13 @@ import AdminSidebar from '../components/nav/AdminSidebar.jsx'
 import Topbar from '../components/nav/Topbar.jsx'
 
 export default function AdminLayout() {
-  return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="flex">
-        <AdminSidebar />
-        <div className="flex-1 min-w-0">
-          <Topbar admin />
-          <main className="p-4 md:p-6">
-            <Outlet />
-          </main>
-        </div>
+  return <div className="dashboard-shell min-h-screen bg-[#f4f6ef]">
+    <div className="flex min-h-screen">
+      <AdminSidebar/>
+      <div className="min-w-0 flex-1">
+        <Topbar admin/>
+        <main className="relative px-4 py-6 md:px-8 md:py-8"><div className="mx-auto w-full max-w-[1440px]"><Outlet/></div></main>
       </div>
     </div>
-  )
+  </div>
 }
