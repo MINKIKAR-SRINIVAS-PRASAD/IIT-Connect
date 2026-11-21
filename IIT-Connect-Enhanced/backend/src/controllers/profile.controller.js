@@ -2,7 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import { cloudinary } from '../config/cloudinary.js'
-import { isProfileComplete } from '../utils/profileCompletion.js'
+import { isProfileComplete } from '../utils/profileCompletion.js'\nimport { getIitNameFromEmail } from '../utils/allowedIitDomains.js'
 
 export const updateProfile = asyncHandler(async (req, res) => {
   const { name, rollNumber, iit, branch, batch, bio } = req.body
@@ -11,7 +11,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, 'User not found')
 
   const nextName = name ?? user.profile.name
-  const nextIit = iit ?? user.profile.iit
+  // Students cannot choose or spoof their institute: the OTP-verified email domain is authoritative.\n  const verifiedInstitute = user.role === 'student' ? getIitNameFromEmail(user.email) : ''\n  const nextIit = verifiedInstitute || iit || user.profile.iit
   const nextBranch = branch ?? user.profile.branch
   const nextBatch = batch ?? user.profile.batch
   const nextBio = bio ?? user.profile.bio
