@@ -28,6 +28,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   const [convos, setConvos] = useState([])
   const [showArchived, setShowArchived] = useState(false)
   const currentUserId = getId(user?.id || user?._id)
+  const matchingUsers = users.filter((person) => getId(person) !== currentUserId)
 
   async function loadConvos() {
     const { data } = await api.get('/chat/conversations', { params: { includeArchived: 'true' } })
@@ -155,7 +156,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
 
         {!showArchived && <>
           <div className="px-1 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Find students</div>
-          {users.filter((person) => getId(person) !== currentUserId).map((person) => (
+          {matchingUsers.map((person) => (
             <div key={person._id} className="flex items-center gap-3 rounded-xl border border-slate-800/80 bg-slate-900/30 p-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 text-xs font-semibold text-slate-200">
                 {person.profile?.photoUrl ? <img src={person.profile.photoUrl} alt={person.profile?.name || 'Student'} className="h-full w-full object-cover" /> : (person.profile?.name || 'S').slice(0, 1).toUpperCase()}
@@ -168,6 +169,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
               <Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button>
             </div>
           ))}
+          {q.trim() && matchingUsers.length === 0 && <p className="px-2 py-4 text-sm text-slate-400">No students found for “{q.trim()}”. Try a name or roll number.</p>}
         </>}
       </div>
     </aside>
