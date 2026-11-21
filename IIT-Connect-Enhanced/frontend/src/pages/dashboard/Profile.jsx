@@ -129,7 +129,7 @@ export default function Profile() {
         <div className="mt-5 grid md:grid-cols-2 gap-3">
           <Input label="Name *" value={name} required={isStudent} maxLength={80} onChange={(e) => setName(e.target.value)} />
           <Input label="Roll number" value={rollNumber} maxLength={40} onChange={(e) => setRollNumber(e.target.value.toUpperCase())} placeholder="xxxxxx" />
-          <Input label="College / institute *" value={iit} required={isStudent} maxLength={120} onChange={(e) => setIit(e.target.value)} placeholder="Enter your college or institute" />
+          <div className="block">\n            <Input label={isStudent ? "College / institute (verified)" : "College / institute *"} value={isStudent ? (user?.profile?.iit || iit) : iit} required={isStudent} maxLength={120} readOnly={isStudent} onChange={isStudent ? undefined : (e) => setIit(e.target.value)} placeholder={isStudent ? "Detected from your verified institute email" : "Enter your college or institute"} className={isStudent ? "cursor-not-allowed opacity-80" : ""} />\n            {isStudent && <p className="mt-1 text-xs text-slate-400">Automatically set from your verified IIT email address. Students cannot edit this field.</p>}\n          </div>
           <Input label="Branch *" value={branch} required={isStudent} maxLength={80} onChange={(e) => setBranch(e.target.value)} />
           <Input label="Batch *" value={batch} required={isStudent} maxLength={20} onChange={(e) => setBatch(e.target.value)} placeholder="2024-2028" />
         </div>
