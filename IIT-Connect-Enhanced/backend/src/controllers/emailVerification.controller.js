@@ -160,7 +160,7 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
     throw new ApiError(409, 'Email already registered')
   }
 
-  const user = await User.create({ email, passwordHash: pending.passwordHash, role: pending.requestedRole || 'student', facultyVerified: false, facultyProfile: pending.facultyProfile || {} })
+  const user = await User.create({ email, passwordHash: pending.passwordHash, role: pending.requestedRole || 'student', facultyVerified: false, facultyRequestStatus: pending.requestedRole === 'faculty' ? 'pending' : null, facultyProfile: pending.facultyProfile || {} })
   await PendingEmailVerification.deleteOne({ _id: pending._id })
 
   const accessToken = signAccessToken(user._id.toString())
