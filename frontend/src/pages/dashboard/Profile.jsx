@@ -10,6 +10,7 @@ export default function Profile() {
   const { user, refresh } = useAuth()
 
   const [name, setName] = useState('')
+  const [rollNumber, setRollNumber] = useState('')
   const [branch, setBranch] = useState('')
   const [batch, setBatch] = useState('')
   const [bio, setBio] = useState('')
@@ -29,6 +30,7 @@ const profileComplete = (profile) => {
 
   useEffect(() => {
     setName(user?.profile?.name || '')
+    setRollNumber(user?.profile?.rollNumber || '')
     setBranch(user?.profile?.branch || '')
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
@@ -40,6 +42,7 @@ const profileComplete = (profile) => {
     try {
       const fd = new FormData()
       fd.append('name', name)
+      fd.append('rollNumber', rollNumber)
       fd.append('branch', branch)
       fd.append('batch', batch)
       fd.append('bio', bio)
@@ -85,6 +88,7 @@ const profileComplete = (profile) => {
             />
             <p className="mt-1 text-xs text-slate-500">Automatically set from your IIT email and cannot be edited.</p>
           </label>
+          <Input label="Roll number" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} placeholder="e.g. 24ME01058" />
           <Input label="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} />
           <Input label="Batch" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="2021" />
         </div>
