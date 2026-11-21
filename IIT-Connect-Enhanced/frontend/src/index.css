@@ -1524,3 +1524,19 @@ body {
   color: #111810 !important;
 }
 :focus-visible { outline-color: var(--ic-sage-light) !important; }
+
+
+/* Consistent page hero treatment: clean teal/forest glass, readable title, no dark title blocks. */
+.dashboard-shell main .page-hero {
+  background: radial-gradient(ellipse at 85% 5%, rgba(34,211,238,.18), transparent 36%),
+              linear-gradient(120deg, #18233b, #123247 58%, #12343a) !important;
+  border-color: rgba(168,196,154,.24) !important;
+  color: #f0f1e8 !important;
+}
+.dashboard-shell main .page-hero h1 {
+  color: #f0f1e8 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.dashboard-shell main .page-hero p { color: #c1cbbd !important; }
