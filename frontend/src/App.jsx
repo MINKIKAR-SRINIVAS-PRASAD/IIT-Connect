@@ -16,6 +16,7 @@ import Register from './pages/auth/Register.jsx'
 import DashboardLayout from './layouts/DashboardLayout.jsx'
 import AuthLayout from './layouts/AuthLayout.jsx'
 import AdminLayout from './layouts/AdminLayout.jsx'
+import FacultyPortal from './pages/faculty/FacultyPortal.jsx'
 
 import HomeFeed from './pages/dashboard/HomeFeed.jsx'
 import Chat from './pages/dashboard/Chat.jsx'
@@ -85,9 +86,8 @@ function GuestOnly({ children }) {
   }
 
   if (user) {
-    if (user.role === 'admin') {
-      return <Navigate to="/admin" replace />
-    }
+    if (user.role === 'admin') return <Navigate to="/admin" replace />
+    if (user.role === 'faculty') return <Navigate to="/faculty" replace />
 
     return (
       <Navigate
@@ -104,6 +104,14 @@ function GuestOnly({ children }) {
   return children
 }
 
+function FacultyOnly({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="p-8 text-slate-300">Loading...</div>
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== 'faculty') return <Navigate to={user.role === 'admin' ? '/admin' : '/app'} replace />
+  return children
+}
+
 // Admin protection
 function AdminOnly({ children }) {
   const { user, loading } = useAuth()
@@ -115,6 +123,8 @@ function AdminOnly({ children }) {
   if (!user) {
     return <Navigate to="/login" replace />
   }
+
+  if (user.role === 'faculty') return <Navigate to="/faculty" replace />
 
   if (user.role !== 'admin') {
     return (
@@ -184,6 +194,8 @@ export default function App() {
 
         <Route path="profile" element={<Profile />} />
       </Route>
+
+      <Route path="/faculty" element={<Protected><FacultyOnly><FacultyPortal /></FacultyOnly></Protected>} />
 
       {/* Admin Dashboard */}
       <Route
