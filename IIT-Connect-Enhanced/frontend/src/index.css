@@ -1345,3 +1345,182 @@ main, section, article, aside { scrollbar-color: #596257 #171b18; }
 }
 .dashboard-shell .chat-workspace .chat-message-list .text-cyan-300 { color: #c1d5ad !important; }
 .dashboard-shell .chat-workspace .chat-message-list .border-slate-700 { border-color: rgba(205,220,194,.16) !important; }
+
+/* =========================================================
+   IIT CONNECT — SCREENSHOT-APPROVED FOREST / SAGE THEME
+   One shared surface system for every student + faculty page.
+   ========================================================= */
+:root {
+  --ic-bg: #111612;
+  --ic-panel: #1b231d;
+  --ic-panel-raised: #252e27;
+  --ic-panel-soft: #202922;
+  --ic-ink: #f1f1e8;
+  --ic-muted: #b8c0b3;
+  --ic-line: rgba(205,220,194,.15);
+  --ic-sage: #a8c49a;
+  --ic-sage-light: #c2d8ae;
+  --ic-sage-soft: rgba(168,196,154,.13);
+  --ic-deep: #121814;
+}
+html, body, #root { background-color: var(--ic-bg) !important; color: var(--ic-ink); }
+body {
+  background:
+    radial-gradient(ellipse at 15% 5%,rgba(128,153,111,.10),transparent 38%),
+    radial-gradient(ellipse at 88% 76%,rgba(168,196,154,.055),transparent 34%),
+    linear-gradient(145deg,#111612,#171e19 52%,#111612) !important;
+}
+.dashboard-shell, .dashboard-shell main, .dashboard-shell .dashboard-content {
+  background-color: transparent !important;
+  color: var(--ic-ink) !important;
+}
+.dashboard-shell .dashboard-sidebar,
+.dashboard-shell .dashboard-topbar,
+.dashboard-shell .mobile-bottom-nav {
+  background: linear-gradient(180deg,#1d251f,#171e19 65%,#141a16) !important;
+  border-color: var(--ic-line) !important;
+}
+.dashboard-shell main :is(.bg-white,.bg-white\/5,.bg-white\/10,.bg-slate-950,.bg-slate-900,.bg-slate-800),
+.dashboard-shell main [class*="bg-white/"],
+.dashboard-shell main [class*="bg-slate-950"],
+.dashboard-shell main [class*="bg-slate-900"],
+.dashboard-shell main [class*="bg-slate-800"] {
+  background: linear-gradient(145deg,#252e27,#1b231d) !important;
+  border-color: var(--ic-line) !important;
+  color: var(--ic-ink);
+}
+/* Convert page-specific blue, purple and white hero/banner cards to the
+   same forest-glass treatment seen on Home and Travel Home. */
+.dashboard-shell main [class*="bg-gradient-to-"] {
+  background: radial-gradient(ellipse at 88% 0%,rgba(168,196,154,.16),transparent 42%),
+              linear-gradient(115deg,#29352b,#202b23 60%,#1b2923) !important;
+  border-color: var(--ic-line) !important;
+  color: var(--ic-ink) !important;
+}
+.dashboard-shell main [class*="bg-gradient-to-"] :is(h1,h2,h3,h4,p,span,label) {
+  color: inherit;
+}
+.dashboard-shell main [class*="bg-gradient-to-"] button,
+.dashboard-shell main button[class*="bg-gradient-to-"],
+.dashboard-shell main a[class*="bg-gradient-to-"] {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #111810 !important;
+}
+.dashboard-shell main article,
+.dashboard-shell main .rounded-xl,
+.dashboard-shell main .rounded-2xl,
+.dashboard-shell main .rounded-3xl {
+  border-color: var(--ic-line);
+}
+.dashboard-shell main .text-white { color: #f1f1e8 !important; }
+.dashboard-shell main .text-slate-100 { color: #e9ece3 !important; }
+.dashboard-shell main .text-slate-200 { color: #d9ded4 !important; }
+.dashboard-shell main .text-slate-300 { color: #c2c9be !important; }
+.dashboard-shell main .text-slate-400 { color: #a7b0a4 !important; }
+.dashboard-shell main .text-slate-500 { color: #8b9689 !important; }
+.dashboard-shell main .text-slate-600 { color: #778275 !important; }
+.dashboard-shell main [class*="text-blue-"],
+.dashboard-shell main [class*="text-indigo-"],
+.dashboard-shell main [class*="text-cyan-"],
+.dashboard-shell main [class*="text-violet-"],
+.dashboard-shell main [class*="text-purple-"] { color: #bfd0b2 !important; }
+.dashboard-shell main [class*="border-blue-"],
+.dashboard-shell main [class*="border-indigo-"],
+.dashboard-shell main [class*="border-cyan-"],
+.dashboard-shell main [class*="border-purple-"] { border-color: rgba(168,196,154,.24) !important; }
+.dashboard-shell main [class*="bg-blue-"],
+.dashboard-shell main [class*="bg-indigo-"],
+.dashboard-shell main [class*="bg-cyan-"],
+.dashboard-shell main [class*="bg-violet-"],
+.dashboard-shell main [class*="bg-purple-"] { background-color: rgba(168,196,154,.13) !important; }
+.dashboard-shell main button[class*="bg-blue-"],
+.dashboard-shell main button[class*="bg-indigo-"],
+.dashboard-shell main button[class*="bg-cyan-"],
+.dashboard-shell main button[class*="bg-purple-"],
+.dashboard-shell main a[class*="bg-blue-"],
+.dashboard-shell main a[class*="bg-indigo-"] {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #111810 !important;
+}
+.dashboard-shell main input:not([type="checkbox"]):not([type="radio"]),
+.dashboard-shell main textarea,
+.dashboard-shell main select {
+  background: #111713 !important;
+  color: #f0f1e9 !important;
+  border-color: rgba(205,220,194,.18) !important;
+}
+.dashboard-shell main input::placeholder,
+.dashboard-shell main textarea::placeholder { color: #879283 !important; }
+.dashboard-shell main input:focus,
+.dashboard-shell main textarea:focus,
+.dashboard-shell main select:focus {
+  border-color: var(--ic-sage) !important;
+  box-shadow: 0 0 0 3px rgba(168,196,154,.12) !important;
+}
+.dashboard-shell .sidebar-link-active {
+  color: #e6f0dc !important;
+  background: linear-gradient(100deg,rgba(168,196,154,.18),rgba(168,196,154,.07)) !important;
+  box-shadow: inset 3px 0 0 var(--ic-sage),inset 0 0 0 1px rgba(168,196,154,.1) !important;
+}
+.dashboard-shell .chat-workspace,
+.dashboard-shell .chat-workspace .chat-window,
+.dashboard-shell .chat-workspace .chat-message-list,
+.dashboard-shell .chat-workspace aside,
+.dashboard-shell .chat-workspace .chat-composer {
+  background-color: #171e19 !important;
+  color: var(--ic-ink) !important;
+  border-color: var(--ic-line) !important;
+}
+.dashboard-shell .chat-workspace .chat-composer-inner,
+.dashboard-shell .chat-workspace aside .bg-slate-900\/50,
+.dashboard-shell .chat-workspace aside .bg-slate-900\/30 {
+  background: #202922 !important;
+  border-color: var(--ic-line) !important;
+}
+.dashboard-shell .chat-workspace .chat-message-list { background: #121814 !important; }
+.dashboard-shell .chat-workspace .chat-message-input,
+.dashboard-shell .chat-workspace .chat-message-input input,
+.dashboard-shell .chat-workspace .chat-message-input textarea {
+  background: #111713 !important; color: #f0f1e9 !important;
+}
+.dashboard-shell .chat-workspace .chat-action-button {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #111810 !important;
+}
+.dashboard-shell .chat-workspace .chat-secondary-button {
+  background: #2a352b !important; color: #dce8d2 !important;
+}
+.auth-shell {
+  background: radial-gradient(ellipse at 12% 18%,rgba(133,157,119,.2),transparent 36%),
+              radial-gradient(ellipse at 92% 82%,rgba(181,151,105,.09),transparent 34%),
+              linear-gradient(145deg,#101411,#202820 55%,#141a15) !important;
+}
+.auth-card {
+  background: linear-gradient(145deg,#202722,#181e1a) !important;
+  color: var(--ic-ink) !important;
+  border-color: var(--ic-line) !important;
+}
+.auth-card h2 { color: #f3f1e8 !important; }
+.auth-card p,.auth-label { color: #c1c9bc !important; }
+.auth-input-wrap { background: #111713 !important; border-color: var(--ic-line) !important; }
+.auth-input-wrap input { color: #f3f2ea !important; }
+.auth-submit {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #111810 !important;
+}
+.landing-shell {
+  background: linear-gradient(145deg,#101311,#171c18 56%,#111512) !important;
+  color: var(--ic-ink) !important;
+}
+.landing-shell .feature-panel,
+.landing-shell .mission-panel,
+.landing-shell #community,
+.landing-shell #platform {
+  background: linear-gradient(145deg,#252e27,#1b231d) !important;
+  border-color: var(--ic-line) !important;
+}
+.landing-shell .btn-primary {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #111810 !important;
+}
+:focus-visible { outline-color: var(--ic-sage-light) !important; }
