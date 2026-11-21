@@ -25,6 +25,7 @@ import likeRoutes from './routes/like.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import healthRoutes from './routes/health.routes.js'
 import notificationsRoutes from './routes/notifications.routes.js'
+import facultyContentRoutes from './routes/facultyContent.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
 import { requireTrustedOrigin } from './middleware/origin.middleware.js'
@@ -70,6 +71,7 @@ async function bootstrap() {
   app.use('/api/comments', commentRoutes)
   app.use('/api/likes', likeRoutes)
   app.use('/api/admin', adminRoutes)
+  app.use('/api/faculty', facultyContentRoutes)
 
   app.use(notFound)
   app.use(errorHandler)
