@@ -191,7 +191,7 @@ export default function Profile() {
 
       <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
         <div className="text-sm text-slate-300">
-          Note: If any issue contact mail: srinivasminki@gmail.com
+          Note: If any issue contact mail: iitconnectindia@gmail.com
         </div>
       </div>
     </form>
