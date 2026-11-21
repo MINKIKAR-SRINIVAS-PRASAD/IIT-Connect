@@ -91,7 +91,7 @@ export function removeUserFromConversation(userId, conversationId) {
 export function initSocket(httpServer, corsOrigin) {
   const io = new Server(httpServer, {
     cors: {
-      origin: corsOrigin,
+      origin: Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin],
       credentials: true
     }
   })
