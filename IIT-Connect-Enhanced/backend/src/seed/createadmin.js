@@ -10,7 +10,19 @@ export async function createDefaultAdmin(env) {
     return
   }
 
-  const existing = await User.findOne({ email })
+  let existing = await User.findOne({ email })
+  if (!existing && env.ADMIN_EMAIL_MIGRATION_FROM && env.ADMIN_EMAIL_MIGRATION_FROM !== email) {
+    existing = await User.findOne({ email: env.ADMIN_EMAIL_MIGRATION_FROM, role: 'admin' })
+    if (existing) {
+      const targetInUse = await User.findOne({ email })
+      if (targetInUse) throw new Error('Cannot migrate admin email: target email already exists')
+      existing.email = email
+      existing.role = 'admin'
+      await existing.save()
+      console.log(`✅ Existing admin email migrated to: ${email}`)
+      return
+    }
+  }
   if (existing) {
     console.log("✅ Default admin already exists")
     return
