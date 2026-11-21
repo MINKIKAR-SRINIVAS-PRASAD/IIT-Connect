@@ -10,7 +10,7 @@ export default function AuthLayout() {
       <div className="auth-ambient"/>
       <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-5 py-8 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
         <section className="relative z-10 hidden lg:block">
-          <Link to="/" className="inline-flex items-center gap-3"><BrandSymbol className="h-10 w-[76px] object-contain"/><span className="text-lg font-bold text-[#203927]">IIT<span className="text-[#719b42]">Connect</span></span></Link>
+          <Link to="/" className="inline-flex items-center gap-3"><BrandSymbol className="h-10 w-[76px] object-contain"/><span className="text-lg font-bold text-[#203927]">IITStudentsOS</span></Link>
           <motion.div initial={{opacity:0,y:22}} animate={{opacity:1,y:0}} transition={{duration:.65}} className="mt-20 max-w-xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#719b42]/20 bg-[#719b42]/10 px-4 py-2 text-[10px] font-bold tracking-[.18em] text-[#527b42]"><Globe2 size={14}/> ONE COMMUNITY, MANY CAMPUSES</div>
             <h1 className="mt-7 text-6xl font-semibold leading-[1.03] tracking-[-.06em] text-[#203927]">Your next great connection could be <span className="auth-gradient">across campus.</span></h1>
