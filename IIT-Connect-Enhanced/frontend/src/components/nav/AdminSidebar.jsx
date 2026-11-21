@@ -1,11 +1,12 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, ClipboardCheck, ChartNoAxesCombined, Trash2, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Users, ClipboardCheck, ChartNoAxesCombined, Trash2, ArrowLeft, ShieldCheck, GraduationCap } from 'lucide-react'
 import BrandSymbol from '../common/BrandSymbol'
 
 const links = [
   { to: '/admin', label: 'Overview', icon: LayoutDashboard },
   { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/faculty-requests', label: 'Faculty Verification', icon: GraduationCap },
   { to: '/admin/approvals', label: 'Approvals', icon: ClipboardCheck },
   { to: '/admin/analytics', label: 'Analytics', icon: ChartNoAxesCombined },
   { to: '/admin/deleted-content', label: 'Deleted Content', icon: Trash2 }
