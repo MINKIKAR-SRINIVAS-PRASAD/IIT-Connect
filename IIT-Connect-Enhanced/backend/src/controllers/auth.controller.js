@@ -112,6 +112,9 @@ export const login = asyncHandler(async (req, res) => {
       id: user._id,
       email: user.email,
       role: user.role,
+      facultyVerified: user.facultyVerified,
+      facultyProfile: user.facultyProfile,
+      facultyRequestStatus: user.facultyRequestStatus,
       profile: user.profile
     }
   })
