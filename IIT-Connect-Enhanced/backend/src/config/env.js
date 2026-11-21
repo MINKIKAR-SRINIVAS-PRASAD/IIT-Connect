@@ -23,6 +23,7 @@ export const env = {
   OTP_TEST_EMAIL: process.env.OTP_TEST_EMAIL?.trim().toLowerCase(),
   OTP_TEST_RECIPIENT: process.env.OTP_TEST_RECIPIENT?.trim().toLowerCase(),
   DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL?.trim().toLowerCase(),
+  ADMIN_EMAIL_MIGRATION_FROM: process.env.ADMIN_EMAIL_MIGRATION_FROM?.trim().toLowerCase(),
   DEFAULT_ADMIN_PASSWORD: process.env.DEFAULT_ADMIN_PASSWORD,
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
