@@ -16,8 +16,8 @@ export default function Login() {
     e.preventDefault()
     setBusy(true)
     try {
-      await login(email, password)
-      nav('/app')
+      const authenticated = await login(email, password)
+      nav(authenticated?.role === 'admin' ? '/admin' : authenticated?.role === 'faculty' ? '/faculty' : '/app')
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Login failed')
     } finally {
