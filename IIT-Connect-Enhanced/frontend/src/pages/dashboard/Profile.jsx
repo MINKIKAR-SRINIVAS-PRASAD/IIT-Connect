@@ -119,7 +119,7 @@ export default function Profile() {
           <div className="mb-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4">
             <div className="font-semibold text-indigo-200">Complete your student profile</div>
             <p className="mt-1 text-sm text-slate-300">
-              Add your name, institute, branch, batch and a profile photo to unlock the IIT Connect dashboard.
+              Add your name, institute, branch, batch and a profile photo to unlock the IITStudentsOS dashboard.
             </p>
             <p className="mt-2 text-xs text-slate-400">
               Your profile photo is mandatory. Bio is optional.
