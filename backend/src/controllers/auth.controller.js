@@ -7,7 +7,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import { cookieOptions } from '../utils/cookie.js'
-import { isAllowedIitEmail } from '../utils/allowedIitDomains.js'
+import { isAllowedIitEmail, getIitForEmail } from '../utils/allowedIitDomains.js'
 import { getRoleForEmail } from '../utils/seedAdmin.js'
 
 // Normalize email addresses
@@ -106,7 +106,8 @@ export const register = asyncHandler(async (req, res) => {
   const user = await User.create({
     email,
     passwordHash,
-    role
+    role,
+    profile: { iit: getIitForEmail(email) }
   })
 
   const accessToken = signAccessToken(user._id.toString())
