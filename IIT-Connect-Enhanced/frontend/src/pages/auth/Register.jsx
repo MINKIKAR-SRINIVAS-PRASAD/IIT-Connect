@@ -9,6 +9,9 @@ export default function Register() {
   const { sendRegistrationOtp, verifyRegistrationOtp } = useAuth()
   const nav = useNavigate()
   const [email, setEmail] = useState('')
+  const [accountType, setAccountType] = useState('student')
+  const [facultyProfile, setFacultyProfile] = useState({ name: '', institute: '', department: '', designation: '', researchInterests: '' })
+  const setFacultyField = (key, value) => setFacultyProfile(current => ({ ...current, [key]: value }))
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState('details')
@@ -19,7 +22,7 @@ export default function Register() {
     event.preventDefault()
     setBusy(true)
     try {
-      await sendRegistrationOtp(email.trim(), password)
+      await sendRegistrationOtp(email.trim(), password, accountType, facultyProfile)
       setStep('otp')
       toast.success('Verification code sent to your institute email')
     } catch (error) {
@@ -41,7 +44,7 @@ export default function Register() {
   async function resendOtp() {
     setBusy(true)
     try {
-      await sendRegistrationOtp(email.trim(), password)
+      await sendRegistrationOtp(email.trim(), password, accountType, facultyProfile)
       setOtp('')
       toast.success('A new verification code has been sent')
     } catch (error) {
@@ -51,9 +54,9 @@ export default function Register() {
 
   return <motion.div initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} transition={{duration:.45}}>
     <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eaf1df] text-[#527b42]">{step === 'otp' ? <ShieldCheck size={22}/> : <UserPlus size={22}/>}</div>
-    <div className="text-[10px] font-bold tracking-[.2em] text-[#719b42]">{step === 'otp' ? 'EMAIL VERIFICATION' : 'JOIN THE NETWORK'}</div>
-    <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[#203927]">{step === 'otp' ? 'Check your inbox.' : 'Your community awaits.'}</h2>
-    <p className="mt-2 text-sm leading-6 text-[#718075]">{step === 'otp' ? `Enter the 6-digit code sent to ${email}.` : 'Create your account with your institute email address.'}</p>
+    <div className="text-[10px] font-bold tracking-[.2em] text-[#719b42]">{step === 'otp' ? 'EMAIL VERIFICATION' : accountType === 'faculty' ? 'REQUEST FACULTY ACCESS' : 'JOIN THE NETWORK'}</div>
+    <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[#203927]">{step === 'otp' ? 'Check your inbox.' : accountType === 'faculty' ? 'Join the faculty network.' : 'Your community awaits.'}</h2>
+    <p className="mt-2 text-sm leading-6 text-[#718075]">{step === 'otp' ? `Enter the 6-digit code sent to ${email}.` : accountType === 'faculty' ? 'Submit your faculty details for verification. Faculty access stays locked until approved.' : 'Create your account with your institute email address.'}</p>
 
     {step === 'details' ? <form onSubmit={requestOtp} className="mt-8 space-y-5">
       <label className="auth-label block"><span>Institute email</span><div className="auth-input-wrap mt-2"><Mail size={17}/><input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@iit.ac.in"/></div></label>
