@@ -39,3 +39,24 @@ export function isAllowedIitEmail(email) {
   const domain = email.split('@').pop().toLowerCase().trim()
   return ALLOWED_IIT_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))
 }
+
+
+// Canonical institute names are derived only from an approved institute email domain.
+const IIT_NAMES_BY_DOMAIN = {
+  'iitgn.ac.in': 'IIT Gandhinagar', 'iitbbs.ac.in': 'IIT Bhubaneswar', 'iitbhubaneswar.ac.in': 'IIT Bhubaneswar',
+  'iitm.ac.in': 'IIT Madras', 'iitg.ernet.in': 'IIT Guwahati', 'iitg.ac.in': 'IIT Guwahati',
+  'iiti.ac.in': 'IIT Indore', 'iitk.ac.in': 'IIT Kanpur', 'iitj.ac.in': 'IIT Jodhpur',
+  'iitkgp.ac.in': 'IIT Kharagpur', 'iith.ac.in': 'IIT Hyderabad', 'iitb.ac.in': 'IIT Bombay',
+  'iitp.ac.in': 'IIT Patna', 'iitd.ac.in': 'IIT Delhi', 'iitrpr.ac.in': 'IIT Ropar',
+  'iitmandi.ac.in': 'IIT Mandi', 'iitr.ac.in': 'IIT Roorkee', 'iitbhu.ac.in': 'IIT (BHU) Varanasi',
+  'iitjammu.ac.in': 'IIT Jammu', 'iitpkd.ac.in': 'IIT Palakkad', 'iittp.ac.in': 'IIT Tirupati',
+  'iitgoa.ac.in': 'IIT Goa', 'iitbhilai.ac.in': 'IIT Bhilai', 'iitdh.ac.in': 'IIT Dharwad',
+  'iitism.ac.in': 'IIT (ISM) Dhanbad'
+}
+
+export function getIitNameFromEmail(email) {
+  if (!email || !String(email).includes('@')) return ''
+  const domain = String(email).trim().toLowerCase().split('@').pop()
+  const matchedDomain = ALLOWED_IIT_DOMAINS.find((root) => domain === root || domain.endsWith(`.${root}`))
+  return matchedDomain ? (IIT_NAMES_BY_DOMAIN[matchedDomain] || '') : ''
+}
