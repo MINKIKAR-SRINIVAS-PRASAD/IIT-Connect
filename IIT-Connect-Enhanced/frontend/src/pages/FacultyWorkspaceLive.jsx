@@ -1,11 +1,11 @@
 import React,{useEffect,useState} from 'react'
 import {NavLink} from 'react-router-dom'
-import {Home,CalendarDays,Images,BookOpen,FileText,Plane,MessageSquare,GraduationCap,LogOut,Send,RefreshCw} from 'lucide-react'
+import {Home,CalendarDays,Images,BookOpen,FileText,Plane,MessageSquare,Newspaper,GraduationCap,LogOut,Send,RefreshCw} from 'lucide-react'
 import {useAuth} from '../hooks/useAuth'
 import BrandSymbol from '../components/common/BrandSymbol'
 import {api} from '../utils/api'
 import toast from 'react-hot-toast'
-const nav=[['home','Faculty Home',Home],['events','Events',CalendarDays],['gallery','Gallery',Images],['study','Study',BookOpen],['publications','Publications',FileText],['travel','Travel',Plane],['community','Chat & Community',MessageSquare]]
+const nav=[['home','Faculty Home',Home],['events','Events',CalendarDays],['gallery','Gallery',Images],['study','Study',BookOpen],['publications','Publications',FileText],['travel','Travel',Plane],['community','Chat & Community',MessageSquare],['news','News',Newspaper]]
 const blank={title:'',description:'',startAt:'',venue:'',registrationUrl:'',imageUrl:'',caption:'',subject:'',resourceUrl:'',from:'',to:'',travelDate:'',text:'',abstract:'',institute:'',department:'',publicationType:'journal'}
 const input='faculty-input w-full rounded-xl border p-3 text-sm placeholder:text-slate-500'
 const card='faculty-card rounded-2xl border p-5'
