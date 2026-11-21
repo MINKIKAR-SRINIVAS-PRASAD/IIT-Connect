@@ -22,6 +22,12 @@ router.put(
   // Institute is assigned from the verified IIT email on the server.
   // Do not require a client-supplied institute field.
 
+  body('rollNumber')
+    .optional()
+    .trim()
+    .isLength({ max: 30 })
+    .withMessage('Roll number must be 30 characters or fewer'),
+
   body('branch')
     .trim()
     .notEmpty()
