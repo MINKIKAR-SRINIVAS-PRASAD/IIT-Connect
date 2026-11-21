@@ -1,9 +1,10 @@
 import {Router} from 'express'
 import {requireAuth} from '../middleware/auth.middleware.js'
+import {requireStudentCommunity} from '../middleware/studentCommunity.middleware.js'
 import {requireProfileComplete} from '../middleware/profileCompletion.middleware.js'
 import {createTripPlan,deleteTripPlan,listTripPlans,listMyTripPlans,requestTripJoin,listIncomingJoinRequests,listMyJoinRequests,respondToJoinRequest} from '../controllers/tripPlan.controller.js'
 const router=Router()
-router.use(requireAuth,requireProfileComplete)
+router.use(requireAuth,requireStudentCommunity,requireProfileComplete)
 router.get('/',listTripPlans)
 router.get('/mine',listMyTripPlans)
 router.get('/join-requests/incoming',listIncomingJoinRequests)
