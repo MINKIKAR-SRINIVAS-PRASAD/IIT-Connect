@@ -6,7 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import { cookieOptions } from '../utils/cookie.js'
-import { isAllowedIitEmail } from '../utils/allowedIitDomains.js'
+import { isAllowedIitEmail, getIitNameFromEmail } from '../utils/allowedIitDomains.js'
 import { getRoleForEmail } from '../utils/seedAdmin.js'
 
 function normalizeEmail(value) {
