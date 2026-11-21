@@ -56,7 +56,8 @@ export const register = asyncHandler(async (req, res) => {
   const user = await User.create({
     email,
     passwordHash,
-    role: 'student'
+    role: 'student',
+    profile: { iit: getIitNameFromEmail(email) }
   })
 
   const accessToken = signAccessToken(user._id.toString())
@@ -95,6 +96,11 @@ export const login = asyncHandler(async (req, res) => {
   if (!ok) throw new ApiError(401, 'Invalid credentials')
 
   const desiredRole = getRoleForEmail(user.email)
+  // Repair legacy profile institute values from the verified institute email on sign-in.
+  if (user.role === 'student') {
+    const verifiedInstitute = getIitNameFromEmail(user.email)
+    if (verifiedInstitute && user.profile.iit !== verifiedInstitute) user.profile.iit = verifiedInstitute
+  }
   // Seeded admin identities retain their provisioned privilege; ordinary sign-ins
   // must never downgrade a faculty account to student.
   if (desiredRole === 'admin' && user.role !== 'admin') user.role = 'admin'
