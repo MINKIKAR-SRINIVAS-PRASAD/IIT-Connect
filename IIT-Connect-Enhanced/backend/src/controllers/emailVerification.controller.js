@@ -79,6 +79,15 @@ async function sendOtpEmail(email, otp) {
 export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
   const { password } = req.body
+  const requestedRole = req.body.accountType === 'faculty' ? 'faculty' : 'student'
+  const facultyProfile = requestedRole === 'faculty' ? {
+    name: String(req.body.facultyProfile?.name || '').trim(),
+    institute: String(req.body.facultyProfile?.institute || '').trim(),
+    department: String(req.body.facultyProfile?.department || '').trim(),
+    designation: String(req.body.facultyProfile?.designation || '').trim(),
+    researchInterests: String(req.body.facultyProfile?.researchInterests || '').trim()
+  } : {} 
+  if (requestedRole === 'faculty' && (!facultyProfile.name || !facultyProfile.institute || !facultyProfile.department || !facultyProfile.designation)) throw new ApiError(400, 'Faculty name, institute, department, and designation are required')
 
   const isTemporaryTestEmail = env.OTP_TEST_MODE && env.OTP_TEST_EMAIL && email === env.OTP_TEST_EMAIL
   if (!isAllowedIitEmail(email) && !isTemporaryTestEmail) throw new ApiError(400, 'Only approved IIT student email addresses are allowed')
@@ -101,6 +110,8 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
     {
       email,
       passwordHash,
+      requestedRole,
+      facultyProfile,
       otpHash: hashOtp(email, otp),
       expiresAt: new Date(now + OTP_TTL_MS),
       lastSentAt: new Date(now),
@@ -149,7 +160,7 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
     throw new ApiError(409, 'Email already registered')
   }
 
-  const user = await User.create({ email, passwordHash: pending.passwordHash, role: 'student' })
+  const user = await User.create({ email, passwordHash: pending.passwordHash, role: pending.requestedRole || 'student', facultyVerified: false, facultyProfile: pending.facultyProfile || {} })
   await PendingEmailVerification.deleteOne({ _id: pending._id })
 
   const accessToken = signAccessToken(user._id.toString())
@@ -160,6 +171,6 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Email verified and account created',
-    user: { id: user._id, email: user.email, role: user.role, profile: user.profile }
+    user: { id: user._id, email: user.email, role: user.role, facultyVerified: user.facultyVerified, facultyProfile: user.facultyProfile, profile: user.profile }
   })
 })
