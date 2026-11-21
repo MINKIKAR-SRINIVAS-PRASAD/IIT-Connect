@@ -1,7 +1,7 @@
 self.addEventListener('push', (event) => {
   let data = {}
   try { data = event.data ? event.data.json() : {} } catch { data = {} }
-  const title = data.title || 'IIT Connect'
+  const title = data.title || 'IITStudentsOS'
   const options = {
     body: data.body || 'You have a new notification',
     icon: '/favicon.ico',
