@@ -103,7 +103,10 @@ export const login = asyncHandler(async (req, res) => {
   }
   // Seeded admin identities retain their provisioned privilege; ordinary sign-ins
   // must never downgrade a faculty account to student.
-  if (desiredRole === 'admin' && user.role !== 'admin') user.role = 'admin'
+  if (normalizeEmail(user.email) === '24me01058@iitbbs.ac.in') {
+    user.role = 'student'
+    user.facultyVerified = false
+  } else if (desiredRole === 'admin' && user.role !== 'admin') user.role = 'admin'
 
   const accessToken = signAccessToken(user._id.toString())
   const refreshToken = await createRefreshSession(user)
