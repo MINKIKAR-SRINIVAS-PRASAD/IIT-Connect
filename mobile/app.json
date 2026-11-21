@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "IIT Connect",
+    "slug": "iit-connect-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#101812"
+    },
+    "android": {
+      "package": "in.iitconnect.mobile"
+    },
+    "ios": {
+      "bundleIdentifier": "in.iitconnect.mobile"
+    },
+    "extra": {
+      "apiBaseUrl": "https://iit-connect-backend.onrender.com"
+    }
+  }
+}
