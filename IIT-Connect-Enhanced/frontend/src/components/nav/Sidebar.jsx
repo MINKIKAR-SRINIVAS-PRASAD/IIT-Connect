@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Compass, Plane, UserRound, ShieldCheck, Network, X, LogOut } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, Network, X, LogOut } from 'lucide-react'
 import BrandSymbol from '../common/BrandSymbol'
 
 const links = [
@@ -12,6 +12,7 @@ const links = [
   { to: '/app/gallery', label: 'Gallery', icon: Images },
   { to: '/app/placements', label: 'Placements', icon: BriefcaseBusiness },
   { to: '/app/events', label: 'Events', icon: CalendarDays },
+  { to: '/app/news', label: 'News', icon: Newspaper },
   { to: '/app/trip', label: 'Trip', icon: Compass },
   { to: '/app/travel-home', label: 'Travel Home', icon: Plane },
 ]
