@@ -41,7 +41,7 @@ export async function requireAuth(req, res, next) {
 // MANDATORY PROFILE COMPLETION
 export function requireCompletedProfile(req, res, next) {
   // Admins do not need student profile completion
-  if (req.user?.role === 'admin') {
+  if (req.user?.role === 'admin' || req.user?.role === 'faculty') {
     return next()
   }
 
