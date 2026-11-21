@@ -1,4 +1,3 @@
-
 import { Router } from 'express'
 import { body } from 'express-validator'
 
@@ -20,11 +19,8 @@ router.put(
     .withMessage('Name is required')
     .isLength({ max: 80 }),
 
-  body('iit')
-    .trim()
-    .notEmpty()
-    .withMessage('Institute is required')
-    .isLength({ max: 120 }),
+  // Institute is assigned from the verified IIT email on the server.
+  // Do not require a client-supplied institute field.
 
   body('branch')
     .trim()
