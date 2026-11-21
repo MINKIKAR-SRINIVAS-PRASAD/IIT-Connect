@@ -42,7 +42,7 @@ async function bootstrap() {
 
   app.use(
     cors({
-      origin: env.CLIENT_ORIGIN,
+      origin: env.CLIENT_ORIGINS,
       credentials: true
     })
   )
@@ -79,7 +79,7 @@ async function bootstrap() {
   app.use(errorHandler)
 
   const server = http.createServer(app)
-  initSocket(server, env.CLIENT_ORIGIN)
+  initSocket(server, env.CLIENT_ORIGINS)
 
   server.listen(env.PORT, () => {
     console.log(`🚀 Backend running on http://localhost:${env.PORT}`)
