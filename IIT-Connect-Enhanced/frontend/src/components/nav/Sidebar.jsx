@@ -19,7 +19,7 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:block w-72 border-r border-slate-900 min-h-screen bg-slate-950">
       <div className="p-4">
-        <div className="text-lg font-semibold">IIT Connect</div>
+        <div className="text-lg font-semibold">IITStudentsOS</div>
         <div className="mt-1 text-xs text-slate-400 truncate">{user?.email}</div>
       </div>
       <nav className="px-3 space-y-1">
