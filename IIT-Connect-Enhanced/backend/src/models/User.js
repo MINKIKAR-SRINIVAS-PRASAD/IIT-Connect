@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     isBanned: { type: Boolean, default: false },
     // Faculty access is explicitly approved; account type alone never grants workspace access.
     facultyVerified: { type: Boolean, default: false },
+    facultyRequestStatus: { type: String, enum: ['pending', 'approved', 'rejected', null], default: null },
     facultyProfile: {
       name: { type: String, default: '' },
       institute: { type: String, default: '' },
