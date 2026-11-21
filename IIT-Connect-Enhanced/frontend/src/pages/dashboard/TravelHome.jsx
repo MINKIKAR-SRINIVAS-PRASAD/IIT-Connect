@@ -135,13 +135,13 @@ export default function TravelHome() {
 
   return (
     <div className="space-y-6 text-slate-100">
-      <header className="rounded-[26px] border border-indigo-300/15 bg-[radial-gradient(ellipse_at_85%_5%,rgba(34,211,238,.2),transparent_35%),linear-gradient(120deg,#151b3b,#102b43_60%,#102f39)] p-6 md:p-8">
+      <header className="page-hero rounded-[26px] border p-6 md:p-8">
         <p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Private transport manager</p>
         <h1 className="mt-2 text-3xl font-black">Travel Home</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">Save and manage your train, bus and flight booking details in one private place. This page works independently from Trip.</p>
       </header>
 
-      <form onSubmit={submit} className="space-y-6 rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-[#182443] to-[#10192c] p-5 shadow-2xl md:p-7">
+      <form onSubmit={submit} className="space-y-6 rounded-3xl border border-[#a8c49a]/20 bg-gradient-to-br from-[#1b2820] to-[#17231c] p-5 shadow-2xl md:p-7">
         <div>
           <h2 className="text-lg font-bold text-indigo-100">Add a transport booking</h2>
           <p className="mt-1 text-sm text-slate-400">Choose a transport type and complete every field. All fields are mandatory.</p>
@@ -161,7 +161,7 @@ export default function TravelHome() {
           <p className="text-xs leading-5 text-slate-300"><b className="text-amber-100">Your booking privacy matters.</b> PNRs, ticket references, seat and coach details are saved privately to your account and are not part of the public Trip community.</p>
         </div>
         {error && <p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-300/10 p-3 text-sm text-rose-200">{error}</p>}
-        <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-5 py-4 font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50">
+        <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8fa982] px-5 py-4 font-bold text-[#111810] shadow-lg transition hover:brightness-110 disabled:opacity-50">
           {saving ? 'Saving…' : 'Save booking privately'}<Send size={17} />
         </button>
       </form>
