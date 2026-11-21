@@ -63,7 +63,7 @@ export default function FacultyPortal() {
 
     {section==='home'&&<section className="space-y-5">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6"><h2 className="text-2xl font-semibold">Welcome to Faculty Connect</h2><p className="text-slate-400 mt-2">A dedicated faculty workspace for academic collaboration, publications and placement updates.</p></div>
-      <div className="grid md:grid-cols-3 gap-4">{[['Chat','Faculty-only discussion space'],['Study Hub','Shared academic resources'],['Publications','Faculty research and papers'],['Gallery','Shared campus gallery'],['Events','Shared campus events'],['Placement','Faculty placement updates']].map(([t,d])=><button key={t} onClick={()=>setSection(t.toLowerCase()==='placement'?'placement':t.toLowerCase())} className="text-left rounded-xl border border-slate-800 bg-slate-900/30 p-5 hover:bg-slate-900"><h3 className="font-semibold">{t}</h3><p className="text-sm text-slate-400 mt-1">{d}</p></button>)}</div>
+      <div className="grid md:grid-cols-3 gap-4">{[['Chat','Faculty-only discussion space'],['Study Hub','Shared academic resources'],['Publications','Faculty research and papers'],['Gallery','Shared campus gallery'],['Events','Shared campus events'],['Placement','Faculty placement updates']].map(([t,d])=><button key={t} onClick={()=>setSection(({Chat:'chat','Study Hub':'study',Publications:'publications',Gallery:'gallery',Events:'events',Placement:'placement'})[t]||'home')} className="text-left rounded-xl border border-slate-800 bg-slate-900/30 p-5 hover:bg-slate-900"><h3 className="font-semibold">{t}</h3><p className="text-sm text-slate-400 mt-1">{d}</p></button>)}</div>
     </section>}
 
     {section==='gallery'&&<Gallery/>}
