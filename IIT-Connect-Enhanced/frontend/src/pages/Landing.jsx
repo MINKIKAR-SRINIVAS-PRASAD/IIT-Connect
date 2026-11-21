@@ -23,7 +23,7 @@ const institutes = ['IIT Bombay', 'IIT Delhi', 'IIT Madras', 'IIT Kanpur', 'IIT 
 
 function BrandSymbol({ className = '' }) {
   return (
-    <svg className={className} viewBox="0 0 96 48" role="img" aria-label="IIT Connect">
+    <svg className={className} viewBox="0 0 96 48" role="img" aria-label="IITStudentsOS">
       <defs>
         <linearGradient id="iit-connect-mark" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#d6b987" />
@@ -46,7 +46,7 @@ function BrandSymbol({ className = '' }) {
 }
 
 function Brand({ light = false }) {
-  return <Link to="/" className="group inline-flex items-center gap-3" aria-label="IIT Connect home">
+  return <Link to="/" className="group inline-flex items-center gap-3" aria-label="IITStudentsOS home">
     <BrandSymbol className="h-9 w-[72px] object-contain"/>
     <span className={`text-[17px] font-bold tracking-tight ${light ? 'text-white' : 'text-white'}`}>IIT<span className="text-indigo-300">Connect</span></span>
   </Link>
@@ -98,7 +98,7 @@ export default function Landing() {
         <div className="hidden items-center gap-3 md:flex"><Link to="/login" className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white">Sign in</Link><Link to="/register" className="btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold">Join the network <ArrowUpRight size={16}/></Link></div>
         <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="rounded-xl border border-white/10 p-2.5 text-slate-200 md:hidden" aria-label="Toggle navigation">{menuOpen ? <X size={20}/> : <Menu size={20}/>}</button>
       </div>
-      {menuOpen && <div className="border-t border-white/10 bg-[#0b0e1b] px-5 py-5 md:hidden"><div className="flex flex-col gap-4"><a onClick={() => setMenuOpen(false)} href="#community" className="text-sm text-slate-300">Community</a><a onClick={() => setMenuOpen(false)} href="#platform" className="text-sm text-slate-300">Platform</a><a onClick={() => setMenuOpen(false)} href="#mission" className="text-sm text-slate-300">Our mission</a><div className="flex gap-3 pt-2"><Link to="/login" className="flex-1 rounded-xl border border-white/10 py-3 text-center text-sm">Sign in</Link><Link to="/register" className="btn-primary flex-1 rounded-xl py-3 text-center text-sm font-bold">Join IIT Connect</Link></div></div></div>}
+      {menuOpen && <div className="border-t border-white/10 bg-[#0b0e1b] px-5 py-5 md:hidden"><div className="flex flex-col gap-4"><a onClick={() => setMenuOpen(false)} href="#community" className="text-sm text-slate-300">Community</a><a onClick={() => setMenuOpen(false)} href="#platform" className="text-sm text-slate-300">Platform</a><a onClick={() => setMenuOpen(false)} href="#mission" className="text-sm text-slate-300">Our mission</a><div className="flex gap-3 pt-2"><Link to="/login" className="flex-1 rounded-xl border border-white/10 py-3 text-center text-sm">Sign in</Link><Link to="/register" className="btn-primary flex-1 rounded-xl py-3 text-center text-sm font-bold">Join IITStudentsOS</Link></div></div></div>}
     </header>
 
     <section className="relative z-10 mx-auto grid min-h-[calc(100svh-76px)] max-w-7xl items-center gap-5 px-5 pb-16 pt-14 md:grid-cols-[1.02fr_.98fr] md:px-8 md:pb-20 md:pt-10">
@@ -123,7 +123,7 @@ export default function Landing() {
     <section id="platform" className="relative z-10 mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: .25 }} variants={rise} className="mb-14 grid gap-5 md:grid-cols-[1fr_.7fr] md:items-end">
         <div><div className="section-kicker">A PLATFORM THAT BRINGS IT TOGETHER</div><h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-tight tracking-[-0.045em] md:text-6xl">More than a network.<br/><span className="text-slate-500">A place to move forward.</span></h2></div>
-        <p className="max-w-md text-sm leading-7 text-slate-400 md:justify-self-end">The best parts of campus life shouldn't stop at the campus gate. IIT Connect brings everyday student experiences into one shared digital space.</p>
+        <p className="max-w-md text-sm leading-7 text-slate-400 md:justify-self-end">The best parts of campus life shouldn't stop at the campus gate. IITStudentsOS brings everyday student experiences into one shared digital space.</p>
       </motion.div>
       <div className="grid gap-4 md:grid-cols-2">
         {modules.map((feature, i) => <motion.article key={feature.number} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .15 }} transition={{ delay: i * .08, duration: .55 }} whileHover={reduceMotion ? {} : { y: -6 }} className={`feature-panel feature-${feature.tone} group relative overflow-hidden rounded-3xl border p-7 md:p-9`}>
@@ -140,7 +140,7 @@ export default function Landing() {
         <div className="mission-orb mission-orb-one"/><div className="mission-orb mission-orb-two"/>
         <div className="relative z-10 grid gap-10 md:grid-cols-[1fr_auto] md:items-end">
           <div><div className="section-kicker">THE IDEA IS SIMPLE</div><h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.045em] md:text-6xl">Different campuses.<br/><span className="hero-gradient-text">One shared future.</span></h2><p className="mt-5 max-w-2xl text-sm leading-7 text-slate-300">A question answered by a student miles away. A resource that saves someone a week. A connection that becomes a collaboration. That's the community we're building.</p></div>
-          <Link to="/register" className="btn-primary inline-flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-sm font-bold">Join IIT Connect <ArrowRight size={17}/></Link>
+          <Link to="/register" className="btn-primary inline-flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-sm font-bold">Join IITStudentsOS <ArrowRight size={17}/></Link>
         </div>
       </motion.div>
     </section>
@@ -149,7 +149,7 @@ export default function Landing() {
       <div className="mx-auto flex max-w-7xl flex-col gap-7 px-5 py-9 md:flex-row md:items-center md:justify-between md:px-8">
         <div><Brand/><p className="mt-3 text-xs text-slate-500">A shared digital space for the IIT student community.</p></div>
         <div className="flex flex-wrap gap-5 text-xs text-slate-500"><a href="#community" className="hover:text-white">Community</a><a href="#platform" className="hover:text-white">Platform</a><Link to="/login" className="hover:text-white">Sign in</Link><Link to="/register" className="hover:text-white">Create account</Link></div>
-        <div className="text-xs text-slate-600">© {new Date().getFullYear()} IIT Connect</div>
+        <div className="text-xs text-slate-600">© {new Date().getFullYear()} IITStudentsOS</div>
       </div>
     </footer>
   </main>
