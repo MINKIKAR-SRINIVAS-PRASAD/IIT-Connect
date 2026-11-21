@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row md:items-start gap-10">
           <div className="flex-1">
-            <div className="text-lg font-semibold">IIT Connect</div>
+            <div className="text-lg font-semibold">IITStudentsOS</div>
             <div className="mt-2 text-sm text-slate-400">
               Private portal for IIT students. Secure auth via HttpOnly cookies.
             </div>
@@ -26,7 +26,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-10 text-xs text-slate-500">© {new Date().getFullYear()} IIT Connect</div>
+        <div className="mt-10 text-xs text-slate-500">© {new Date().getFullYear()} IITStudentsOS</div>
       </div>
     </footer>
   )
