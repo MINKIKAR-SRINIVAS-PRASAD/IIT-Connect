@@ -29,6 +29,10 @@ export const env = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN || '15m',
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
+  DEMO_STUDENT_EMAIL: (process.env.DEMO_STUDENT_EMAIL || 'iitstudentsos.student.demo@gmail.com').trim().toLowerCase(),
+  DEMO_STUDENT_PASSWORD: process.env.DEMO_STUDENT_PASSWORD,
+  DEMO_FACULTY_EMAIL: (process.env.DEMO_FACULTY_EMAIL || 'iitstudentsos.faculty.demo@gmail.com').trim().toLowerCase(),
+  DEMO_FACULTY_PASSWORD: process.env.DEMO_FACULTY_PASSWORD,
   ADMIN_EMAILS: (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((s) => s.trim().toLowerCase())
