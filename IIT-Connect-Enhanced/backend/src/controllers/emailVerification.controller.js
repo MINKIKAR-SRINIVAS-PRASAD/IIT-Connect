@@ -7,7 +7,7 @@ import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import PendingEmailVerification from '../models/PendingEmailVerification.js'
 import { cookieOptions } from '../utils/cookie.js'
-import { isAllowedIitEmail } from '../utils/allowedIitDomains.js'
+import { isAllowedIitEmail, getIitNameFromEmail } from '../utils/allowedIitDomains.js'
 import { getRoleForEmail } from '../utils/seedAdmin.js'
 
 const OTP_TTL_MS = 5 * 60 * 1000
@@ -160,7 +160,7 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
     throw new ApiError(409, 'Email already registered')
   }
 
-  const user = await User.create({ email, passwordHash: pending.passwordHash, role: pending.requestedRole || 'student', facultyVerified: false, facultyRequestStatus: pending.requestedRole === 'faculty' ? 'pending' : null, facultyProfile: pending.facultyProfile || {} })
+  const verifiedInstitute = pending.requestedRole === 'faculty' ? '' : getIitNameFromEmail(email)\n  const user = await User.create({ email, passwordHash: pending.passwordHash, role: pending.requestedRole || 'student', facultyVerified: false, facultyRequestStatus: pending.requestedRole === 'faculty' ? 'pending' : null, facultyProfile: pending.facultyProfile || {}, profile: { iit: verifiedInstitute } })
   await PendingEmailVerification.deleteOne({ _id: pending._id })
 
   const accessToken = signAccessToken(user._id.toString())
