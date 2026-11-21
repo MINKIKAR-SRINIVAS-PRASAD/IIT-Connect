@@ -144,7 +144,7 @@ export default function ChatSidebar({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Name / Email / IIT"
+          placeholder="Student name / roll number / email / IIT"
           className="w-full mt-2 rounded-xl
             bg-slate-900 border border-slate-800
             px-4 py-3 text-white outline-none
