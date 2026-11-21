@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import Button from '../../components/common/Button'
 import Input from '../../components/common/Input'
-import { IIT_LIST } from '../../utils/constants'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
 import NotificationSettings from '../../components/notifications/NotificationSettings.jsx'
@@ -15,7 +14,7 @@ export default function Profile() {
 
   const [name, setName] = useState('')
   const [rollNumber, setRollNumber] = useState('')
-  const [iit, setIit] = useState(IIT_LIST[0])
+  const [iit, setIit] = useState('')
   const [branch, setBranch] = useState('')
   const [batch, setBatch] = useState('')
   const [bio, setBio] = useState('')
@@ -40,7 +39,7 @@ export default function Profile() {
   useEffect(() => {
     setName(user?.profile?.name || '')
     setRollNumber(user?.profile?.rollNumber || '')
-    setIit(user?.profile?.iit || IIT_LIST[0])
+    setIit(user?.profile?.iit || '')
     setBranch(user?.profile?.branch || '')
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
@@ -68,7 +67,7 @@ export default function Profile() {
     e.preventDefault()
 
     if (isStudent && (!name.trim() || !iit.trim() || !branch.trim() || !batch.trim() || !hasPhoto)) {
-      toast.error('Name, IIT, branch, batch and profile photo are required')
+      toast.error('Name, college/institute, branch, batch and profile photo are required')
       return
     }
 
@@ -129,20 +128,8 @@ export default function Profile() {
 
         <div className="mt-5 grid md:grid-cols-2 gap-3">
           <Input label="Name *" value={name} required={isStudent} maxLength={80} onChange={(e) => setName(e.target.value)} />
-          <Input label="Roll number" value={rollNumber} maxLength={40} onChange={(e) => setRollNumber(e.target.value.toUpperCase())} placeholder="e.g. 24ME01058" />
-          <label className="block">
-            <div className="text-sm text-slate-300 mb-1">IIT *</div>
-            <select
-              required={isStudent}
-              className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2"
-              value={iit}
-              onChange={(e) => setIit(e.target.value)}
-            >
-              {IIT_LIST.map((x) => (
-                <option key={x} value={x}>{x}</option>
-              ))}
-            </select>
-          </label>
+          <Input label="Roll number" value={rollNumber} maxLength={40} onChange={(e) => setRollNumber(e.target.value.toUpperCase())} placeholder="xxxxxx" />
+          <Input label="College / institute *" value={iit} required={isStudent} maxLength={120} onChange={(e) => setIit(e.target.value)} placeholder="Enter your college or institute" />
           <Input label="Branch *" value={branch} required={isStudent} maxLength={80} onChange={(e) => setBranch(e.target.value)} />
           <Input label="Batch *" value={batch} required={isStudent} maxLength={20} onChange={(e) => setBatch(e.target.value)} placeholder="2024-2028" />
         </div>
