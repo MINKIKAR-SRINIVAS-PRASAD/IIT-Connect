@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import Button from '../../components/common/Button'
 import Input from '../../components/common/Input'
-import { IIT_LIST } from '../../utils/constants'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -11,7 +10,6 @@ export default function Profile() {
   const { user, refresh } = useAuth()
 
   const [name, setName] = useState('')
-  const [iit, setIit] = useState(IIT_LIST[0])
   const [branch, setBranch] = useState('')
   const [batch, setBatch] = useState('')
   const [bio, setBio] = useState('')
@@ -31,7 +29,6 @@ const profileComplete = (profile) => {
 
   useEffect(() => {
     setName(user?.profile?.name || '')
-    setIit(user?.profile?.iit || IIT_LIST[0])
     setBranch(user?.profile?.branch || '')
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
@@ -43,7 +40,6 @@ const profileComplete = (profile) => {
     try {
       const fd = new FormData()
       fd.append('name', name)
-      fd.append('iit', iit)
       fd.append('branch', branch)
       fd.append('batch', batch)
       fd.append('bio', bio)
@@ -80,18 +76,14 @@ const profileComplete = (profile) => {
         <div className="mt-5 grid md:grid-cols-2 gap-3">
           <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
           <label className="block">
-            <div className="text-sm text-slate-300 mb-1">IIT</div>
-            <select
-              className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2"
-              value={iit}
-              onChange={(e) => setIit(e.target.value)}
-            >
-              {IIT_LIST.map((x) => (
-                <option key={x} value={x}>
-                  {x}
-                </option>
-              ))}
-            </select>
+            <div className="text-sm text-slate-300 mb-1">College / institute (verified)</div>
+            <input
+              value={user?.profile?.iit || 'Will be detected from your IIT email'}
+              readOnly
+              aria-readonly="true"
+              className="w-full rounded-xl bg-slate-950/70 border border-slate-800 px-3 py-2 text-slate-300 cursor-not-allowed"
+            />
+            <p className="mt-1 text-xs text-slate-500">Automatically set from your IIT email and cannot be edited.</p>
           </label>
           <Input label="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} />
           <Input label="Batch" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="2021" />
