@@ -5,7 +5,7 @@ import { getIitForEmail } from '../utils/allowedIitDomains.js'
 import { cloudinary } from '../config/cloudinary.js'
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, iit, branch, batch, bio } = req.body
+  const { name, branch, batch, bio, rollNumber } = req.body
 
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
@@ -13,6 +13,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
   user.profile.name = name ?? user.profile.name
   // The institute is controlled by the verified account email, not profile input.
   user.profile.iit = getIitForEmail(user.email) || user.profile.iit
+  user.profile.rollNumber = rollNumber ?? user.profile.rollNumber
   user.profile.branch = branch ?? user.profile.branch
   user.profile.batch = batch ?? user.profile.batch
   user.profile.bio = bio ?? user.profile.bio
