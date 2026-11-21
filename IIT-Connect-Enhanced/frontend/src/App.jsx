@@ -66,7 +66,7 @@ function FacultyOnly({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="p-8 text-slate-300">Loading faculty workspace…</div>
   if (!user) return <Navigate to="/login" replace />
-  if (user.role !== 'faculty') return <Navigate to="/app" replace />
+  if (user.role !== 'faculty' && user.role !== 'admin') return <Navigate to="/app" replace />
   if (!user.facultyVerified) return <Navigate to="/faculty/access-pending" replace />
   return children
 }
