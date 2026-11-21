@@ -27,6 +27,7 @@ import Users from './pages/admin/Users.jsx'
 import Approvals from './pages/admin/Approvals.jsx'
 import Analytics from './pages/admin/Analytics.jsx'
 import DeletedContent from './pages/admin/DeletedContent.jsx'
+import FacultyRequests from './pages/admin/FacultyRequests.jsx'
 
 function hasCompletedStudentProfile(user) {
   const profile = user?.profile || {}
@@ -137,6 +138,7 @@ export default function App() {
       >
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<Users />} />
+        <Route path="faculty-requests" element={<FacultyRequests />} />
         <Route path="approvals" element={<Approvals />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="deleted-content" element={<DeletedContent />} />
