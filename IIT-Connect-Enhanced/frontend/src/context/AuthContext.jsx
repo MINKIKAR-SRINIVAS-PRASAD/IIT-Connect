@@ -31,6 +31,7 @@ export function AuthProvider({ children }) {
       const { data } = await api.post('/auth/login', { email, password })
       setUser(data.user)
       toast.success('Welcome back')
+      return data.user
     },
     async sendRegistrationOtp(email, password, accountType = 'student', facultyProfile = {}) {
       const { data } = await api.post('/auth/send-otp', { email, password, accountType, facultyProfile })
