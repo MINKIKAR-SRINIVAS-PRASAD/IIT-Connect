@@ -1,4 +1,4 @@
-import { createDefaultAdmin } from "./seed/createadmin.js"
+import { createDefaultAdmin, createDemoAccounts } from "./seed/createadmin.js"
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -35,6 +35,7 @@ async function bootstrap() {
   assertEnv()
   await connectDB()
   await createDefaultAdmin(env)
+  await createDemoAccounts(env)
   const app = express()
   if (env.NODE_ENV === 'production') app.set('trust proxy', 1)
   app.use(helmet())
