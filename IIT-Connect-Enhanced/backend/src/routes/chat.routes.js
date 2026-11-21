@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.middleware.js'
 import { requireProfileComplete } from '../middleware/profileCompletion.middleware.js'
+import { requireStudentCommunity } from '../middleware/studentCommunity.middleware.js'
 import { getOrCreateDM, getOrCreateIitGroup, getOrCreateCommunity, listUsers, messages, sendMessage, myConversations, updateConversationPreferences, leaveConversation } from '../controllers/chat.controller.js'
 
 const router = Router()
 
-router.use(requireAuth, requireProfileComplete)
+router.use(requireAuth, requireStudentCommunity, requireProfileComplete)
 
 router.get('/users', listUsers)
 router.get('/conversations', myConversations)
