@@ -84,7 +84,7 @@ export const login = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
   const { password } = req.body
 
-  if (!isAllowedIitEmail(email) && !env.ADMIN_EMAILS.includes(email)) {
+  if (!isAllowedIitEmail(email) && !env.ADMIN_EMAILS.includes(email) && email !== env.DEFAULT_ADMIN_EMAIL) {
     throw new ApiError(400, 'Only approved IIT or administrator emails allowed')
   }
 
