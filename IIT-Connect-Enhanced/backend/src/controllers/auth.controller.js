@@ -84,8 +84,8 @@ export const login = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
   const { password } = req.body
 
-  if (!isAllowedIitEmail(email)) {
-    throw new ApiError(400, 'Only IIT emails allowed')
+  if (!isAllowedIitEmail(email) && !env.ADMIN_EMAILS.includes(email)) {
+    throw new ApiError(400, 'Only approved IIT or administrator emails allowed')
   }
 
   const user = await User.findOne({ email })
