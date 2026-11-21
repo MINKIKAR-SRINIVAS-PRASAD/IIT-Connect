@@ -6,7 +6,8 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 8080),
   CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-  CLIENT_ORIGINS: (process.env.CLIENT_ORIGIN || 'http://localhost:5173')\n    .split(',')\n    .map((origin) => origin.trim())\n    .filter(Boolean),
+  CLIENT_ORIGINS: (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+    .split(',')\n    .map((origin) => origin.trim())\n    .filter(Boolean),
   MONGO_URI: process.env.MONGO_URI,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
