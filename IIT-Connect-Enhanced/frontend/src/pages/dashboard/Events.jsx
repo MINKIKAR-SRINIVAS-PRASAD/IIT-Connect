@@ -64,7 +64,7 @@ export default function Events() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="space-y-6"
+      className="sage-page-theme space-y-6"
     >
       {/* Header Section */}
       <motion.div

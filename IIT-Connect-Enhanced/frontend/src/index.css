@@ -1540,3 +1540,68 @@ body {
   box-shadow: none !important;
 }
 .dashboard-shell main .page-hero p { color: #c1cbbd !important; }
+
+
+/* FINAL FIX: match Gallery, Events, Trip and Travel Home to Study Hub's sage/forest theme.
+   Scoped page wrapper prevents this palette pass from changing unrelated pages. */
+.sage-page-theme { color: var(--ic-ink) !important; }
+.sage-page-theme .page-hero,
+.sage-page-theme [class*="bg-gradient-to-"] {
+  background: radial-gradient(ellipse at 86% 5%,rgba(168,196,154,.16),transparent 40%),
+              linear-gradient(120deg,#1b2820,#26382c 58%,#1b2a23) !important;
+  border-color: rgba(168,196,154,.22) !important;
+  color: #f0f1e8 !important;
+}
+.sage-page-theme [class*="bg-[#"]:not(button),
+.sage-page-theme [class*="bg-cyan-"]:not(button),
+.sage-page-theme [class*="bg-blue-"]:not(button),
+.sage-page-theme [class*="bg-indigo-"]:not(button),
+.sage-page-theme [class*="bg-violet-"]:not(button),
+.sage-page-theme [class*="bg-purple-"]:not(button) {
+  background: linear-gradient(145deg,#252e27,#1b231d) !important;
+  border-color: var(--ic-line) !important;
+}
+.sage-page-theme button[class*="bg-cyan-"],
+.sage-page-theme button[class*="bg-blue-"],
+.sage-page-theme button[class*="bg-indigo-"],
+.sage-page-theme button[class*="bg-violet-"],
+.sage-page-theme button[class*="bg-purple-"],
+.sage-page-theme button[class*="bg-[#"],
+.sage-page-theme a[class*="bg-cyan-"],
+.sage-page-theme a[class*="bg-blue-"],
+.sage-page-theme a[class*="bg-indigo-"],
+.sage-page-theme a[class*="bg-violet-"],
+.sage-page-theme a[class*="bg-purple-"] {
+  background: linear-gradient(110deg,#718b66,#9ab58a) !important;
+  color: #111810 !important;
+  border-color: rgba(168,196,154,.35) !important;
+}
+.sage-page-theme [class*="text-cyan-"],
+.sage-page-theme [class*="text-blue-"],
+.sage-page-theme [class*="text-indigo-"],
+.sage-page-theme [class*="text-violet-"],
+.sage-page-theme [class*="text-purple-"] { color: #c5d5b8 !important; }
+.sage-page-theme [class*="border-cyan-"],
+.sage-page-theme [class*="border-blue-"],
+.sage-page-theme [class*="border-indigo-"],
+.sage-page-theme [class*="border-violet-"],
+.sage-page-theme [class*="border-purple-"] { border-color: rgba(168,196,154,.24) !important; }
+.sage-page-theme [class*="shadow-indigo-"],
+.sage-page-theme [class*="shadow-cyan-"],
+.sage-page-theme [class*="shadow-blue-"] { --tw-shadow-color: rgba(0,0,0,.18) !important; }
+.sage-page-theme input:not([type="checkbox"]):not([type="radio"]),
+.sage-page-theme textarea,
+.sage-page-theme select {
+  background: #111713 !important;
+  border-color: rgba(205,220,194,.18) !important;
+  color: #f0f1e9 !important;
+}
+.sage-page-theme input:focus,
+.sage-page-theme textarea:focus,
+.sage-page-theme select:focus {
+  border-color: #a8c49a !important;
+  --tw-ring-color: rgba(168,196,154,.14) !important;
+}
+.sage-page-theme .page-hero h1,
+.sage-page-theme .page-hero h2 { color: #f0f1e8 !important; background: none !important; }
+.sage-page-theme .page-hero p { color: #c1cbbd !important; }

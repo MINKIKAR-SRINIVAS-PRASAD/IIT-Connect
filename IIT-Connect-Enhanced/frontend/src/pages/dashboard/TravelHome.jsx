@@ -134,7 +134,7 @@ export default function TravelHome() {
   }
 
   return (
-    <div className="space-y-6 text-slate-100">
+    <div className="sage-page-theme space-y-6 text-slate-100">
       <header className="page-hero rounded-[26px] border p-6 md:p-8">
         <p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Private transport manager</p>
         <h1 className="mt-2 text-3xl font-black">Travel Home</h1>
