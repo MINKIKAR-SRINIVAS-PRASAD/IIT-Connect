@@ -23,7 +23,7 @@ const institutes = ['IIT Bombay', 'IIT Delhi', 'IIT Madras', 'IIT Kanpur', 'IIT 
 
 function Brand({ light = false }) {
   return <Link to="/" className="group inline-flex items-center gap-3" aria-label="IIT Connect home">
-    <span className="brand-mark"><Network size={19} strokeWidth={2.3} /></span>
+    <BrandSymbol className="h-9 w-[72px] object-contain"/>
     <span className={`text-[17px] font-bold tracking-tight ${light ? 'text-white' : 'text-white'}`}>IIT<span className="text-indigo-300">Connect</span></span>
   </Link>
 }
@@ -45,7 +45,7 @@ function OrbitVisual({ reduceMotion }) {
     <motion.div className="orbit orbit-one" animate={reduceMotion ? {} : { rotate: 360 }} transition={{ duration: 48, repeat: Infinity, ease: 'linear' }} />
     <motion.div className="orbit orbit-two" animate={reduceMotion ? {} : { rotate: -360 }} transition={{ duration: 62, repeat: Infinity, ease: 'linear' }} />
     <div className="orbit-core absolute left-1/2 top-1/2 z-10 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full md:h-44 md:w-44">
-      <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-400/15 text-indigo-200 ring-1 ring-indigo-300/20"><Network size={26}/></div>
+      <BrandSymbol className="mb-2 h-9 w-[78px] object-contain"/>
       <div className="text-center text-sm font-bold tracking-wide text-white">ONE IIT<br/>COMMUNITY</div>
       <div className="mt-1 text-[9px] tracking-[0.2em] text-indigo-200/60">CONNECTED</div>
     </div>
