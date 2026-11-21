@@ -25,7 +25,7 @@ export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
   const filter = {
     _id: { $ne: req.user._id },
-    role: { $ne: 'admin' },
+    role: 'student',
     isBanned: false
   }
 
@@ -52,7 +52,7 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
   if (!otherUserId) throw new ApiError(400, 'otherUserId is required')
 
   const other = await User.findById(otherUserId)
-  if (!other || other.isBanned) throw new ApiError(404, 'User not found')
+  if (!other || other.isBanned || other.role !== 'student' || req.user.role !== 'student') throw new ApiError(404, 'Student community user not found')
 
   const me = req.user._id
   if (other._id.equals(me)) throw new ApiError(400, 'You cannot start a conversation with yourself')
