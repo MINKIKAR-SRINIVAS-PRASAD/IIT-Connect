@@ -22,9 +22,9 @@ export default function AuthLayout() {
           <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-[#b9d889]/25 blur-3xl"/>
         </section>
         <section className="relative z-10 mx-auto w-full max-w-md">
-          <div className="mb-7 flex items-center justify-between lg:hidden"><Link to="/" className="flex items-center gap-2 font-bold text-[#203927]"><BrandSymbol className="h-8 w-[60px] object-contain"/>IIT Connect</Link><Link to="/" className="text-xs text-[#718075]">Back to home</Link></div>
+          <div className="mb-7 flex items-center justify-between lg:hidden"><Link to="/" className="flex items-center gap-2 font-bold text-[#203927]"><BrandSymbol className="h-8 w-[60px] object-contain"/>IITStudentsOS</Link><Link to="/" className="text-xs text-[#718075]">Back to home</Link></div>
           <div className="auth-card rounded-[2rem] border border-[#315d3e]/10 bg-white/85 p-6 shadow-[0_30px_90px_rgba(43,68,42,.12)] backdrop-blur-xl sm:p-9">
-            <Link to="/" className="mb-7 hidden items-center gap-2 text-xs font-semibold text-[#78877b] transition hover:text-[#315d3e] lg:inline-flex"><ArrowLeft size={14}/> Back to IIT Connect</Link>
+            <Link to="/" className="mb-7 hidden items-center gap-2 text-xs font-semibold text-[#78877b] transition hover:text-[#315d3e] lg:inline-flex"><ArrowLeft size={14}/> Back to IITStudentsOS</Link>
             <Outlet/>
           </div>
           <p className="mt-5 text-center text-[11px] text-[#87948a]">Access is intended for verified IIT students.</p>
