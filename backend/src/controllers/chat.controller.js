@@ -15,6 +15,7 @@ export const listUsers = asyncHandler(async (req, res) => {
         $or: [
           { email: { $regex: q, $options: 'i' } },
           { 'profile.name': { $regex: q, $options: 'i' } },
+          { 'profile.rollNumber': { $regex: q, $options: 'i' } },
           { 'profile.iit': { $regex: q, $options: 'i' } }
         ]
       }
