@@ -1,0 +1,16 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'in.iitstudentsos.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'in.iitstudentsos.app'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        def siteUrl = project.findProperty('webUrl') ?: 'https://iit-connect-mu.vercel.app/'
+        buildConfigField 'String', 'WEB_URL', '\"' + siteUrl.replace('\\', '\\\\').replace('"', '\\"') + '\"'
+    }
+    buildFeatures { buildConfig true }
+}
