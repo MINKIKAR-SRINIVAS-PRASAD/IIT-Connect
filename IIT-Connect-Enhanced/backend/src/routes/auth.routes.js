@@ -26,6 +26,27 @@ router.post(
   verifyRegistrationOtp
 )
 
+
+// Backwards-compatible registration endpoints used by the currently deployed
+// web/mobile clients. Keep the canonical /send-otp and /verify-otp routes too.
+router.post(
+  '/register/send-otp',
+  authRateLimiter,
+  body('email').isEmail(),
+  body('password').isString().isLength({ min: 8 }),
+  validate,
+  sendRegistrationOtp
+)
+
+router.post(
+  '/register/verify-otp',
+  authRateLimiter,
+  body('email').isEmail(),
+  body('otp').isString().matches(/^\\d{6}$/),
+  validate,
+  verifyRegistrationOtp
+)
+
 router.post('/change-password', requireAuth, body('currentPassword').isString().notEmpty(), body('newPassword').isString().isLength({ min: 8 }), validate, changePassword)
 router.post('/forgot-password', authRateLimiter, body('email').isEmail(), validate, forgotPassword)
 router.post('/reset-password', authRateLimiter, body('email').isEmail(), body('otp').isString(), body('password').isString().isLength({ min: 8 }), validate, resetPassword)
