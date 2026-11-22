@@ -127,6 +127,7 @@ export default function App() {
       <Route path="/faculty/news" element={<FacultyOnly><News /></FacultyOnly>} />
       <Route path="/faculty/gallery" element={<FacultyOnly><FacultyWorkspace section="gallery" /></FacultyOnly>} />
       <Route path="/faculty/study" element={<FacultyOnly><FacultyWorkspace section="study" /></FacultyOnly>} />
+      <Route path="/faculty/placements" element={<FacultyOnly><FacultyWorkspace section="placements" /></FacultyOnly>} />
       <Route path="/faculty/publications" element={<FacultyOnly><FacultyWorkspace section="publications" /></FacultyOnly>} />
       <Route path="/faculty/travel" element={<FacultyOnly><FacultyWorkspace section="travel" /></FacultyOnly>} />
       <Route path="/faculty/community" element={<FacultyOnly><FacultyWorkspace section="community" /></FacultyOnly>} />
