@@ -3,8 +3,6 @@ import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
 import Button from '../../components/common/Button'
 import toast from 'react-hot-toast'
-import Gallery from '../dashboard/Gallery.jsx'
-import Events from '../dashboard/Events.jsx'
 import { Home, MessageCircle, BookOpen, FileText, Image as ImageIcon, CalendarDays, BriefcaseBusiness, Users, LogOut, Plane, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
 
 const nav = [
@@ -48,13 +46,10 @@ export default function FacultyPortal() {
       if (section === 'chat') {
         const { data } = await api.get('/faculty/community')
         setMessages(data.messages || [])
-      } else if (section === 'publications' || section === 'placement') {
+      } else if (['publications', 'placement', 'study', 'events', 'gallery'].includes(section)) {
         const { data } = await api.get('/faculty/posts', { params: { section } })
         setPosts(data.posts || [])
-      } else if (section === 'study') {
-        const { data } = await api.get('/study')
-        setPosts(data.posts || [])
-      } else if (section === 'directory') {
+      else if (section === 'directory') {
         const { data } = await api.get('/faculty/directory')
         setDirectory(data.faculty || [])
       }
@@ -66,7 +61,7 @@ export default function FacultyPortal() {
   }
 
   useEffect(() => {
-    if (!['chat', 'study', 'publications', 'placement', 'directory'].includes(section)) return
+    if (!['chat', 'study', 'publications', 'placement', 'events', 'gallery', 'directory'].includes(section)) return
     load()
     if (section !== 'chat') return
     const refresh = window.setInterval(() => {
@@ -97,7 +92,7 @@ export default function FacultyPortal() {
     }
   }
 
-  const createSection = ['publications', 'placement'].includes(section)
+  const createSection = ['publications', 'placement', 'study', 'events', 'gallery'].includes(section)
   const meta = sectionMeta[section] || sectionMeta.home
   const displayName = user?.profile?.name || user?.email || 'Faculty member'
 
@@ -184,12 +179,12 @@ export default function FacultyPortal() {
               </section>
             )}
 
-            {section === 'gallery' && <div className="rounded-2xl border border-slate-800 bg-slate-900/30 p-2 md:p-4"><Gallery /></div>}
-            {section === 'events' && <div className="rounded-2xl border border-slate-800 bg-slate-900/30 p-2 md:p-4"><Events /></div>}
+            {section === 'gallery' && <section className={card + ' space-y-3'}><h2 className="text-lg font-semibold">Faculty gallery</h2><p className="text-sm text-slate-400">Faculty-only campus moments and images.</p>{posts.map(p => <article key={p._id} className="rounded-xl border border-slate-800 p-4"><h3 className="font-semibold">{p.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{p.description}</p>{p.link && <a href={p.link} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-emerald-300 underline">View media</a>}</article>)}{!loading && !posts.length && <p className="text-sm text-slate-500">No faculty gallery posts yet.</p>}</section>}
+            {section === 'events' && <section className={card + ' space-y-3'}><h2 className="text-lg font-semibold">Faculty events</h2><p className="text-sm text-slate-400">Academic events shared within the faculty network.</p>{posts.map(p => <article key={p._id} className="rounded-xl border border-slate-800 p-4"><h3 className="font-semibold">{p.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{p.description}</p>{p.link && <a href={p.link} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-emerald-300 underline">Event details</a>}</article>)}{!loading && !posts.length && <p className="text-sm text-slate-500">No faculty events yet.</p>}</section>}
 
-            {section === 'study' && <section className="space-y-4"><div className={card}><h2 className="text-lg font-semibold">Shared Study Hub</h2><p className="mt-1 text-sm text-slate-400">Resources from the common Study Hub feed.</p></div>{loading && <p className="text-sm text-slate-500">Loading resources…</p>}{posts.map(p => <article key={p._id} className={card}><h3 className="font-semibold">{p.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{p.description}</p>{p.link && <a href={p.link} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-emerald-300 underline">Open resource</a>}</article>)}{!loading && !posts.length && <div className={card + ' text-sm text-slate-500'}>No approved study resources available yet.</div>}</section>}
+            {section === 'study' && <section className="space-y-4"><div className={card}><h2 className="text-lg font-semibold">Faculty Study Hub</h2><p className="mt-1 text-sm text-slate-400">Faculty resources kept separate from the student Study Hub.</p></div>{loading && <p className="text-sm text-slate-500">Loading resources…</p>}{posts.map(p => <article key={p._id} className={card}><h3 className="font-semibold">{p.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{p.description}</p>{p.link && <a href={p.link} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-emerald-300 underline">Open resource</a>}</article>)}{!loading && !posts.length && <div className={card + ' text-sm text-slate-500'}>No approved study resources available yet.</div>}</section>}
 
-            {createSection && <section className="grid items-start gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)]"><form onSubmit={submit} className={card + ' space-y-4'}><div><h2 className="text-lg font-semibold">Create {section === 'publications' ? 'publication' : 'placement update'}</h2><p className="mt-1 text-sm text-slate-400">Your contribution will appear in the faculty feed.</p></div><label className="block text-xs font-medium text-slate-400">Title<input required value={title} onChange={e => setTitle(e.target.value)} placeholder={section === 'publications' ? 'Publication title' : 'Placement update title'} className={field + ' mt-2'} /></label><label className="block text-xs font-medium text-slate-400">Details<textarea required value={description} onChange={e => setDescription(e.target.value)} placeholder="Abstract, details, eligibility or information" rows={5} className={field + ' mt-2 resize-y'} /></label><label className="block text-xs font-medium text-slate-400">Reference link (optional)<input value={link} onChange={e => setLink(e.target.value)} placeholder="DOI / paper / official link" className={field + ' mt-2'} /></label><Button disabled={busy}>{busy ? 'Submitting…' : 'Publish contribution'}</Button></form><div className="space-y-3"><div className={card + ' flex items-center justify-between'}><div><h2 className="font-semibold">Faculty contributions</h2><p className="mt-1 text-sm text-slate-400">Latest shared posts</p></div><button onClick={load} className="rounded-xl border border-slate-700 p-2 text-slate-400 hover:text-emerald-300" aria-label="Refresh"><RefreshCw size={17} /></button></div>{loading && <p className="px-2 text-sm text-slate-500">Loading posts…</p>}{posts.map(p => <article key={p._id} className={card}><h3 className="font-semibold">{p.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{p.description}</p>{p.link && <a href={p.link} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-emerald-300 underline">Open link</a>}<p className="mt-4 text-xs text-slate-500">{p.facultyId?.profile?.name || p.facultyId?.email || 'Faculty member'}</p></article>)}{!loading && !posts.length && <div className={card + ' text-sm text-slate-500'}>No contributions posted yet.</div>}</div></section>}
+            {createSection && <section className="grid items-start gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)]"><form onSubmit={submit} className={card + ' space-y-4'}><div><h2 className="text-lg font-semibold">Create {section === 'publications' ? 'publication' : section === 'placement' ? 'placement update' : section === 'study' ? 'study resource' : section === 'events' ? 'faculty event' : 'gallery post'}</h2><p className="mt-1 text-sm text-slate-400">Your contribution will appear in the faculty feed.</p></div><label className="block text-xs font-medium text-slate-400">Title<input required value={title} onChange={e => setTitle(e.target.value)} placeholder={section === 'publications' ? 'Publication title' : section === 'placement' ? 'Placement update title' : section === 'study' ? 'Resource title' : section === 'events' ? 'Event title' : 'Gallery caption'} className={field + ' mt-2'} /></label><label className="block text-xs font-medium text-slate-400">Details<textarea required value={description} onChange={e => setDescription(e.target.value)} placeholder="Abstract, details, eligibility or information" rows={5} className={field + ' mt-2 resize-y'} /></label><label className="block text-xs font-medium text-slate-400">Reference link (optional)<input value={link} onChange={e => setLink(e.target.value)} placeholder="DOI / paper / official link" className={field + ' mt-2'} /></label><Button disabled={busy}>{busy ? 'Submitting…' : 'Publish contribution'}</Button></form><div className="space-y-3"><div className={card + ' flex items-center justify-between'}><div><h2 className="font-semibold">Faculty contributions</h2><p className="mt-1 text-sm text-slate-400">Latest shared posts</p></div><button onClick={load} className="rounded-xl border border-slate-700 p-2 text-slate-400 hover:text-emerald-300" aria-label="Refresh"><RefreshCw size={17} /></button></div>{loading && <p className="px-2 text-sm text-slate-500">Loading posts…</p>}{posts.map(p => <article key={p._id} className={card}><h3 className="font-semibold">{p.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{p.description}</p>{p.link && <a href={p.link} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-emerald-300 underline">Open link</a>}<p className="mt-4 text-xs text-slate-500">{p.facultyId?.profile?.name || p.facultyId?.email || 'Faculty member'}</p></article>)}{!loading && !posts.length && <div className={card + ' text-sm text-slate-500'}>No contributions posted yet.</div>}</div></section>}
 
             {section === 'chat' && <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]"><div className={card + ' flex min-h-[65vh] flex-col'}><div className="mb-4 border-b border-slate-800 pb-4"><h2 className="font-semibold">Faculty Community</h2><p className="mt-1 text-sm text-slate-400">A discussion space for faculty accounts.</p></div><div className="flex-1 space-y-3">{loading && <p className="text-sm text-slate-500">Loading conversation…</p>}{messages.map(m => <article key={m._id} className="max-w-3xl rounded-xl border border-slate-800 bg-slate-950/60 p-4"><p className="text-xs font-semibold text-emerald-300">{m.name}</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-200">{m.text}</p></article>)}</div><form onSubmit={submit} className="mt-5 flex gap-2 border-t border-slate-800 pt-4"><input required value={message} onChange={e => setMessage(e.target.value)} placeholder="Write to the faculty community…" className={field + ' min-w-0 flex-1'} /><Button disabled={busy}>{busy ? 'Sending…' : 'Send'}</Button></form></div><aside className={card + ' h-fit'}><MessageCircle size={22} className="text-emerald-300" /><h3 className="mt-3 font-semibold">Faculty-only space</h3><p className="mt-2 text-sm leading-6 text-slate-400">Use this community to discuss academic work, announcements and collaboration.</p></aside></section>}
 
