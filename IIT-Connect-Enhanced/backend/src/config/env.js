@@ -12,6 +12,8 @@ export const env = {
     .filter(Boolean),
   MONGO_URI: process.env.MONGO_URI,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
+  GMAIL_SCRIPT_URL: process.env.GMAIL_SCRIPT_URL?.trim(),
+  GMAIL_SCRIPT_SECRET: process.env.GMAIL_SCRIPT_SECRET,
   EMAIL_FROM: process.env.EMAIL_FROM,
   SMTP_USER: process.env.SMTP_USER?.trim(),
   SMTP_APP_PASSWORD: process.env.SMTP_APP_PASSWORD?.replace(/\s/g, ''),
