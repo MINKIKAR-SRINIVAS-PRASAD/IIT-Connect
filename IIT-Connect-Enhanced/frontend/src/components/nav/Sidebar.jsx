@@ -38,8 +38,8 @@ export default function Sidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isFaculty = user?.role === 'faculty'
   const activeLinks = isFaculty ? facultyLinks : links
-  const displayName = isFaculty ? (user?.facultyProfile?.name || user?.email || 'Faculty') : (displayName)
-  const displayInstitute = isFaculty ? (user?.facultyProfile?.institute || user?.email) : (displayInstitute)
+  const displayName = isFaculty ? (user?.facultyProfile?.name || user?.email || 'Faculty') : (user?.profile?.name || user?.email || 'IIT Student')
+  const displayInstitute = isFaculty ? (user?.facultyProfile?.institute || user?.email) : (user?.profile?.iit || user?.email)
   const initials = displayName.slice(0, 1).toUpperCase()
   return <>
     <aside className="dashboard-sidebar sticky top-0 hidden h-screen w-[258px] shrink-0 flex-col border-r border-white/[0.07] bg-[#090c19] px-4 py-5 md:flex">
@@ -49,11 +49,11 @@ export default function Sidebar() {
       </div>
       <div className="mt-9 px-3"><div className="text-[9px] font-bold tracking-[.2em] text-slate-600">WORKSPACE</div></div>
       <nav className="mt-3 flex-1 space-y-1">
-        {activeLinks.map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `sidebar-link group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-medium transition-all duration-200 ${isActive ? 'sidebar-link-active text-white' : 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-100'}`}><Icon size={17} strokeWidth={1.8} className="shrink-0 opacity-80"/><span>{label}</span>{label === 'Chat' && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,.8)] opacity-0 group-hover:opacity-100"/>}</NavLink>)}
+        {activeLinks.map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} className={({isActive}) => `sidebar-link group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-medium transition-all duration-200 ${isActive ? 'sidebar-link-active text-white' : 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-100'}`}><Icon size={17} strokeWidth={1.8} className="shrink-0 opacity-80"/><span>{label}</span>{(label === 'Chat' || label === 'Chat & Community') && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,.8)] opacity-0 group-hover:opacity-100"/>}</NavLink>)}
         {user?.role === 'admin' && <NavLink to="/admin" className={({isActive}) => `mt-5 flex items-center gap-3 rounded-xl border px-3 py-3 text-[13px] font-semibold transition ${isActive ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-200' : 'border-emerald-400/10 text-emerald-300/80 hover:bg-emerald-400/[0.06]'}`}><ShieldCheck size={17}/>Admin workspace</NavLink>}
       </nav>
       <NavLink to={isFaculty ? '/faculty/home' : '/app/profile'} className={({isActive}) => `group block rounded-2xl border p-3 transition-all ${isActive ? 'border-[#a8c49a]/35 bg-[#a8c49a]/10' : 'border-white/[0.07] bg-white/[0.025] hover:border-[#a8c49a]/30 hover:bg-[#a8c49a]/[0.06]'}`} title="Open your profile">
-        <div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#78936c] to-[#a2bd91] text-sm font-bold text-[#111810]">{initials}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-slate-200 group-hover:text-white">{user?.profile?.name || 'IIT Student'}</div><div className="mt-0.5 truncate text-[10px] text-slate-500">{user?.profile?.iit || user?.email}</div></div><UserRound size={15} className="shrink-0 text-slate-500 group-hover:text-[#c2d8ae]"/></div>
+        <div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#78936c] to-[#a2bd91] text-sm font-bold text-[#111810]">{initials}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-slate-200 group-hover:text-white">{displayName}</div><div className="mt-0.5 truncate text-[10px] text-slate-500">{displayInstitute}</div></div><UserRound size={15} className="shrink-0 text-slate-500 group-hover:text-[#c2d8ae]"/></div>
         <div className="mt-3 flex items-center gap-2 text-[9px] font-semibold tracking-[.12em] text-emerald-300/80"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400"/> CONNECTED COMMUNITY</div>
       </NavLink>
     </aside>
