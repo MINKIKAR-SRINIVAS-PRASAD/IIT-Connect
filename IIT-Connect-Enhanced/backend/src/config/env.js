@@ -14,7 +14,7 @@ export const env = {
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN || '15m',
-  REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
+  REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '60d',
   ADMIN_EMAILS: (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((s) => s.trim().toLowerCase())
@@ -36,7 +36,5 @@ export function assertEnv() {
     'CLOUDINARY_API_SECRET'
   ]
   const missing = required.filter((k) => !env[k])
-  if (missing.length) {
-    throw new Error(`Missing env vars: ${missing.join(', ')}`)
-  }
+  if (missing.length) throw new Error(`Missing env vars: ${missing.join(', ')}`)
 }
