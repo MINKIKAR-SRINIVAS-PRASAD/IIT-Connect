@@ -1,5 +1,8 @@
 
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
+import nodemailer from 'nodemailer'
+import RegistrationOtp from '../models/RegistrationOtp.js'
 import jwt from 'jsonwebtoken'
 
 import { env } from '../config/env.js'
@@ -265,4 +268,88 @@ export const refresh = asyncHandler(async (req, res) => {
     success: true,
     message: 'Token refreshed successfully'
   })
+})
+
+// Email verification for registration
+const registrationMailer = nodemailer.createTransport({
+  host: env.SMTP_HOST,
+  port: Number(env.SMTP_PORT || 587),
+  secure: String(env.SMTP_SECURE || 'false') === 'true',
+  auth: { user: env.SMTP_USER, pass: env.SMTP_APP_PASSWORD }
+})
+
+export const sendRegistrationOtp = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email)
+  const password = String(req.body.password || '')
+  const accountType = req.body.accountType === 'faculty' ? 'faculty' : 'student'
+  const facultyProfile = req.body.facultyProfile || {}
+  if (!email || password.length < 8) throw new ApiError(400, 'Valid institute email and password (8+ characters) are required')
+  if (!isAllowedIitEmail(email)) throw new ApiError(400, 'Only approved IIT emails are allowed')
+  if (isConfiguredAdmin(email)) throw new ApiError(403, 'Admin accounts are provisioned separately')
+  if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_APP_PASSWORD) throw new ApiError(503, 'Email verification is not configured. Please contact support.')
+  if (accountType === 'faculty' && ['name','institute','department','designation'].some(k => !String(facultyProfile[k] || '').trim())) {
+    throw new ApiError(400, 'Please complete all required faculty details')
+  }
+  if (await User.findOne({ email })) throw new ApiError(409, 'Email already registered')
+  const prior = await RegistrationOtp.findOne({ email })
+  if (prior && Date.now() - prior.lastSentAt.getTime() < 60000) throw new ApiError(429, 'Please wait 60 seconds before requesting another code')
+  const otp = String(crypto.randomInt(0, 1000000)).padStart(6, '0')
+  const passwordHash = await bcrypt.hash(password, 12)
+  const otpHash = crypto.createHash('sha256').update(otp + email).digest('hex')
+  await RegistrationOtp.findOneAndUpdate({ email }, {
+    email, passwordHash, accountType, facultyProfile, otpHash,
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000), lastSentAt: new Date(), attempts: 0
+  }, { upsert: true, new: true, setDefaultsOnInsert: true })
+  try {
+    await registrationMailer.sendMail({
+      from: env.SMTP_FROM || env.SMTP_USER, to: email,
+      subject: 'Your IIT Connect verification code',
+      text: `Your IIT Connect registration code is ${otp}. It expires in 5 minutes.`,
+      html: `<div style="font-family:Arial,sans-serif"><h2>IIT Connect</h2><p>Your verification code:</p><strong style="font-size:30px;letter-spacing:8px">${otp}</strong><p>Expires in 5 minutes.</p></div>`
+    })
+  } catch (err) {
+    await RegistrationOtp.deleteOne({ email })
+    console.error('Registration OTP email failed:', err.message)
+    throw new ApiError(502, 'Could not send email. Check SMTP settings and try again.')
+  }
+  res.json({ success: true, message: 'Verification code sent' })
+})
+
+export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email)
+  const otp = String(req.body.otp || '').trim()
+  const record = await RegistrationOtp.findOne({ email })
+  if (!record) throw new ApiError(400, 'No active code. Please request a new one.')
+  if (record.expiresAt.getTime() < Date.now()) {
+    await RegistrationOtp.deleteOne({ email })
+    throw new ApiError(400, 'Code expired. Please request a new one.')
+  }
+  if (record.attempts >= 5) {
+    await RegistrationOtp.deleteOne({ email })
+    throw new ApiError(429, 'Too many incorrect attempts. Request a new code.')
+  }
+  const hash = crypto.createHash('sha256').update(otp + email).digest('hex')
+  if (hash !== record.otpHash) {
+    record.attempts += 1
+    await record.save()
+    throw new ApiError(400, 'Incorrect verification code')
+  }
+  if (await User.findOne({ email })) {
+    await RegistrationOtp.deleteOne({ email })
+    throw new ApiError(409, 'Email already registered')
+  }
+  const isFaculty = record.accountType === 'faculty'
+  const fp = record.facultyProfile || {}
+  const user = await User.create({
+    email, passwordHash: record.passwordHash,
+    role: isFaculty ? 'faculty' : getRoleForEmail(email),
+    profile: isFaculty ? { name: fp.name || '', iit: fp.institute || getIitForEmail(email), branch: fp.department || '' } : { iit: getIitForEmail(email) }
+  })
+  await RegistrationOtp.deleteOne({ email })
+  const accessToken = signAccessToken(user._id.toString())
+  const refreshToken = signRefreshToken(user._id.toString())
+  user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
+  await user.save()
+  setAuthCookies(res, accessToken, refreshToken)
+  res.status(201).json({ success: true, message: 'Email verified; account created', user: publicUser(user) })
 })
