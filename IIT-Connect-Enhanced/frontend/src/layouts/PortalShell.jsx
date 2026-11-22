@@ -6,7 +6,7 @@ import Topbar from '../components/nav/Topbar.jsx'
 
 export default function PortalShell({ children }) {
   const location = useLocation()
-  return <div className="dashboard-shell min-h-screen bg-[#070914] text-slate-100">
+  return <div className={`dashboard-shell min-h-screen ${location.pathname.startsWith('/faculty') ? 'faculty-theme' : ''} bg-[#070914] text-slate-100`}>
     <div className="dashboard-atmosphere pointer-events-none fixed inset-0"/>
     <div className="relative flex min-h-screen">
       <Sidebar/>
