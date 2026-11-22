@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema({
   facultyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  section: { type: String, enum: ['events','gallery','study','publications','travel'], required: true, index: true },
+  section: { type: String, enum: ['events','gallery','study','publications','travel','placements'], required: true, index: true },
   title: { type: String, trim: true, maxlength: 200, default: '' },
   description: { type: String, maxlength: 10000, default: '' },
   category: { type: String, default: '' },
