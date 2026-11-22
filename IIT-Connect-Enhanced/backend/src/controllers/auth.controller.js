@@ -33,7 +33,7 @@ async function createRefreshSession(user) {
 async function setAuthCookies(res, { accessToken, refreshToken }) {
   const opts = cookieOptions()
   res.cookie('accessToken', accessToken, { ...opts, maxAge: 15 * 60 * 1000 })
-  res.cookie('refreshToken', refreshToken, { ...opts, maxAge: 7 * 24 * 60 * 60 * 1000 })
+  res.cookie('refreshToken', refreshToken, { ...opts, maxAge: 60 * 24 * 60 * 60 * 1000 })
 }
 
 export const register = asyncHandler(async (req, res) => {
