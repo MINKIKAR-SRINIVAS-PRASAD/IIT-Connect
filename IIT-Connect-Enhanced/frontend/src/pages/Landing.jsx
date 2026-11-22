@@ -6,6 +6,7 @@ import {
   CalendarDays, Check, Globe2, GraduationCap, Image as ImageIcon,
   Menu, MessageCircle, Network, ShieldCheck, Sparkles, Users, X, Compass
 } from 'lucide-react'
+import BrandSymbol from '../components/common/BrandSymbol'
 
 const rise = {
   hidden: { opacity: 0, y: 28 },
@@ -20,10 +21,6 @@ const modules = [
 ]
 
 const institutes = ['IIT Bombay', 'IIT Delhi', 'IIT Madras', 'IIT Kanpur', 'IIT Kharagpur', 'IIT Bhubaneswar', 'IIT Hyderabad', 'IIT Guwahati']
-
-function BrandSymbol({ className = '' }) {
-  return <img src="/iitconnect-gold-logo.svg" className={className} alt="IITStudentsOS official gold IIT logo" draggable="false" />
-}
 
 function Brand({ light = false }) {
   return <Link to="/" className="group inline-flex items-center gap-3" aria-label="IITStudentsOS home">
