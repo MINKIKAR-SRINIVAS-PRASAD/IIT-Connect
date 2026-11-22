@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { LogOut, ChevronRight } from 'lucide-react'
 
 const labels = {
+  '/faculty': 'Faculty Home', '/faculty/home': 'Faculty Home', '/faculty/events': 'Faculty Events', '/faculty/gallery': 'Faculty Gallery', '/faculty/study': 'Faculty Study', '/faculty/publications': 'Faculty Publications', '/faculty/travel': 'Faculty Travel', '/faculty/community': 'Faculty Community', '/faculty/news': 'Faculty News',
   '/app': 'Home',
   '/app/chat': 'Messages',
   '/app/study': 'Study Hub',
@@ -20,7 +21,8 @@ const labels = {
 export default function Topbar({ admin = false }) {
   const { user, logout } = useAuth()
   const location = useLocation()
-  const title = labels[location.pathname] || (admin ? 'Admin Workspace' : 'IITStudentsOS')
+  const isFaculty = location.pathname.startsWith('/faculty')
+  const title = labels[location.pathname] || (admin ? 'Admin Workspace' : isFaculty ? 'Faculty Network' : 'IITStudentsOS')
   const [scrollProgress, setScrollProgress] = useState(0)
 
   useEffect(() => {
@@ -48,10 +50,10 @@ export default function Topbar({ admin = false }) {
     }}
   >
     <div className="flex min-h-[70px] items-center justify-between gap-4 px-5 md:px-8">
-      <div className="min-w-0"><div className="flex items-center gap-2 text-[10px] font-semibold tracking-[.16em] text-slate-600"><span>IITSTUDENTSOS</span><ChevronRight size={12}/><span className="truncate text-slate-400">{title.toUpperCase()}</span></div><div className="mt-1 flex items-center gap-2"><span className={`h-1.5 w-1.5 rounded-full ${admin ? 'bg-emerald-400' : 'bg-indigo-400'}`}/><span className="text-sm font-semibold text-slate-100">{title}</span></div></div>
+      <div className="min-w-0"><div className="flex items-center gap-2 text-[10px] font-semibold tracking-[.16em] text-slate-600"><span>{isFaculty ? 'IIT CONNECT' : 'IITSTUDENTSOS'}</span><ChevronRight size={12}/><span className="truncate text-slate-400">{title.toUpperCase()}</span></div><div className="mt-1 flex items-center gap-2"><span className={`h-1.5 w-1.5 rounded-full ${admin ? 'bg-emerald-400' : 'bg-indigo-400'}`}/><span className="text-sm font-semibold text-slate-100">{title}</span></div></div>
       <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-2 sm:flex"><span className="max-w-[150px] truncate text-xs text-slate-400">{user?.profile?.iit || 'IIT Community'}</span></div>
-        <div className="hidden h-8 w-8 items-center justify-center rounded-full border border-indigo-300/20 bg-indigo-400/10 text-xs font-bold text-indigo-100 sm:flex">{(user?.profile?.name || user?.email || 'I').slice(0,1).toUpperCase()}</div>
+        <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-2 sm:flex"><span className="max-w-[150px] truncate text-xs text-slate-400">{(isFaculty ? user?.facultyProfile?.institute : user?.profile?.iit) || (isFaculty ? 'Faculty community' : 'IIT Community')}</span></div>
+        <div className="hidden h-8 w-8 items-center justify-center rounded-full border border-indigo-300/20 bg-indigo-400/10 text-xs font-bold text-indigo-100 sm:flex">{(isFaculty ? user?.facultyProfile?.name : user?.profile?.name || user?.email || 'I').slice(0,1).toUpperCase()}</div>
         <button type="button" onClick={logout} className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-rose-300/30 hover:bg-rose-400/[0.06] hover:text-rose-200"><LogOut size={14}/><span className="hidden sm:inline">Sign out</span></button>
       </div>
     </div>
