@@ -6,7 +6,7 @@ import Topbar from '../components/nav/Topbar.jsx'
 
 export default function DashboardLayout() {
   const location = useLocation()
-  return <div className="dashboard-shell min-h-screen bg-[#070914] text-slate-100">
+  return <div className={`dashboard-shell min-h-screen ${location.pathname.startsWith('/faculty') ? 'faculty-theme bg-[#070914]' : 'bg-[#070914]'} text-slate-100`}>
     <div className="dashboard-atmosphere pointer-events-none fixed inset-0"/>
     <div className="relative flex min-h-screen">
       <Sidebar/>
@@ -21,7 +21,7 @@ export default function DashboardLayout() {
             </AnimatePresence>
           </div>
         </main>
-        <footer className="hidden border-t border-white/[0.05] px-8 py-4 text-[10px] tracking-wide text-slate-600 md:block">IITSTUDENTSOS <span className="mx-2 text-slate-800">/</span> ONE COMMUNITY, MANY CAMPUSES</footer>
+        <footer className="hidden border-t border-white/[0.05] px-8 py-4 text-[10px] tracking-wide text-slate-600 md:block">{location.pathname.startsWith('/faculty') ? 'IIT CONNECT · FACULTY NETWORK' : 'IITSTUDENTSOS'} <span className="mx-2 text-slate-800">/</span> ONE COMMUNITY, MANY CAMPUSES</footer>
       </div>
     </div>
   </div>
