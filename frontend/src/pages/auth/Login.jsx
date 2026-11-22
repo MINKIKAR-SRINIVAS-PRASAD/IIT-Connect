@@ -17,6 +17,7 @@ export default function Login() {
     setBusy(true)
     try {
       await login(email, password)
+      toast.success('Welcome back')
       nav('/app')
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Login failed')
