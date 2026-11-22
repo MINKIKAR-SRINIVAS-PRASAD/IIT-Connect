@@ -9,22 +9,18 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   async function fetchMe() {
-  setLoading(true)
-
-  try {
-    const { data } = await api.get('/auth/me')
-
-    setUser(data.user)
-    return data.user
-
-  } catch {
-    setUser(null)
-    return null
-
-  } finally {
-    setLoading(false)
+    setLoading(true)
+    try {
+      const { data } = await api.get('/auth/me')
+      setUser(data.user)
+      return data.user
+    } catch {
+      setUser(null)
+      return null
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   useEffect(() => {
     fetchMe()
@@ -39,7 +35,7 @@ export function AuthProvider({ children }) {
       async login(email, password) {
         const { data } = await api.post('/auth/login', { email, password })
         setUser(data.user)
-        toast.success('Welcome back')
+        // Login.jsx owns the single user-facing login toast.
         return data.user
       },
       async register(email, password) {
