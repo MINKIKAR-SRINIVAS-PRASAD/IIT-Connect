@@ -10,25 +10,43 @@ const dateLabel=value=>{if(!value)return 'Recently shared';const d=new Date(valu
 
 export default function News(){
  const faculty=useLocation().pathname.startsWith('/faculty')
- const [items,setItems]=useState([]),[loading,setLoading]=useState(true),[filter,setFilter]=useState('All updates'),[query,setQuery]=useState('')
+ const [items,setItems]=useState([]),[loading,setLoading]=useState(true),[filter,setFilter]=useState('All updates'),[query,setQuery]=useState(''),[loadError,setLoadError]=useState(false)
  async function load(){
   setLoading(true)
-  try{
-   const requests=[api.get('/events'),api.get('/gallery')]
-   if(!faculty)requests.push(api.get('/placements'))
-   const results=await Promise.allSettled(requests)
-   const next=[]
-   const ev=results[0].status==='fulfilled'?results[0].value.data:{}
-   ;[...(ev.upcoming||[]),...(ev.past||[])].forEach(x=>next.push({id:'event-'+x._id,type:'Events',title:x.title||'Campus event',description:x.description||x.details||'A campus event shared with the IIT Connect community.',date:x.datetime||x.createdAt,source:x.iit||'IIT Connect community',image:x.posterUrl,href:faculty?'/faculty/events':'/app/events',icon:CalendarDays}))
-   const gal=results[1].status==='fulfilled'?results[1].value.data:{}
-   ;(gal.posts||[]).forEach(x=>next.push({id:'gallery-'+x._id,type:'Campus moments',title:x.caption||'A moment from campus',description:x.description||'A campus photo shared with the community.',date:x.createdAt,source:x.iit||x.user?.profile?.iit||'Campus Gallery',image:x.imageUrl||x.photoUrl,href:faculty?'/faculty/gallery':'/app/gallery',icon:Images}))
-   if(!faculty&&results[2]?.status==='fulfilled'){
-    ;(results[2].value.data.posts||[]).forEach(x=>next.push({id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',description:x.description||x.details||'A placement and career opportunity shared on IIT Connect.',date:x.createdAt,source:x.company||x.iit||'Placement network',href:'/app/placements',icon:BriefcaseBusiness}))
-   }
-   next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));setItems(next)
-   
-  }catch(e){console.error('News feed load failed:',e)}
-  finally{setLoading(false)}
+  setLoadError(false)
+  const requests=faculty
+   ? [api.get('/faculty/events'),api.get('/faculty/gallery')]
+   : [api.get('/events'),api.get('/gallery'),api.get('/placements')]
+  const results=await Promise.allSettled(requests)
+  const next=[]
+  const eventData=results[0].status==='fulfilled'?results[0].value.data:{}
+  const events=faculty?(eventData.events||[]):[...(eventData.upcoming||[]),...(eventData.past||[])]
+  events.forEach(x=>next.push({
+   id:'event-'+x._id,type:'Events',title:x.title||'Campus event',
+   description:x.description||x.details||'A campus event shared with the IIT Connect community.',
+   date:faculty?(x.startAt||x.createdAt):(x.datetime||x.createdAt),
+   source:faculty?(x.institute||x.author?.facultyProfile?.institute||'Faculty community'):(x.iit||'IIT Connect community'),
+   image:x.posterUrl||x.imageUrl,href:faculty?'/faculty/events':'/app/events',icon:CalendarDays
+  }))
+  const galleryData=results[1].status==='fulfilled'?results[1].value.data:{}
+  ;(galleryData.posts||[]).forEach(x=>next.push({
+   id:'gallery-'+x._id,type:'Campus moments',title:x.caption||'A moment from campus',
+   description:x.description||'A campus photo shared with the community.',date:x.createdAt,
+   source:faculty?(x.institute||x.author?.facultyProfile?.institute||'Faculty Gallery'):(x.iit||x.user?.profile?.iit||'Campus Gallery'),
+   image:x.imageUrl||x.photoUrl,href:faculty?'/faculty/gallery':'/app/gallery',icon:Images
+  }))
+  if(!faculty&&results[2]?.status==='fulfilled'){
+   ;(results[2].value.data.posts||[]).forEach(x=>next.push({
+    id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',
+    description:x.description||x.details||'A placement and career opportunity shared on IIT Connect.',
+    date:x.createdAt,source:x.company||x.iit||'Placement network',
+    href:'/app/placements',icon:BriefcaseBusiness
+   }))
+  }
+  setLoadError(results.some(x=>x.status==='rejected'))
+  next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))
+  setItems(next)
+  setLoading(false)
  }
  useEffect(()=>{load()},[faculty])
  const visible=useMemo(()=>items.filter(x=>(filter==='All updates'||x.type===filter)&&[x.title,x.description,x.source,x.type].join(' ').toLowerCase().includes(query.toLowerCase())),[items,filter,query])
@@ -38,6 +56,7 @@ export default function News(){
    <div className="relative z-10 flex flex-wrap items-end justify-between gap-5"><div><div className="inline-flex items-center gap-2 rounded-full border border-[#a8c49a]/20 bg-[#a8c49a]/10 px-3 py-1.5 text-[10px] font-bold tracking-[.16em] text-[#b6d0a8]"><Sparkles size={13}/> CAMPUS JOURNAL</div><h1 className="mt-4 text-3xl font-bold tracking-tight text-[#f0f1e8] md:text-4xl">News & Updates</h1><p className="mt-2 max-w-xl text-sm leading-6 text-[#c1cbbd]">A shared stream of campus events, community moments{faculty?' and academic updates':' and placement updates'} across IIT Connect.</p></div><button type="button" onClick={load} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-3 text-xs font-semibold text-slate-200 hover:bg-white/[.08] disabled:opacity-50"><RefreshCw size={14} className={loading?'animate-spin':''}/> Refresh feed</button></div>
   </section>
   <div className="flex flex-col gap-3 sm:flex-row"><label className="relative flex-1"><Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search campus updates…" className="faculty-input w-full rounded-xl border border-white/10 bg-[#111810] py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500"/></label><div className="flex flex-wrap gap-2">{filters.filter(x=>faculty?x!=='Placements':true).map(x=><button key={x} onClick={()=>setFilter(x)} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${filter===x?'border-[#a8c49a]/30 bg-[#a8c49a]/10 text-[#c5dcb8]':'border-white/10 bg-white/[.02] text-slate-400 hover:text-white'}`}>{x}</button>)}</div></div>
+  {loadError&&!loading?<div role="status" className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100/80">Some feed sections could not be reached. You can retry using Refresh feed.</div>:null}
   {loading?<Loader/>:visible.length?<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{visible.map((item,i)=><motion.article key={item.id} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.035,.2)}} className="overflow-hidden rounded-2xl border border-[#a8c49a]/15 bg-gradient-to-br from-[#202d23] to-[#151e17] shadow-[0_12px_34px_rgba(0,0,0,.12)]"><div className="relative h-44 overflow-hidden bg-[#1b2820]">{item.image?<img src={item.image} alt="" className="h-full w-full object-cover"/>:<div className="flex h-full items-center justify-center bg-[radial-gradient(ellipse_at_65%_20%,rgba(168,196,154,.18),transparent_50%)]"><item.icon size={42} className="text-[#a8c49a]/50"/></div>}<span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[9px] font-bold tracking-[.12em] text-[#d8e4d0] backdrop-blur">{item.type.toUpperCase()}</span></div><div className="p-5"><p className="text-[10px] font-semibold tracking-wide text-[#a8c49a]">{item.source} <span className="mx-1 text-slate-600">·</span> {dateLabel(item.date)}</p><h2 className="mt-3 line-clamp-2 text-lg font-semibold leading-6 text-[#f0f1e8]">{item.title}</h2><p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">{item.description}</p><Link to={item.href} className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#b6d0a8] hover:text-white">View update <ArrowUpRight size={14}/></Link></div></motion.article>)}</div>:<div className="rounded-2xl border border-dashed border-[#a8c49a]/20 bg-white/[.02] px-6 py-14 text-center"><Newspaper size={34} className="mx-auto text-[#a8c49a]/50"/><h2 className="mt-4 text-lg font-semibold text-slate-200">No updates match this view</h2><p className="mt-2 text-sm text-slate-500">New approved events and campus posts will appear here automatically.</p>{(filter!=='All updates'||query)&&<button onClick={()=>{setFilter('All updates');setQuery('')}} className="mt-4 text-xs font-semibold text-[#b6d0a8]">Clear filters</button>}</div>}
   <p className="text-center text-[10px] text-slate-600">News currently aggregates approved content already shared in IIT Connect. Dedicated editorial publishing can be added as a follow-up.</p>
  </motion.div>
