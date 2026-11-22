@@ -6,7 +6,9 @@ import {
   logout,
   me,
   refresh,
-  register
+  register,
+  sendRegistrationOtp,
+  verifyRegistrationOtp
 } from '../controllers/auth.controller.js'
 
 import {
@@ -15,7 +17,11 @@ import {
 
 const router = express.Router()
 
-// Student registration
+// Email OTP registration
+router.post('/register/send-otp', sendRegistrationOtp)
+router.post('/register/verify-otp', verifyRegistrationOtp)
+
+// Legacy registration endpoint
 router.post('/register', register)
 
 // Login for students and configured admins
