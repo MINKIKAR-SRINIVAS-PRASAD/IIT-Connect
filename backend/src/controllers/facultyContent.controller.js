@@ -3,7 +3,7 @@ import { ApiError } from '../utils/apiError.js'
 import FacultyContent from '../models/FacultyContent.js'
 import { cloudinary } from '../config/cloudinary.js'
 
-const sections = new Set(['events','gallery','study','publications','travel'])
+const sections = new Set(['events','gallery','study','publications','travel','placements'])
 const ownFilter = req => ({ facultyId: req.user._id })
 
 export const listFacultyContent = asyncHandler(async (req, res) => {
