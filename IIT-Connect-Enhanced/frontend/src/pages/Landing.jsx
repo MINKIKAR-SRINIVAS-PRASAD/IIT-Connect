@@ -22,13 +22,13 @@ const modules = [
 const institutes = ['IIT Bombay', 'IIT Delhi', 'IIT Madras', 'IIT Kanpur', 'IIT Kharagpur', 'IIT Bhubaneswar', 'IIT Hyderabad', 'IIT Guwahati']
 
 function BrandSymbol({ className = '' }) {
-  return <img src="/iitconnect-gold-logo.svg" className={className} alt="IITStudentsOS official gold IIT logo" draggable="false" />
+  return <img src="/iitconnect-gold-logo.svg" className={className} alt="IITConnect official network logo" draggable="false" />
 }
 
 function Brand({ light = false }) {
-  return <Link to="/" className="group inline-flex items-center gap-3" aria-label="IITStudentsOS home">
+  return <Link to="/" className="group inline-flex items-center gap-3" aria-label="IITConnect home">
     <BrandSymbol className="h-9 w-[72px] object-contain"/>
-    <span className={`text-[17px] font-bold tracking-tight ${light ? 'text-white' : 'text-white'}`}>IIT<span className="text-[#d6b987]">StudentsOS</span></span>
+    <span className={`text-[17px] font-bold tracking-tight ${light ? 'text-white' : 'text-white'}`}>IIT<span className="text-[#d6b987]">Connect</span></span>
   </Link>
 }
 
