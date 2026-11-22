@@ -18,7 +18,7 @@ const links = [
 ]
 
 function Brand() {
-  return <div className="flex items-center gap-3 px-2 py-2" aria-label="IITStudentsOS"><BrandSymbol className="h-9 w-[66px] shrink-0 object-contain"/><div className="text-[17px] font-bold tracking-tight text-white">IIT<span className="text-[#d6b987]">StudentsOS</span></div></div>
+  return <div className="flex items-center gap-3 px-2 py-2" aria-label="IITConnect"><BrandSymbol className="h-9 w-[66px] shrink-0 object-contain"/><div className="text-[17px] font-bold tracking-tight text-white">IIT<span className="text-[#d6b987]">Connect</span></div></div>
 }
 
 export default function Sidebar() {
