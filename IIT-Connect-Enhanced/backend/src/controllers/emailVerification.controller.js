@@ -54,54 +54,36 @@ async function sendOtpEmail(email, otp) {
   const text = `Your IITStudentsOS verification code is ${otp}. It expires in 5 minutes. If you did not request this code, you can ignore this email.`
   const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;color:#183323"><h2>Verify your IITStudentsOS email</h2><p>Use this one-time password to finish creating your account:</p><div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:18px;background:#f1f5ed;border-radius:12px;text-align:center">${otp}</div><p>This code expires in 5 minutes. Do not share it with anyone.</p><p style="color:#718075;font-size:12px">If you did not request this code, you can safely ignore this email.</p></div>`
 
-  // Prefer Gmail SMTP when its credentials are configured; otherwise retain the existing Resend path.
+  // Prefer Resend's HTTPS API in hosted environments; Render may block SMTP ports.
+  if (env.RESEND_API_KEY && env.EMAIL_FROM) {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.EMAIL_FROM, to: [recipient], subject: 'Your IITStudentsOS verification code', text, html })
+    })
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      console.error('Resend OTP delivery failed:', response.status, detail)
+      throw new ApiError(502, 'Email provider could not send the verification code. Please try again later.')
+    }
+    return
+  }
+  // SMTP fallback for deployments without Resend configured.
   if (env.SMTP_USER && env.SMTP_APP_PASSWORD) {
     const transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE,
+      host: env.SMTP_HOST, port: env.SMTP_PORT, secure: env.SMTP_SECURE,
+      connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 15000,
       auth: { user: env.SMTP_USER, pass: env.SMTP_APP_PASSWORD }
     })
     try {
-      await transporter.sendMail({
-        from: env.SMTP_FROM || env.SMTP_USER,
-        to: recipient,
-        subject: 'Your IITStudentsOS verification code',
-        text,
-        html
-      })
+      await transporter.sendMail({ from: env.SMTP_FROM || env.SMTP_USER, to: recipient, subject: 'Your IITStudentsOS verification code', text, html })
       return
     } catch (error) {
-      console.error('Gmail SMTP OTP delivery failed:', error?.message || error)
-      throw new ApiError(502, 'Gmail could not send the verification email. Please check the email service configuration.')
+      console.error('SMTP OTP delivery failed:', error?.message || error)
+      throw new ApiError(502, 'SMTP could not send the verification email. Configure Resend or check SMTP settings.')
     }
   }
-
-  if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
-    throw new ApiError(503, 'Email verification is not configured yet. Please contact the administrator.')
-  }
-
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from: env.EMAIL_FROM,
-      to: [recipient],
-      subject: 'Your IITStudentsOS verification code',
-      text,
-      html
-    })
-  })
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '')
-    console.error('Resend email request failed:', response.status, detail)
-    throw new ApiError(502, 'Could not send the verification email. Please try again later.')
-  }
-}
+  throw new ApiError(503, 'Email verification is not configured yet. Please contact the administrator.')
 
 export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
