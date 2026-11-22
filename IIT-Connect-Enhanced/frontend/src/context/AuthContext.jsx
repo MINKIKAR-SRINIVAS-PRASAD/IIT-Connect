@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
       async login(email, password) {
         const { data } = await api.post('/auth/login', { email, password })
         setUser(data.user)
-        toast.success('Welcome back')
+        return data.user
       },
       async register(email, password) {
         const { data } = await api.post('/auth/register', { email, password })
