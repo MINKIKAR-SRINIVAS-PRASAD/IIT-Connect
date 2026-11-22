@@ -54,6 +54,29 @@ async function sendOtpEmail(email, otp) {
   const text = `Your IITStudentsOS verification code is ${otp}. It expires in 5 minutes. If you did not request this code, you can ignore this email.`
   const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;color:#183323"><h2>Verify your IITStudentsOS email</h2><p>Use this one-time password to finish creating your account:</p><div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:18px;background:#f1f5ed;border-radius:12px;text-align:center">${otp}</div><p>This code expires in 5 minutes. Do not share it with anyone.</p><p style="color:#718075;font-size:12px">If you did not request this code, you can safely ignore this email.</p></div>`
 
+  // Free Gmail HTTPS bridge (Google Apps Script). It works on Render Free
+  // without SMTP ports or a custom sender domain.
+  if (env.GMAIL_SCRIPT_URL && env.GMAIL_SCRIPT_SECRET) {
+    const response = await fetch(env.GMAIL_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      redirect: 'follow',
+      body: JSON.stringify({
+        secret: env.GMAIL_SCRIPT_SECRET,
+        to: recipient,
+        subject: 'Your IITStudentsOS verification code',
+        text,
+        html
+      })
+    })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok || result.success !== true) {
+      console.error('Gmail Apps Script OTP delivery failed:', response.status, result.error || 'no success response')
+      throw new ApiError(502, 'Gmail could not send the verification code. Please try again later.')
+    }
+    return
+  }
+
   // Prefer Resend's HTTPS API in hosted environments; Render may block SMTP ports.
   if (env.RESEND_API_KEY && env.EMAIL_FROM) {
     const response = await fetch('https://api.resend.com/emails', {
