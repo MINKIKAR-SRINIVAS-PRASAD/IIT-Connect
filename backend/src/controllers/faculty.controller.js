@@ -4,7 +4,7 @@ import FacultyPost from '../models/FacultyPost.js'
 import FacultyMessage from '../models/FacultyMessage.js'
 import User from '../models/User.js'
 
-const facultySections = ['publications', 'placement']
+const facultySections = ['publications', 'placement', 'study', 'events', 'gallery']
 export const listPosts = asyncHandler(async (req, res) => {
   const section = String(req.query.section || '')
   if (!facultySections.includes(section)) throw new ApiError(400, 'Invalid faculty section')
