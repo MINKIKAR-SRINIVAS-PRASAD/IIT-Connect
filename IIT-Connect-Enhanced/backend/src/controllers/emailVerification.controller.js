@@ -84,6 +84,7 @@ async function sendOtpEmail(email, otp) {
     }
   }
   throw new ApiError(503, 'Email verification is not configured yet. Please contact the administrator.')
+}
 
 export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
