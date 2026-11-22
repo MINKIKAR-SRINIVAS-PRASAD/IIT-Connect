@@ -8,8 +8,12 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
 import { cookieOptions } from '../utils/cookie.js'
-import { isAllowedIitEmail } from '../utils/allowedIitDomains.js'
+import { isAllowedIitEmail, getIitForEmail } from '../utils/allowedIitDomains.js'
 import { getRoleForEmail } from '../utils/seedAdmin.js'
+
+function publicUser(user) {
+  return { id: user._id, email: user.email, role: user.role, profile: user.profile, facultyAccessStatus: user.facultyAccessStatus }
+}
 
 const REFRESH_SESSION_TTL = '60d'
 const REFRESH_COOKIE_MAX_AGE = 60 * 24 * 60 * 60 * 1000
@@ -194,6 +198,6 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
   const refreshToken = signRefreshToken(user._id.toString())
   user.refreshTokenHash = await bcrypt.hash(refreshToken, 12)
   await user.save()
-  setAuthCookies(res, accessToken, refreshToken)
+  setAuthCookies(res, { accessToken, refreshToken })
   res.status(201).json({ success: true, message: 'Email verified; account created', user: publicUser(user) })
 })
