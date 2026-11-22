@@ -22,6 +22,7 @@ const facultyLinks = [
   { to: '/faculty/events', label: 'Events', icon: CalendarDays },
   { to: '/faculty/gallery', label: 'Gallery', icon: Images },
   { to: '/faculty/study', label: 'Study', icon: BookOpen },
+  { to: '/faculty/placements', label: 'Placements', icon: BriefcaseBusiness },
   { to: '/faculty/publications', label: 'Publications', icon: BriefcaseBusiness },
   { to: '/faculty/travel', label: 'Travel', icon: Plane },
   { to: '/faculty/community', label: 'Chat & Community', icon: MessageCircle },
