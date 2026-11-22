@@ -15,6 +15,12 @@ function publicUser(user) {
   return { id: user._id, email: user.email, role: user.role, profile: user.profile, facultyAccessStatus: user.facultyAccessStatus }
 }
 
+function isConfiguredAdmin(email) {
+  const normalized = String(email || '').trim().toLowerCase()
+  return normalized === String(env.DEFAULT_ADMIN_EMAIL || '').trim().toLowerCase() ||
+    (env.ADMIN_EMAILS || []).includes(normalized)
+}
+
 const REFRESH_SESSION_TTL = '60d'
 const REFRESH_COOKIE_MAX_AGE = 60 * 24 * 60 * 60 * 1000
 
@@ -63,7 +69,7 @@ export const login = asyncHandler(async (req, res) => {
   const ok = await bcrypt.compare(password, user.passwordHash)
   if (!ok) throw new ApiError(401, 'Invalid credentials')
 
-  const desiredRole = getRoleForEmail(user.email)
+  const desiredRole = user.role === 'faculty' ? 'faculty' : getRoleForEmail(user.email)
   if (user.role !== desiredRole) user.role = desiredRole
 
   const accessToken = signAccessToken(user._id.toString())
