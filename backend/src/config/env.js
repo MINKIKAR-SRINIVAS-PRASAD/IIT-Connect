@@ -18,6 +18,13 @@ export const env = {
 
   MONGO_URI: process.env.MONGO_URI,
 
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: Number(process.env.SMTP_PORT || 587),
+  SMTP_SECURE: process.env.SMTP_SECURE || 'false',
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_APP_PASSWORD: process.env.SMTP_APP_PASSWORD,
+  SMTP_FROM: process.env.SMTP_FROM,
+
   DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL,
   DEFAULT_ADMIN_PASSWORD: process.env.DEFAULT_ADMIN_PASSWORD,
 
