@@ -27,7 +27,7 @@ export default function News(){
     ;(results[2].value.data.posts||[]).forEach(x=>next.push({id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',description:x.description||x.details||'A placement and career opportunity shared on IIT Connect.',date:x.createdAt,source:x.company||x.iit||'Placement network',href:'/app/placements',icon:BriefcaseBusiness}))
    }
    next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));setItems(next)
-   if(results.some(x=>x.status==='rejected'))toast('Some update sources could not be refreshed')
+   if(results.every(x=>x.status==='rejected'))toast.error('Campus updates are temporarily unavailable. Please try again shortly.')
   }catch(e){toast.error(e?.response?.data?.message||'Unable to load campus updates')}
   finally{setLoading(false)}
  }
