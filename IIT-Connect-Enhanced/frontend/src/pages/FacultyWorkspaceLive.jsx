@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react'
-import {Send} from 'lucide-react'
+import {Send,RefreshCw} from 'lucide-react'
 import {useAuth} from '../hooks/useAuth'
 import {api} from '../utils/api'
 import toast from 'react-hot-toast'
@@ -10,7 +10,7 @@ const input='faculty-input w-full rounded-xl border p-3 text-sm placeholder:text
 const card='faculty-card rounded-2xl border p-5'
 const button='faculty-button rounded-xl px-4 py-3 text-sm font-semibold'
 export default function FacultyWorkspace({section='home'}){
- const {user,logout}=useAuth(),[items,setItems]=useState([]),[f,setF]=useState(blank),[busy,setBusy]=useState(false),[menuOpen,setMenuOpen]=useState(false)
+ const {user}=useAuth(),[items,setItems]=useState([]),[f,setF]=useState(blank),[busy,setBusy]=useState(false),[menuOpen,setMenuOpen]=useState(false)
  const paths={events:'/faculty/events',gallery:'/faculty/gallery',study:'/faculty/study',publications:'/faculty/publications',travel:'/faculty/travel'}
  const path=paths[section],heading=nav.find(x=>x[0]===section)?.[1]||'Faculty Network'
  const set=(k,v)=>setF(p=>({...p,[k]:v}))
