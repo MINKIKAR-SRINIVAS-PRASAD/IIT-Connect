@@ -64,7 +64,7 @@ export default function About() {
             transition={{ delay: 0.3 }}
             className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent"
           >
-            About IIT Connect
+            About IITStudentsOS
           </motion.h2>
           
           <motion.div
@@ -75,7 +75,7 @@ export default function About() {
             className="mt-6 space-y-4 text-slate-300 leading-relaxed text-lg"
           >
             <p>
-              IIT Connect is a platform created to bring all IIT students across India onto one common network.
+              IITStudentsOS is a platform created to bring all IIT students across India onto one common network.
               As an IIT student, I felt that students from different IITs have a lot of knowledge, experience, 
               and opportunities — but there is no single place where everyone can connect and share.
             </p>
@@ -132,7 +132,7 @@ export default function About() {
             className="mt-8 pt-6 border-t border-slate-800"
           >
             <p className="text-slate-400 text-center">
-              The main goal of IIT Connect is to create a strong community where students can build 
+              The main goal of IITStudentsOS is to create a strong community where students can build 
               real connections all over India and improve their skills through sharing and collaboration.
             </p>
           </motion.div>
