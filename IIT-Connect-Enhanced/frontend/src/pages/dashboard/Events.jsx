@@ -64,13 +64,13 @@ export default function Events() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="space-y-6"
+      className="sage-page-theme space-y-6"
     >
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-3xl border border-slate-800 bg-gradient-to-br from-indigo-950/30 via-slate-950/60 to-purple-950/30 p-6 overflow-hidden"
+        className="page-hero relative overflow-hidden rounded-3xl border border-[#a8c49a]/20 bg-[radial-gradient(ellipse_at_85%_5%,rgba(115,145,105,.22),transparent_38%),linear-gradient(120deg,#1b2820,#26382c_58%,#1b2a23)] p-6 md:p-8"
       >
         <motion.div
           animate={{
@@ -82,22 +82,22 @@ export default function Events() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute -top-10 -right-10 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl"
+          className="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-[#a8c49a]/15 blur-3xl"
         />
         
         <div className="relative z-10 flex items-center gap-3">
           <motion.div
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
-            className="p-3 rounded-xl bg-indigo-500/20 border border-indigo-500/30"
+            className="rounded-xl border border-[#a8c49a]/25 bg-[#a8c49a]/10 p-3"
           >
-            <Calendar size={28} className="text-indigo-400" />
+            <Calendar size={28} className="text-[#b6d0a8]" />
           </motion.div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold tracking-tight text-[#f0f1e8]">
               Events
             </h1>
-            <p className="text-slate-400 mt-1">Discover and create amazing campus events</p>
+            <p className="mt-1 text-[#c1cbbd]">Discover and create amazing campus events</p>
           </div>
         </div>
       </motion.div>
