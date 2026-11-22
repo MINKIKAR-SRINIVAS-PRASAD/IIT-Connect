@@ -84,5 +84,6 @@ export function requireAdmin(req, res, next) {
 export function requireFaculty(req, res, next) {
   if (!req.user) return next(new ApiError(401, 'Unauthorized'))
   if (req.user.role !== 'faculty') return next(new ApiError(403, 'Faculty access required'))
+  if (!req.user.facultyVerified) return next(new ApiError(403, 'Faculty verification is pending'))
   return next()
 }
