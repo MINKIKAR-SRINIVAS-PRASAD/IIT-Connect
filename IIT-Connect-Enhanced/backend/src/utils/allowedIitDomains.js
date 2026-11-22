@@ -39,3 +39,10 @@ export function isAllowedIitEmail(email) {
   const domain = email.split('@').pop().toLowerCase().trim()
   return ALLOWED_IIT_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))
 }
+
+
+export function getIitForEmail(email) {
+  const domain = String(email || '').trim().toLowerCase().split('@').pop()
+  const known = ALLOWED_IIT_DOMAINS.find(d => domain === d || domain.endsWith('.' + d))
+  return known || domain || ''
+}
