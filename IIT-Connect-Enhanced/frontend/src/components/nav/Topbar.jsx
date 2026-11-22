@@ -48,7 +48,7 @@ export default function Topbar({ admin = false }) {
     }}
   >
     <div className="flex min-h-[70px] items-center justify-between gap-4 px-5 md:px-8">
-      <div className="min-w-0"><div className="flex items-center gap-2 text-[10px] font-semibold tracking-[.16em] text-slate-600"><span>IITSTUDENTSOS</span><ChevronRight size={12}/><span className="truncate text-slate-400">{title.toUpperCase()}</span></div><div className="mt-1 flex items-center gap-2"><span className={`h-1.5 w-1.5 rounded-full ${admin ? 'bg-emerald-400' : 'bg-indigo-400'}`}/><span className="text-sm font-semibold text-slate-100">{title}</span></div></div>
+      <div className="min-w-0"><div className="flex items-center gap-2 text-[10px] font-semibold tracking-[.16em] text-slate-600"><span>IITStudentsOS</span><ChevronRight size={12}/><span className="truncate text-slate-400">{title.toUpperCase()}</span></div><div className="mt-1 flex items-center gap-2"><span className={`h-1.5 w-1.5 rounded-full ${admin ? 'bg-emerald-400' : 'bg-indigo-400'}`}/><span className="text-sm font-semibold text-slate-100">{title}</span></div></div>
       <div className="flex items-center gap-3">
         <div className="hidden items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-2 sm:flex"><span className="max-w-[150px] truncate text-xs text-slate-400">{user?.profile?.iit || 'IIT Community'}</span></div>
         <div className="hidden h-8 w-8 items-center justify-center rounded-full border border-indigo-300/20 bg-indigo-400/10 text-xs font-bold text-indigo-100 sm:flex">{(user?.profile?.name || user?.email || 'I').slice(0,1).toUpperCase()}</div>
