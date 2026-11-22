@@ -11,7 +11,7 @@ function getId(value) {
 
 function conversationLabel(conversation, currentUserId) {
   if (conversation.type === 'group') return conversation.title || 'Institute group'
-  if (conversation.type === 'community') return conversation.title || 'IIT Connect Community'
+  if (conversation.type === 'community') return conversation.title || 'IITStudentsOS Community'
   const other = (conversation.participants || []).find((person) => getId(person) !== currentUserId)
   return other?.profile?.name || 'Direct message'
 }
@@ -77,7 +77,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-white">Messages</h2>
-            <p className="text-xs text-slate-500">Your IIT Connect inbox</p>
+            <p className="text-xs text-slate-500">Your IITStudentsOS inbox</p>
           </div>
           <Button className="chat-ghost-button" variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
         </div>
