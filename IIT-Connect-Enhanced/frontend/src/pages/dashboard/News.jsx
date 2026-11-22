@@ -6,7 +6,7 @@ import {Newspaper,CalendarDays,BriefcaseBusiness,Images,ArrowUpRight,Search,Refr
 import {api} from '../../utils/api'
 import Loader from '../../components/common/Loader.jsx'
 
-const filters=['All updates','Events','Placements','Campus moments']
+const filters=['All updates','Events','Placements','Campus moments','Academic resources','Research']
 const dateLabel=value=>{if(!value)return 'Recently shared';const d=new Date(value);return Number.isNaN(d.getTime())?'Recently shared':d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
 
 export default function News(){
@@ -15,19 +15,28 @@ export default function News(){
  async function load(){
   setLoading(true)
   try{
-   const requests=[api.get('/events'),api.get('/gallery')]
-   if(!faculty)requests.push(api.get('/placements'))
+   // Faculty news must use faculty-scoped APIs only. Student routes deliberately
+   // reject faculty accounts, so never request /events, /gallery or /placements here.
+   const requests=faculty
+    ? [api.get('/faculty/events'),api.get('/faculty/gallery'),api.get('/faculty/study'),api.get('/faculty/publications')]
+    : [api.get('/events'),api.get('/gallery'),api.get('/placements')]
    const results=await Promise.allSettled(requests)
    const next=[]
    const ev=results[0].status==='fulfilled'?results[0].value.data:{}
-   ;[...(ev.upcoming||[]),...(ev.past||[])].forEach(x=>next.push({id:'event-'+x._id,type:'Events',title:x.title||'Campus event',description:x.description||x.details||'A campus event shared with the IITStudentsOS community.',date:x.datetime||x.createdAt,source:x.iit||'IITStudentsOS community',image:x.posterUrl,href:faculty?'/faculty/events':'/app/events',icon:CalendarDays}))
+   const eventList=faculty?(ev.events||[]):[...(ev.upcoming||[]),...(ev.past||[])]
+   eventList.forEach(x=>next.push({id:'event-'+x._id,type:'Events',title:x.title||'Campus event',description:x.description||x.details||'An event shared with the community.',date:x.startAt||x.datetime||x.createdAt,source:x.institute||x.iit||(faculty?'Faculty network':'IITStudentsOS community'),image:x.posterUrl,href:faculty?'/faculty/events':'/app/events',icon:CalendarDays}))
    const gal=results[1].status==='fulfilled'?results[1].value.data:{}
-   ;(gal.posts||[]).forEach(x=>next.push({id:'gallery-'+x._id,type:'Campus moments',title:x.caption||'A moment from campus',description:x.description||'A campus photo shared with the community.',date:x.createdAt,source:x.iit||x.user?.profile?.iit||'Campus Gallery',image:x.imageUrl||x.photoUrl,href:faculty?'/faculty/gallery':'/app/gallery',icon:Images}))
-   if(!faculty&&results[2]?.status==='fulfilled'){
+   ;(gal.posts||[]).forEach(x=>next.push({id:'gallery-'+x._id,type:'Campus moments',title:x.caption||'A moment from campus',description:x.description||'A photo shared with the community.',date:x.createdAt,source:x.institute||x.iit||x.user?.profile?.iit||(faculty?'Faculty Gallery':'Campus Gallery'),image:x.imageUrl||x.photoUrl,href:faculty?'/faculty/gallery':'/app/gallery',icon:Images}))
+   if(faculty){
+    const study=results[2].status==='fulfilled'?results[2].value.data:{}
+    ;(study.resources||[]).forEach(x=>next.push({id:'study-'+x._id,type:'Academic resources',title:x.title||'Faculty resource',description:x.description||x.subject||'A resource shared by faculty colleagues.',date:x.createdAt,source:x.institute||'Faculty Study',href:'/faculty/study',icon:Newspaper}))
+    const pubs=results[3].status==='fulfilled'?results[3].value.data:{}
+    ;(pubs.publications||[]).forEach(x=>next.push({id:'publication-'+x._id,type:'Research',title:x.title||'Faculty publication',description:x.abstract||x.venue||'A research contribution shared with faculty colleagues.',date:x.createdAt,source:x.institute||x.department||'Faculty Research',href:'/faculty/publications',icon:BriefcaseBusiness}))
+   }else if(results[2]?.status==='fulfilled'){
     ;(results[2].value.data.posts||[]).forEach(x=>next.push({id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',description:x.description||x.details||'A placement and career opportunity shared on IITStudentsOS.',date:x.createdAt,source:x.company||x.iit||'Placement network',href:'/app/placements',icon:BriefcaseBusiness}))
    }
    next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));setItems(next)
-   if(results.some(x=>x.status==='rejected'))toast('Some update sources could not be refreshed')
+   if(results.some(x=>x.status==='rejected'))toast('Some update sources could not be refreshed',{id:'news-source-refresh-warning'})
   }catch(e){toast.error(e?.response?.data?.message||'Unable to load campus updates')}
   finally{setLoading(false)}
  }
@@ -38,8 +47,8 @@ export default function News(){
    <div className="absolute -right-12 -top-14 h-52 w-52 rounded-full bg-[#a8c49a]/10 blur-3xl"/>
    <div className="relative z-10 flex flex-wrap items-end justify-between gap-5"><div><div className="inline-flex items-center gap-2 rounded-full border border-[#a8c49a]/20 bg-[#a8c49a]/10 px-3 py-1.5 text-[10px] font-bold tracking-[.16em] text-[#b6d0a8]"><Sparkles size={13}/> CAMPUS JOURNAL</div><h1 className="mt-4 text-3xl font-bold tracking-tight text-[#f0f1e8] md:text-4xl">News & Updates</h1><p className="mt-2 max-w-xl text-sm leading-6 text-[#c1cbbd]">A shared stream of campus events, community moments{faculty?' and academic updates':' and placement updates'} across IITStudentsOS.</p></div><button type="button" onClick={load} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-3 text-xs font-semibold text-slate-200 hover:bg-white/[.08] disabled:opacity-50"><RefreshCw size={14} className={loading?'animate-spin':''}/> Refresh feed</button></div>
   </section>
-  <div className="flex flex-col gap-3 sm:flex-row"><label className="relative flex-1"><Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search campus updates…" className="faculty-input w-full rounded-xl border border-white/10 bg-[#111810] py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500"/></label><div className="flex flex-wrap gap-2">{filters.filter(x=>faculty?x!=='Placements':true).map(x=><button key={x} onClick={()=>setFilter(x)} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${filter===x?'border-[#a8c49a]/30 bg-[#a8c49a]/10 text-[#c5dcb8]':'border-white/10 bg-white/[.02] text-slate-400 hover:text-white'}`}>{x}</button>)}</div></div>
+  <div className="flex flex-col gap-3 sm:flex-row"><label className="relative flex-1"><Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search campus updates…" className="faculty-input w-full rounded-xl border border-white/10 bg-[#111810] py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500"/></label><div className="flex flex-wrap gap-2">{filters.filter(x=>faculty?x!=='Placements':!['Academic resources','Research'].includes(x)).map(x=><button key={x} onClick={()=>setFilter(x)} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${filter===x?'border-[#a8c49a]/30 bg-[#a8c49a]/10 text-[#c5dcb8]':'border-white/10 bg-white/[.02] text-slate-400 hover:text-white'}`}>{x}</button>)}</div></div>
   {loading?<Loader/>:visible.length?<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{visible.map((item,i)=><motion.article key={item.id} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.035,.2)}} className="overflow-hidden rounded-2xl border border-[#a8c49a]/15 bg-gradient-to-br from-[#202d23] to-[#151e17] shadow-[0_12px_34px_rgba(0,0,0,.12)]"><div className="relative h-44 overflow-hidden bg-[#1b2820]">{item.image?<img src={item.image} alt="" className="h-full w-full object-cover"/>:<div className="flex h-full items-center justify-center bg-[radial-gradient(ellipse_at_65%_20%,rgba(168,196,154,.18),transparent_50%)]"><item.icon size={42} className="text-[#a8c49a]/50"/></div>}<span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[9px] font-bold tracking-[.12em] text-[#d8e4d0] backdrop-blur">{item.type.toUpperCase()}</span></div><div className="p-5"><p className="text-[10px] font-semibold tracking-wide text-[#a8c49a]">{item.source} <span className="mx-1 text-slate-600">·</span> {dateLabel(item.date)}</p><h2 className="mt-3 line-clamp-2 text-lg font-semibold leading-6 text-[#f0f1e8]">{item.title}</h2><p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">{item.description}</p><Link to={item.href} className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#b6d0a8] hover:text-white">View update <ArrowUpRight size={14}/></Link></div></motion.article>)}</div>:<div className="rounded-2xl border border-dashed border-[#a8c49a]/20 bg-white/[.02] px-6 py-14 text-center"><Newspaper size={34} className="mx-auto text-[#a8c49a]/50"/><h2 className="mt-4 text-lg font-semibold text-slate-200">No updates match this view</h2><p className="mt-2 text-sm text-slate-500">New approved events and campus posts will appear here automatically.</p>{(filter!=='All updates'||query)&&<button onClick={()=>{setFilter('All updates');setQuery('')}} className="mt-4 text-xs font-semibold text-[#b6d0a8]">Clear filters</button>}</div>}
-  <p className="text-center text-[10px] text-slate-600">News currently aggregates approved content already shared in IITStudentsOS. Dedicated editorial publishing can be added as a follow-up.</p>
+  <p className="text-center text-[10px] text-slate-600">{faculty?'Faculty news aggregates events, academic resources, gallery posts and publications shared in the verified faculty workspace.':'News aggregates approved campus events, gallery posts and placement updates shared in IITStudentsOS.'}</p>
  </motion.div>
 }
