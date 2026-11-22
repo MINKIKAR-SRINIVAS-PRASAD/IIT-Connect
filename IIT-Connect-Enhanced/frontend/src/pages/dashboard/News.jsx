@@ -1,7 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react'
 import {Link,useLocation} from 'react-router-dom'
 import {motion} from 'framer-motion'
-import toast from 'react-hot-toast'
 import {Newspaper,CalendarDays,BriefcaseBusiness,Images,ArrowUpRight,Search,RefreshCw,Sparkles} from 'lucide-react'
 import {api} from '../../utils/api'
 import Loader from '../../components/common/Loader.jsx'
@@ -27,8 +26,8 @@ export default function News(){
     ;(results[2].value.data.posts||[]).forEach(x=>next.push({id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',description:x.description||x.details||'A placement and career opportunity shared on IIT Connect.',date:x.createdAt,source:x.company||x.iit||'Placement network',href:'/app/placements',icon:BriefcaseBusiness}))
    }
    next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));setItems(next)
-   if(results.every(x=>x.status==='rejected'))toast.error('Campus updates are temporarily unavailable. Please try again shortly.')
-  }catch(e){toast.error(e?.response?.data?.message||'Unable to load campus updates')}
+   
+  }catch(e){console.error('News feed load failed:',e)}
   finally{setLoading(false)}
  }
  useEffect(()=>{load()},[faculty])
