@@ -2,8 +2,6 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-console.log("DEFAULT ADMIN ENV:", process.env.DEFAULT_ADMIN_EMAIL, process.env.DEFAULT_ADMIN_PASSWORD)
-
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 8080),
@@ -15,10 +13,14 @@ export const env = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN || '15m',
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '60d',
-  ADMIN_EMAILS: (process.env.ADMIN_EMAILS || '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean),
+  ADMIN_EMAILS: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+  FACULTY_EMAILS: (process.env.FACULTY_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: Number(process.env.SMTP_PORT || 587),
+  SMTP_SECURE: String(process.env.SMTP_SECURE || 'false') === 'true',
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_APP_PASSWORD: process.env.SMTP_APP_PASSWORD,
+  SMTP_FROM: process.env.SMTP_FROM || process.env.SMTP_USER,
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
@@ -27,14 +29,7 @@ export const env = {
 }
 
 export function assertEnv() {
-  const required = [
-    'MONGO_URI',
-    'JWT_ACCESS_SECRET',
-    'JWT_REFRESH_SECRET',
-    'CLOUDINARY_CLOUD_NAME',
-    'CLOUDINARY_API_KEY',
-    'CLOUDINARY_API_SECRET'
-  ]
-  const missing = required.filter((k) => !env[k])
-  if (missing.length) throw new Error(`Missing env vars: ${missing.join(', ')}`)
+  const required = ['MONGO_URI','JWT_ACCESS_SECRET','JWT_REFRESH_SECRET','CLOUDINARY_CLOUD_NAME','CLOUDINARY_API_KEY','CLOUDINARY_API_SECRET']
+  const missing = required.filter(key => !env[key])
+  if (missing.length) throw new Error(`Missing environment variables: ${missing.join(', ')}`)
 }
