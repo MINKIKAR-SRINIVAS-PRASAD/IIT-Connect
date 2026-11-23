@@ -1401,8 +1401,7 @@ body {
   color: inherit;
 }
 .dashboard-shell main [class*="bg-gradient-to-"] button,
-.dashboard-shell main button[class*="bg-gradient-to-"],
-.dashboard-shell main a[class*="bg-gradient-to-"] {
+.dashboard-shell main button[class*="bg-gradient-to-"] {
   background: linear-gradient(110deg,#718b66,#9ab58a) !important;
   color: #111810 !important;
 }
