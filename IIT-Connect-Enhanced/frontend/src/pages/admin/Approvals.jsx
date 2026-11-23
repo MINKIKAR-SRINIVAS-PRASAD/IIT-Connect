@@ -65,7 +65,7 @@ function ApprovalCard({ item, type, onAction }) {
     ? item.caption || 'Gallery post'
     : type === 'Placement'
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
-      : type === 'Event'
+      : type === 'Event' || type === 'Campus News'
         ? item.title
         : type === 'Trip'
           ? [item.destination, item.location].filter(Boolean).join(' · ')
@@ -126,6 +126,11 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Legacy seat details">{item.seatDetails}</Detail>
           <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
         </>}
+        {type === 'Campus News' && <>
+          <Detail label="Institute">{item.institute}</Detail><Detail label="Category">{item.category}</Detail>
+          <Detail label="Story">{item.body}</Detail><Detail label="Source link">{item.sourceUrl}</Detail>
+          <Detail label="Submitted">{item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</Detail>
+        </>}
         {type === 'Study' && <>
           <Detail label="Resource title">{item.title}</Detail>
           <Detail label="Subject">{item.subject}</Detail>
@@ -159,6 +164,7 @@ export default function Approvals() {
   const [events, setEvents] = useState([])
   const [travel, setTravel] = useState([])
   const [study, setStudy] = useState([])
+  const [campusNews, setCampusNews] = useState([])
 
   async function load() {
     setLoading(true)
@@ -169,6 +175,7 @@ export default function Approvals() {
       setEvents(data.events || [])
       setTravel(data.travel || [])
       setStudy(data.study || [])
+      setCampusNews(data.campusNews || [])
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load approvals')
     } finally {
@@ -182,7 +189,8 @@ export default function Approvals() {
       Placement: `/admin/approvals/placements/${id}`,
       Event: `/admin/approvals/events/${id}`,
       Trip: `/admin/approvals/travel/${id}`,
-      Study: `/admin/approvals/study/${id}`
+      Study: `/admin/approvals/study/${id}`,
+      'Campus News': `/admin/approvals/news/${id}`
     }[kind]
     try {
       await api.put(endpoint, { status, rejectionReason })
@@ -202,14 +210,15 @@ export default function Approvals() {
     { type: 'Placement', items: placements },
     { type: 'Events', items: events, cardType: 'Event' },
     { type: 'Trip', items: travel },
-    { type: 'Study Resources', items: study, cardType: 'Study' }
+    { type: 'Study Resources', items: study, cardType: 'Study' },
+    { type: 'Campus News', items: campusNews, cardType: 'Campus News' }
   ]
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Content approvals</h1>
-        <p className="mt-1 text-sm text-slate-400">Review submitted content and verify the student's institute email and profile. Trip booking identifiers are visible to admins only.</p>
+        <p className="mt-1 text-sm text-slate-400">Review submitted content before it is published to the campus community. Trip booking identifiers are visible to admins only.</p>
       </div>
       {sections.map((section) => (
         <section key={section.type}>
