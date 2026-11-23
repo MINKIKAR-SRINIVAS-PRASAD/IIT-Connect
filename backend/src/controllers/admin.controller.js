@@ -6,6 +6,7 @@ import PlacementPost from '../models/PlacementPost.js'
 import EventPost from '../models/EventPost.js'
 import TravelPost from '../models/TravelPost.js'
 import StudyPost from '../models/StudyPost.js'
+import FacultyPost from '../models/FacultyPost.js'
 import AdminLog from '../models/AdminLog.js'
 
 async function log(adminId, action, targetType, targetId = null, metadata = {}) {
@@ -63,15 +64,16 @@ export const setBan = asyncHandler(async (req, res) => {
 })
 
 export const pendingApprovals = asyncHandler(async (req, res) => {
-  const [gallery, placements, events, travel, study] = await Promise.all([
+  const [gallery, placements, events, travel, study, facultyPosts] = await Promise.all([
     GalleryPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     PlacementPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     EventPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     TravelPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    StudyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile')
+    StudyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
+    FacultyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile')
   ])
 
-  res.json({ success: true, gallery, placements, events, travel, study })
+  res.json({ success: true, gallery, placements, events, travel, study, facultyPosts })
 })
 
 export const approveGallery = asyncHandler(async (req, res) => {
@@ -167,4 +169,16 @@ export const approveStudy = asyncHandler(async (req, res) => {
 export const logs = asyncHandler(async (req, res) => {
   const items = await AdminLog.find({}).sort({ createdAt: -1 }).limit(200).populate('adminId', 'email profile')
   res.json({ success: true, logs: items })
+})
+
+export const approveFacultyPost = asyncHandler(async (req, res) => {
+  const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) throw new ApiError(400, 'Status must be Approved or Rejected')
+  const post = await FacultyPost.findById(req.params.id)
+  if (!post) throw new ApiError(404, 'Faculty post not found')
+  post.status = status
+  post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected by admin') : ''
+  await post.save()
+  await log(req.user._id, status === 'Approved' ? 'APPROVE_FACULTY_POST' : 'REJECT_FACULTY_POST', 'FacultyPost', post._id, { section: post.section, rejectionReason: post.rejectionReason })
+  res.json({ success: true, post })
 })
