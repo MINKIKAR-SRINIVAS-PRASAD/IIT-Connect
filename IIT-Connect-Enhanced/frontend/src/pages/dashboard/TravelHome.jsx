@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
+import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
 import { Plane, TrainFront, BusFront, ShieldCheck, Send, Trash2, RefreshCw } from 'lucide-react'
 
-const inputClass = 'mt-2 w-full rounded-xl border border-slate-700/80 bg-[#111a30] px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10'
+const inputClass = 'mt-2 w-full rounded-xl border border-slate-700/80 bg-[#101a13] px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-[#a8c49a] focus:ring-2 focus:ring-[#a8c49a]/10'
 
 const fields = {
   Train: [
@@ -68,6 +69,7 @@ function Field({ field, value, onChange }) {
 
 export default function TravelHome() {
   const [mode, setMode] = useState('Train')
+  const [bookingPanelOpen, setBookingPanelOpen] = useState(false)
   const [booking, setBooking] = useState(emptyBooking)
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -135,25 +137,21 @@ export default function TravelHome() {
 
   return (
     <div className="sage-page-theme space-y-6 text-slate-100">
-      <header className="page-hero rounded-[26px] border p-6 md:p-8">
-        <p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Private transport manager</p>
-        <h1 className="mt-2 text-3xl font-black">Travel Home</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-300">Save and manage your train, bus and flight booking details in one private place. This page works independently from Trip.</p>
-      </header>
+      <CreatePostPanel eyebrow="PRIVATE TRAVEL ORGANIZER" title="Travel Home" description="Save train, bus and flight booking details privately. This page remains independent from Trip." buttonLabel="Add booking" open={bookingPanelOpen} onToggle={() => setBookingPanelOpen(value => !value)}>
 
-      <form onSubmit={submit} className="space-y-6 rounded-3xl border border-[#a8c49a]/20 bg-gradient-to-br from-[#1b2820] to-[#17231c] p-5 shadow-2xl md:p-7">
+      <form onSubmit={submit} className="space-y-6">
         <div>
-          <h2 className="text-lg font-bold text-indigo-100">Add a transport booking</h2>
+          <h2 className="text-lg font-bold text-[#f0f1e8]">Add a transport booking</h2>
           <p className="mt-1 text-sm text-slate-400">Choose a transport type and complete every field. All fields are mandatory.</p>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {['Train', 'Bus', 'Flight'].map(item => (
-            <button type="button" key={item} onClick={() => { setMode(item); setError('') }} className={'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold ' + (mode === item ? 'border-cyan-300/50 bg-cyan-300/15 text-cyan-100' : 'border-white/10 bg-[#101a30] text-slate-400 hover:border-white/25')}>
+            <button type="button" key={item} onClick={() => { setMode(item); setError('') }} className={'flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold ' + (mode === item ? 'border-cyan-300/50 bg-cyan-300/15 text-[#dce9d3]' : 'border-white/10 bg-[#101a13] text-slate-400 hover:border-[#a8c49a]/30')}>
               <TransportIcon mode={item} />{item}
             </button>
           ))}
         </div>
-        <div className="grid gap-4 rounded-2xl border border-white/10 bg-[#0d172b]/70 p-4 md:grid-cols-2">
+        <div className="grid gap-4 rounded-2xl border border-white/10 bg-[#101a13]/70 p-4 md:grid-cols-2">
           {fields[mode].map(field => <Field key={field[0]} field={field} value={booking[field[0]]} onChange={change} />)}
         </div>
         <div className="flex gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[.06] p-4">
@@ -165,8 +163,9 @@ export default function TravelHome() {
           {saving ? 'Saving…' : 'Save booking privately'}<Send size={17} />
         </button>
       </form>
+      </CreatePostPanel>
 
-      <section className="space-y-4 rounded-3xl border border-white/10 bg-[#14213a] p-5 md:p-7">
+      <section className="space-y-4 rounded-3xl border border-[#a8c49a]/20 bg-[#172219] p-5 md:p-7">
         <div className="flex items-center justify-between gap-3">
           <div><h2 className="text-lg font-bold">My saved bookings</h2><p className="mt-1 text-sm text-slate-400">Only your saved bookings appear here.</p></div>
           <button type="button" onClick={loadBookings} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 hover:bg-white/5"><RefreshCw size={15} /> Refresh</button>
@@ -184,7 +183,7 @@ export default function TravelHome() {
                 <p className="mt-3 text-sm font-semibold">{item.booking?.trainName || item.booking?.operator || item.booking?.airline || item.booking?.flightNumber || 'Transport booking'}</p>
                 <p className="mt-1 text-xs text-slate-400">{item.booking?.departureDate} · {item.booking?.departureTime} → {item.booking?.arrivalDate} · {item.booking?.arrivalTime}</p>
                 <p className="mt-2 text-xs text-slate-400">{item.booking?.boardingStation || item.booking?.boardingPoint || item.booking?.departureAirport || 'Origin'} → {item.booking?.arrivalStation || item.booking?.dropPoint || item.booking?.arrivalAirport || 'Destination'}</p>
-                {item.booking?.bookingStatus && <p className="mt-2 text-xs text-emerald-300">Status: {item.booking.bookingStatus}</p>}
+                {item.booking?.bookingStatus && <p className="mt-2 text-xs text-[#b6d0a8]">Status: {item.booking.bookingStatus}</p>}
               </article>
             ))}
           </div>
