@@ -11,7 +11,7 @@ const router = Router()
 router.use(requireAuth, requireFaculty)
 
 router.get('/publications', asyncHandler(async (req, res) => {
-  const publications = await FacultyPublication.find({}).populate('author', 'facultyProfile email').sort({ createdAt: -1 }).limit(100)
+  const publications = await FacultyPublication.find({$or:[{status:'Approved'},{author:req.user._id}]}).populate('author', 'facultyProfile email').sort({ createdAt: -1 }).limit(100)
   res.json({ success: true, publications })
 }))
 
@@ -36,9 +36,9 @@ router.post('/publications',
       authors: req.body.authors || [],
       venue: req.body.venue || '',
       publicationDate: req.body.publicationDate || null,
-      doiOrUrl: req.body.doiOrUrl || ''
+      doiOrUrl: req.body.doiOrUrl || '', status: 'Pending'
     })
-    res.status(201).json({ success: true, publication })
+    res.status(201).json({ success: true, publication, message: 'Publication submitted for admin approval' })
   })
 )
 
