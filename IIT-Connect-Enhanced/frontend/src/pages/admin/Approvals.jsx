@@ -65,7 +65,7 @@ function ApprovalCard({ item, type, onAction }) {
     ? item.caption || 'Gallery post'
     : type === 'Placement'
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
-      : type === 'Event' || type === 'Campus News'
+      : type === 'Event' || type === 'Campus News' || type === 'Faculty Post'
         ? item.title
         : type === 'Trip'
           ? [item.destination, item.location].filter(Boolean).join(' · ')
@@ -126,6 +126,7 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Legacy seat details">{item.seatDetails}</Detail>
           <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
         </>}
+        {type === 'Faculty Post' && <><Detail label="Faculty section">{item.section}</Detail><Detail label="Description / abstract">{item.description}</Detail><Detail label="Post link">{item.link}</Detail><Detail label="Submitted">{item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</Detail></>}
         {type === 'Campus News' && <>
           <Detail label="Institute">{item.institute}</Detail><Detail label="Category">{item.category}</Detail>
           <Detail label="Story">{item.body}</Detail><Detail label="Source link">{item.sourceUrl}</Detail>
@@ -165,6 +166,7 @@ export default function Approvals() {
   const [travel, setTravel] = useState([])
   const [study, setStudy] = useState([])
   const [campusNews, setCampusNews] = useState([])
+  const [facultyPosts, setFacultyPosts] = useState([])
 
   async function load() {
     setLoading(true)
@@ -176,6 +178,7 @@ export default function Approvals() {
       setTravel(data.travel || [])
       setStudy(data.study || [])
       setCampusNews(data.campusNews || [])
+      setFacultyPosts(data.facultyPosts || [])
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load approvals')
     } finally {
@@ -190,7 +193,8 @@ export default function Approvals() {
       Event: `/admin/approvals/events/${id}`,
       Trip: `/admin/approvals/travel/${id}`,
       Study: `/admin/approvals/study/${id}`,
-      'Campus News': `/admin/approvals/news/${id}`
+      'Campus News': `/admin/approvals/news/${id}`,
+      'Faculty Post': `/admin/approvals/faculty/${id}`
     }[kind]
     try {
       await api.put(endpoint, { status, rejectionReason })
@@ -211,7 +215,8 @@ export default function Approvals() {
     { type: 'Events', items: events, cardType: 'Event' },
     { type: 'Trip', items: travel },
     { type: 'Study Resources', items: study, cardType: 'Study' },
-    { type: 'Campus News', items: campusNews, cardType: 'Campus News' }
+    { type: 'Campus News', items: campusNews, cardType: 'Campus News' },
+    { type: 'Faculty Posts', items: facultyPosts, cardType: 'Faculty Post' }
   ]
 
   return (
@@ -230,7 +235,7 @@ export default function Approvals() {
             <div className="grid gap-4 xl:grid-cols-2">
               {section.items.map((item) => {
                 const type = section.cardType || section.type
-                return <ApprovalCard key={item._id} item={item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
+                return <ApprovalCard key={item._id} item={type==='Faculty Post'?{...item,authorId:item.facultyId}:item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
               })}
             </div>
           ) : <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400">No pending {section.type.toLowerCase()} requests.</div>}
