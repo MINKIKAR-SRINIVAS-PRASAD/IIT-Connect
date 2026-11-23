@@ -9,8 +9,8 @@ const sectionRoutes = ['events', 'gallery', 'study', 'publications', 'travel']
 export const listSectionPosts = asyncHandler(async (req, res) => {
   const section = String(req.params.section || '')
   if (!sectionRoutes.includes(section)) throw new ApiError(400, 'Invalid faculty section')
-  const posts = await FacultyPost.find({ section, $or: [{ status: 'Approved' }, { facultyId: req.user._id }] }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile.name').lean()
-  const normalized = posts.map(post => ({ ...post, ...(post.data || {}), _id: post._id, status: post.status, rejectionReason: post.rejectionReason, facultyId: post.facultyId }))
+  const posts = await FacultyPost.find({ section, $or: [{ status: 'Approved' }, { status: { $exists: false }, facultyId: req.user._id }, { facultyId: req.user._id }] }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile.name').lean()
+  const normalized = posts.map(post => ({ ...post, ...(post.data || {}), _id: post._id, status: post.status || 'Pending', rejectionReason: post.rejectionReason, facultyId: post.facultyId }))
   const key = ({ events: 'events', gallery: 'posts', study: 'resources', publications: 'publications', travel: 'plans' })[section]
   res.json({ success: true, [key]: normalized })
 })
