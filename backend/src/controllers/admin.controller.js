@@ -14,7 +14,7 @@ async function log(adminId, action, targetType, targetId = null, metadata = {}) 
 }
 
 export const stats = asyncHandler(async (req, res) => {
-  const [totalUsers, totalGallery, totalPlacements, totalEvents, totalTravel, totalStudy, pendingGallery, pendingPlacements, pendingEvents, pendingTravel, pendingStudy] =
+  const [totalUsers, totalGallery, totalPlacements, totalEvents, totalTravel, totalStudy, pendingGallery, pendingPlacements, pendingEvents, pendingTravel, pendingStudy, pendingFaculty] =
     await Promise.all([
       User.countDocuments({}),
       GalleryPost.countDocuments({}),
@@ -26,15 +26,17 @@ export const stats = asyncHandler(async (req, res) => {
       PlacementPost.countDocuments({ status: 'Pending' }),
       EventPost.countDocuments({ status: 'Pending' }),
       TravelPost.countDocuments({ status: 'Pending' }),
-      StudyPost.countDocuments({ status: 'Pending' })
+      StudyPost.countDocuments({ status: 'Pending' }),
+      FacultyPost.countDocuments({ status: 'Pending' })
     ])
 
   res.json({
     success: true,
     stats: {
       totalUsers,
-      totalPosts: totalGallery + totalPlacements + totalEvents + totalTravel + totalStudy,
-      pendingApprovals: pendingGallery + pendingPlacements + pendingEvents + pendingTravel + pendingStudy,
+      totalPosts: totalGallery + totalPlacements + totalEvents + totalTravel + totalStudy + await FacultyPost.countDocuments({}),
+      pendingApprovals: pendingGallery + pendingPlacements + pendingEvents + pendingTravel + pendingStudy + pendingFaculty,
+      pendingFaculty,
       pendingGallery,
       pendingPlacements,
       pendingEvents,
