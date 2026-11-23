@@ -7,6 +7,11 @@ import EventPost from '../models/EventPost.js'
 import TravelPost from '../models/TravelPost.js'
 import StudyPost from '../models/StudyPost.js'
 import CampusNews from '../models/CampusNews.js'
+import FacultyEvent from '../models/FacultyEvent.js'
+import FacultyGallery from '../models/FacultyGallery.js'
+import FacultyStudy from '../models/FacultyStudy.js'
+import FacultyTravel from '../models/FacultyTravel.js'
+import FacultyPublication from '../models/FacultyPublication.js'
 import AdminLog from '../models/AdminLog.js'
 import AdminNotification from '../models/AdminNotification.js'
 
@@ -72,16 +77,21 @@ export const pendingApprovals = asyncHandler(async (req, res) => {
   const submitterFields = 'email role profile.name profile.iit profile.branch profile.batch profile.bio profile.photoUrl createdAt'
   const withSubmitter = (query) => query.sort({ createdAt: -1 }).limit(100).populate('authorId', submitterFields)
 
-  const [gallery, placements, events, travel, study, campusNews] = await Promise.all([
+  const [gallery, placements, events, travel, study, campusNews, facultyEvents, facultyGallery, facultyStudy, facultyTravel, facultyPublications] = await Promise.all([
     withSubmitter(GalleryPost.find({ status: 'Pending' })),
     withSubmitter(PlacementPost.find({ status: 'Pending' })),
     withSubmitter(EventPost.find({ status: 'Pending' })),
     withSubmitter(TravelPost.find({ status: 'Pending' })),
     withSubmitter(StudyPost.find({ status: 'Pending' })),
-    withSubmitter(CampusNews.find({ status: 'Pending' }))
+    withSubmitter(CampusNews.find({ status: 'Pending' })),
+    FacultyEvent.find({$or:[{status:'Pending'},{status:{$exists:false}}]}).sort({createdAt:-1}).limit(100).populate('author','email facultyProfile'),
+    FacultyGallery.find({$or:[{status:'Pending'},{status:{$exists:false}}]}).sort({createdAt:-1}).limit(100).populate('author','email facultyProfile'),
+    FacultyStudy.find({$or:[{status:'Pending'},{status:{$exists:false}}]}).sort({createdAt:-1}).limit(100).populate('author','email facultyProfile'),
+    FacultyTravel.find({$or:[{status:'Pending'},{status:{$exists:false}}]}).sort({createdAt:-1}).limit(100).populate('author','email facultyProfile'),
+    FacultyPublication.find({$or:[{status:'Pending'},{status:{$exists:false}}]}).sort({createdAt:-1}).limit(100).populate('author','email facultyProfile')
   ])
 
-  res.json({ success: true, gallery, placements, events, travel, study, campusNews })
+  res.json({ success: true, gallery, placements, events, travel, study, campusNews, facultyEvents, facultyGallery, facultyStudy, facultyTravel, facultyPublications })
 })
 
 export const approveGallery = asyncHandler(async (req, res) => {
@@ -221,4 +231,19 @@ export const markDeletionNotificationRead = asyncHandler(async (req, res) => {
   )
   if (!notification) throw new ApiError(404, 'Notification not found')
   res.json({ success: true, notification })
+})
+
+export const approveFacultyContent = asyncHandler(async (req, res) => {
+  const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) throw new ApiError(400, 'Status must be Approved or Rejected')
+  const models = { events: FacultyEvent, gallery: FacultyGallery, study: FacultyStudy, travel: FacultyTravel, publications: FacultyPublication }
+  const Model = models[String(req.params.kind || '')]
+  if (!Model) throw new ApiError(400, 'Invalid faculty content type')
+  const post = await Model.findById(req.params.id)
+  if (!post) throw new ApiError(404, 'Faculty post not found')
+  post.status = status
+  post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected by admin') : ''
+  await post.save()
+  await log(req.user._id, status === 'Approved' ? 'APPROVE_FACULTY_CONTENT' : 'REJECT_FACULTY_CONTENT', 'Faculty'+req.params.kind, post._id, { rejectionReason: post.rejectionReason })
+  res.json({ success: true, post })
 })
