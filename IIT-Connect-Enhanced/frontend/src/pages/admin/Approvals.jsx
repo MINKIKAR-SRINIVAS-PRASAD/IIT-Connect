@@ -126,6 +126,18 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Legacy seat details">{item.seatDetails}</Detail>
           <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
         </>}
+        {type.startsWith('Faculty ') && <>
+          <Detail label="Faculty institute">{item.institute || item.facultyProfile?.institute}</Detail>
+          <Detail label="Department">{item.department || item.facultyProfile?.department}</Detail>
+          <Detail label="Title">{item.title}</Detail>
+          <Detail label="Description / abstract">{item.description || item.abstract || item.details}</Detail>
+          <Detail label="Subject">{item.subject}</Detail>
+          <Detail label="Venue / origin">{item.venue || item.from}</Detail>
+          <Detail label="Destination">{item.to}</Detail>
+          <Detail label="Date">{item.startAt || item.travelDate ? new Date(item.startAt || item.travelDate).toLocaleString() : ''}</Detail>
+          <Detail label="Link">{item.registrationUrl || item.resourceUrl || item.doiOrUrl}</Detail>
+          <Detail label="Image URL">{item.imageUrl}</Detail>
+        </>}
         {type === 'Study' && <>
           <Detail label="Resource title">{item.title}</Detail>
           <Detail label="Subject">{item.subject}</Detail>
@@ -159,6 +171,11 @@ export default function Approvals() {
   const [events, setEvents] = useState([])
   const [travel, setTravel] = useState([])
   const [study, setStudy] = useState([])
+  const [facultyEvents, setFacultyEvents] = useState([])
+  const [facultyGallery, setFacultyGallery] = useState([])
+  const [facultyStudy, setFacultyStudy] = useState([])
+  const [facultyTravel, setFacultyTravel] = useState([])
+  const [facultyPublications, setFacultyPublications] = useState([])
 
   async function load() {
     setLoading(true)
@@ -169,6 +186,11 @@ export default function Approvals() {
       setEvents(data.events || [])
       setTravel(data.travel || [])
       setStudy(data.study || [])
+      setFacultyEvents(data.facultyEvents || [])
+      setFacultyGallery(data.facultyGallery || [])
+      setFacultyStudy(data.facultyStudy || [])
+      setFacultyTravel(data.facultyTravel || [])
+      setFacultyPublications(data.facultyPublications || [])
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load approvals')
     } finally {
@@ -182,7 +204,12 @@ export default function Approvals() {
       Placement: `/admin/approvals/placements/${id}`,
       Event: `/admin/approvals/events/${id}`,
       Trip: `/admin/approvals/travel/${id}`,
-      Study: `/admin/approvals/study/${id}`
+      Study: `/admin/approvals/study/${id}`,
+      'Faculty Event': `/admin/approvals/faculty/events/${id}`,
+      'Faculty Gallery': `/admin/approvals/faculty/gallery/${id}`,
+      'Faculty Study': `/admin/approvals/faculty/study/${id}`,
+      'Faculty Travel': `/admin/approvals/faculty/travel/${id}`,
+      'Faculty Publication': `/admin/approvals/faculty/publications/${id}`
     }[kind]
     try {
       await api.put(endpoint, { status, rejectionReason })
@@ -202,7 +229,12 @@ export default function Approvals() {
     { type: 'Placement', items: placements },
     { type: 'Events', items: events, cardType: 'Event' },
     { type: 'Trip', items: travel },
-    { type: 'Study Resources', items: study, cardType: 'Study' }
+    { type: 'Study Resources', items: study, cardType: 'Study' },
+    { type: 'Faculty Events', items: facultyEvents, cardType: 'Faculty Event', authorField: 'author' },
+    { type: 'Faculty Gallery', items: facultyGallery, cardType: 'Faculty Gallery', authorField: 'author' },
+    { type: 'Faculty Study', items: facultyStudy, cardType: 'Faculty Study', authorField: 'author' },
+    { type: 'Faculty Travel', items: facultyTravel, cardType: 'Faculty Travel', authorField: 'author' },
+    { type: 'Faculty Publications', items: facultyPublications, cardType: 'Faculty Publication', authorField: 'author' }
   ]
 
   return (
