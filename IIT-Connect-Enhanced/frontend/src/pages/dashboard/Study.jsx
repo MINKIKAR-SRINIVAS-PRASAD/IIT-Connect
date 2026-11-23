@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
 import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
+import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
 
 const inputClass = 'w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none'
 const labelClass = 'mb-1.5 block text-sm font-medium text-slate-300'
@@ -128,9 +129,7 @@ export default function Study() {
   const isSelectedOwner = selected && mineIds.has(String(selected._id))
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <section className="overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-indigo-950/70 via-slate-950 to-slate-950 p-6 md:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4"><div><div className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Learn together</div><h1 className="mt-2 text-3xl font-bold text-white">Study Hub</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Discover notes, assignments, books, practice material and useful learning links shared by students across IITs.</p></div><button type="button" onClick={() => setShowForm((value) => !value)} className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/40 hover:bg-indigo-500">{showForm ? 'Close form' : '+ Share a resource'}</button></div>
-      </section>
+      <CreatePostPanel eyebrow="COMMUNITY LEARNING" title="Study Hub" description="Discover notes, assignments, books, practice material and useful learning links shared by students across IITs." buttonLabel="Share study material" open={showForm} onToggle={() => setShowForm((value) => !value)} />
 
       {showForm && <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
         <div><h2 className="text-xl font-semibold text-white">Share study material</h2><p className="mt-1 text-sm text-slate-400">Your resource will appear in the Study Hub after admin approval.</p></div>

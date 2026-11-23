@@ -61,7 +61,8 @@ export default function Events() {
   )
 
   return (
-    <CreatePostPanel title="Create a campus event" description="Share an event with students and faculty across the IIT community." buttonLabel="Add event"><EventCreate onCreated={() => { toast.success('Event submitted! Awaiting admin approval'); load() }} /></CreatePostPanel>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="sage-page-theme space-y-6">
+      <CreatePostPanel title="Create a campus event" description="Share an event with students and faculty across the IIT community." buttonLabel="Add event"><EventCreate onCreated={() => { toast.success('Event submitted! Awaiting admin approval'); load() }} /></CreatePostPanel>
 
       {/* Upcoming Events */}
       <motion.section
