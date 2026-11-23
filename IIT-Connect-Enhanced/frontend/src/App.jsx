@@ -8,6 +8,7 @@ import Register from './pages/auth/Register.jsx'
 import ForgotPassword from './pages/auth/ForgotPassword.jsx'
 
 import DashboardLayout from './layouts/DashboardLayout.jsx'
+import PortalShell from './layouts/PortalShell.jsx'
 import AuthLayout from './layouts/AuthLayout.jsx'
 import AdminLayout from './layouts/AdminLayout.jsx'
 
@@ -124,7 +125,7 @@ export default function App() {
       <Route path="/faculty" element={<FacultyOnly><FacultyWorkspace section="home" /></FacultyOnly>} />
       <Route path="/faculty/home" element={<FacultyOnly><FacultyWorkspace section="home" /></FacultyOnly>} />
       <Route path="/faculty/events" element={<FacultyOnly><FacultyWorkspace section="events" /></FacultyOnly>} />
-      <Route path="/faculty/news" element={<FacultyOnly><News /></FacultyOnly>} />
+      <Route path="/faculty/news" element={<FacultyOnly><PortalShell><News /></PortalShell></FacultyOnly>} />
       <Route path="/faculty/gallery" element={<FacultyOnly><FacultyWorkspace section="gallery" /></FacultyOnly>} />
       <Route path="/faculty/study" element={<FacultyOnly><FacultyWorkspace section="study" /></FacultyOnly>} />
       <Route path="/faculty/publications" element={<FacultyOnly><FacultyWorkspace section="publications" /></FacultyOnly>} />
