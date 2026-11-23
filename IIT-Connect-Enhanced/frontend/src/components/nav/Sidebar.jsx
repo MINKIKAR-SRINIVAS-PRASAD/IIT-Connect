@@ -29,7 +29,7 @@ const facultyLinks = [
 ]
 
 function Brand({ faculty = false }) {
-  return <div className="flex items-center gap-3 px-2 py-2"><BrandSymbol className="h-9 w-[66px] shrink-0 object-contain"/><div><div className="text-sm font-bold tracking-tight text-white">IIT<span className="text-[#d8b45a]">Connect</span></div><div className="mt-0.5 text-[9px] font-semibold tracking-[.18em] text-slate-500">{faculty ? 'THE FACULTY NETWORK' : 'THE STUDENT NETWORK'}</div></div></div>
+  return <div className="flex items-center gap-3 px-2 py-2"><BrandSymbol className="h-9 w-[66px] shrink-0 object-contain"/><div><div className="text-sm font-bold tracking-tight text-white">{faculty ? 'IITProfessorsOS' : 'IITStudentsOS'}</div><div className="mt-0.5 text-[9px] font-semibold tracking-[.18em] text-slate-500">{faculty ? 'THE FACULTY NETWORK' : 'THE STUDENT NETWORK'}</div></div></div>
 }
 
 export default function Sidebar() {
@@ -63,7 +63,7 @@ export default function Sidebar() {
     </header>
     {mobileMenuOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-5 py-8 backdrop-blur-sm md:hidden" onClick={() => setMobileMenuOpen(false)}>
       <section role="dialog" aria-modal="true" aria-label="Page navigation" className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#111827] p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between px-1"><div className="flex items-center gap-2"><BrandSymbol className="h-7 w-[54px] object-contain"/><div><div className="text-sm font-bold text-white">IIT<span className="text-[#d8b45a]">Connect</span></div><div className="mt-1 text-[10px] tracking-wider text-slate-400">{isFaculty ? 'FACULTY NAVIGATION' : 'NAVIGATE TO A PAGE'}</div></div></div><button type="button" aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-white/5"><X size={20}/></button></div>
+        <div className="mb-4 flex items-center justify-between px-1"><div className="flex items-center gap-2"><BrandSymbol className="h-7 w-[54px] object-contain"/><div><div className="text-sm font-bold text-white">{isFaculty ? 'IITProfessorsOS' : 'IITStudentsOS'}</div><div className="mt-1 text-[10px] tracking-wider text-slate-400">{isFaculty ? 'FACULTY NAVIGATION' : 'NAVIGATE TO A PAGE'}</div></div></div><button type="button" aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-white/5"><X size={20}/></button></div>
         <div className="grid grid-cols-2 gap-2">
           {activeLinks.map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} onClick={() => setMobileMenuOpen(false)} className={({isActive}) => `flex items-center gap-2.5 rounded-xl border px-3 py-3 text-sm ${isActive ? 'border-indigo-300/30 bg-indigo-300/10 text-indigo-100' : 'border-white/5 bg-white/[0.03] text-slate-300'}`}><Icon size={17}/><span>{label}</span></NavLink>)}
           <NavLink to={isFaculty ? '/faculty/home' : '/app/profile'} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-slate-300"><UserRound size={17}/>{isFaculty ? 'Faculty profile' : 'Profile'}</NavLink>

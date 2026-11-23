@@ -1,5 +1,5 @@
 import React from 'react'
 
-export default function BrandSymbol({ className = 'h-9 w-auto max-w-[76px] object-contain', alt = 'IIT Connect uploaded emblem' }) {
-  return <img src="/iit-connect-emblem.png" className={className} alt={alt} />
+export default function BrandSymbol({ className = 'h-9 w-auto max-w-[76px] object-contain', alt = 'Gold IIT logo' }) {
+  return <img src="/iitconnect-gold-logo.svg" className={className} alt={alt} draggable="false" />
 }

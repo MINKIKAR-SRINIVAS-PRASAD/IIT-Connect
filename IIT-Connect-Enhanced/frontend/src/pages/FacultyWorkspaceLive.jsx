@@ -5,6 +5,7 @@ import {useAuth} from '../hooks/useAuth'
 import {api} from '../utils/api'
 import toast from 'react-hot-toast'
 import PortalShell from '../layouts/PortalShell.jsx'
+import BrandSymbol from '../components/common/BrandSymbol'
 const nav=[['home','Faculty Home',Home],['events','Events',CalendarDays],['gallery','Gallery',Images],['study','Study',BookOpen],['publications','Publications',FileText],['travel','Travel',Plane],['community','Chat & Community',MessageSquare],['news','News',Newspaper]]
 const blank={title:'',description:'',startAt:'',venue:'',registrationUrl:'',imageUrl:'',caption:'',subject:'',resourceUrl:'',from:'',to:'',travelDate:'',text:'',abstract:'',institute:'',department:'',publicationType:'journal'}
 const input='faculty-input w-full rounded-xl border p-3 text-sm placeholder:text-slate-500'
@@ -38,7 +39,7 @@ export default function FacultyWorkspace({section='home'}){
  <div className="sage-page-theme w-full">
   <header className="page-hero mb-6 flex items-center gap-4 overflow-hidden rounded-3xl border p-6 md:p-8">
    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#a8c49a]/25 bg-[#a8c49a]/10"><PageIcon size={27} className="text-[#b6d0a8]"/></div>
-   <div className="min-w-0 flex-1"><div className="text-[10px] font-semibold uppercase tracking-[.18em] text-slate-400">IIT Connect · Faculty Network</div><h1 className="mt-1 text-3xl font-bold tracking-tight">{heading}</h1><p className="mt-1 text-sm">{pageCopy[section]?.[1]||'Academic collaboration across institutes.'}</p></div>
+   <div className="min-w-0 flex-1"><div className="mb-2 flex items-center gap-3"><BrandSymbol className="h-8 w-[60px] object-contain"/><span className="text-[10px] font-semibold uppercase tracking-[.18em] text-slate-400">IITProfessorsOS · Faculty Workspace</span></div><h1 className="mt-1 text-3xl font-bold tracking-tight">{heading}</h1><p className="mt-1 text-sm">{pageCopy[section]?.[1]||'Academic collaboration across institutes.'}</p></div>
    {path&&<button type="button" onClick={load} title="Refresh content" className="shrink-0 rounded-xl border border-white/10 p-3 text-slate-300 transition hover:bg-white/5"><RefreshCw size={17}/></button>}
   </header>
   {section==='home'?<div className="space-y-5">
