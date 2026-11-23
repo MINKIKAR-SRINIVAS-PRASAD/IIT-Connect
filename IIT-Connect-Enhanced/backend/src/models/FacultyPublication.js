@@ -11,6 +11,8 @@ const facultyPublicationSchema = new mongoose.Schema({
   venue: { type: String, trim: true, default: '' },
   publicationDate: { type: Date, default: null },
   doiOrUrl: { type: String, trim: true, default: '' },
+  status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending', index: true },
+  rejectionReason: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true })
 
