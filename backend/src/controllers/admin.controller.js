@@ -27,7 +27,7 @@ export const stats = asyncHandler(async (req, res) => {
       EventPost.countDocuments({ status: 'Pending' }),
       TravelPost.countDocuments({ status: 'Pending' }),
       StudyPost.countDocuments({ status: 'Pending' }),
-      FacultyPost.countDocuments({ status: 'Pending' })
+      FacultyPost.countDocuments({ $or: [{ status: 'Pending' }, { status: { $exists: false } }] })
     ])
 
   res.json({
@@ -72,7 +72,7 @@ export const pendingApprovals = asyncHandler(async (req, res) => {
     EventPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     TravelPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     StudyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    FacultyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile')
+    FacultyPost.find({ $or: [{ status: 'Pending' }, { status: { $exists: false } }] }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile')
   ])
 
   res.json({ success: true, gallery, placements, events, travel, study, facultyPosts })
