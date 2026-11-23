@@ -5,6 +5,7 @@ import {useAuth} from '../hooks/useAuth'
 import {api} from '../utils/api'
 import toast from 'react-hot-toast'
 import PortalShell from '../layouts/PortalShell.jsx'
+import CreatePostPanel from '../components/common/CreatePostPanel.jsx'
 import BrandSymbol from '../components/common/BrandSymbol'
 const nav=[['home','Faculty Home',Home],['events','Events',CalendarDays],['gallery','Gallery',Images],['study','Study',BookOpen],['publications','Publications',FileText],['travel','Travel',Plane],['community','Chat & Community',MessageSquare],['news','News',Newspaper]]
 const blank={title:'',description:'',startAt:'',venue:'',registrationUrl:'',imageUrl:'',caption:'',subject:'',resourceUrl:'',from:'',to:'',travelDate:'',text:'',abstract:'',institute:'',department:'',publicationType:'journal'}
@@ -12,12 +13,12 @@ const input='faculty-input w-full rounded-xl border p-3 text-sm placeholder:text
 const card='faculty-card rounded-2xl border p-5'
 const button='faculty-button rounded-xl px-4 py-3 text-sm font-semibold'
 export default function FacultyWorkspace({section='home'}){
- const {user}=useAuth(),[items,setItems]=useState([]),[f,setF]=useState(blank),[busy,setBusy]=useState(false),[menuOpen,setMenuOpen]=useState(false)
+ const {user}=useAuth(),[items,setItems]=useState([]),[f,setF]=useState(blank),[busy,setBusy]=useState(false),[menuOpen,setMenuOpen]=useState(false),[createOpen,setCreateOpen]=useState(false)
  const paths={events:'/faculty/events',gallery:'/faculty/gallery',study:'/faculty/study',publications:'/faculty/publications',travel:'/faculty/travel'}
  const path=paths[section],heading=nav.find(x=>x[0]===section)?.[1]||'Faculty Network'
  const set=(k,v)=>setF(p=>({...p,[k]:v}))
  async function load(){try{if(path){const {data}=await api.get(path);setItems(data.events||data.posts||data.resources||data.publications||data.plans||[])}else if(section==='community'){await api.post('/faculty/community/join');const {data}=await api.get('/faculty/community/messages');setItems(data.messages||[])}}catch(e){toast.error(e?.response?.data?.message||'Unable to load faculty content')}}
- useEffect(()=>{setItems([]);setF(blank);load()},[section])
+ useEffect(()=>{setItems([]);setF(blank);setCreateOpen(false);load()},[section])
  useEffect(()=>{if(section!=='community')return;const timer=setInterval(async()=>{try{const {data}=await api.get('/faculty/community/messages');setItems(data.messages||[])}catch{}},5000);return()=>clearInterval(timer)},[section])
  const field=(key,label,type='text',required=true)=><label className="block space-y-1.5"><span className="text-xs text-slate-400">{label}</span><input className={input} required={required} type={type} value={f[key]} onChange={e=>set(key,e.target.value)} placeholder={label}/></label>
  const area=(key,label)=><label className="block space-y-1.5"><span className="text-xs text-slate-400">{label}</span><textarea className={input} rows={4} value={f[key]} onChange={e=>set(key,e.target.value)} placeholder={label}/></label>
@@ -46,8 +47,8 @@ export default function FacultyWorkspace({section='home'}){
    <article className={card+' faculty-panel'}><p className="text-xs font-semibold uppercase tracking-[.15em] text-[#b6d0a8]">Faculty workspace</p><h2 className="mt-2 text-2xl font-semibold">Welcome, {user?.facultyProfile?.name||'Faculty colleague'}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Share academic events, research resources, publications, gallery moments and travel collaboration with verified colleagues.</p><div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-400"><span className="rounded-full border border-white/10 px-3 py-1.5">{user?.facultyProfile?.institute||'Faculty institute'}</span><span className="rounded-full border border-white/10 px-3 py-1.5">{user?.facultyProfile?.department||'Department'}</span></div></article>
    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{nav.slice(1).map(([key,label,TileIcon])=><NavLink key={key} to={'/faculty/'+key} className={card+' faculty-panel group flex min-h-32 items-center gap-4 transition hover:-translate-y-0.5'}><div className="rounded-xl border border-[#a8c49a]/20 bg-[#a8c49a]/10 p-3 text-[#b6d0a8]"><TileIcon size={22}/></div><div className="min-w-0 flex-1"><h2 className="font-semibold">{label}</h2><p className="mt-1 text-xs text-slate-400">Open faculty {label.toLowerCase()}</p></div></NavLink>)}</div>
   </div>:<div className="space-y-5">
-   <form onSubmit={submit} className={card+' faculty-panel space-y-5'}>
-    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{section==='community'?'Send a faculty community message':'Create '+heading.toLowerCase()+' post'}</h2><span className="text-xs text-slate-500">Complete the details below</span></div>
+   <CreatePostPanel eyebrow="FACULTY COMMUNITY" title={section==='community'?'Share with faculty colleagues':'Create '+heading.toLowerCase()+' post'} description={pageCopy[section]?.[1]||'Share an update with verified faculty colleagues.'} buttonLabel={section==='community'?'Send message':'Create post'} open={createOpen} onToggle={()=>setCreateOpen(v=>!v)}>
+    <form onSubmit={submit} className="faculty-panel space-y-5">
     {section==='events'&&<><div className={fieldGrid}>{field('title','Event title')}{field('startAt','Date & Time','datetime-local')}{field('venue','Venue')}</div>{area('description','Description')}{field('registrationUrl','Registration link','url',false)}</>}
     {section==='gallery'&&<><div className={fieldGrid}>{field('imageUrl','Direct HTTPS image URL','url')}{field('caption','Image caption')}</div><p className="text-xs text-slate-500">Paste a direct image URL to share a faculty gallery post.</p></>}
     {section==='study'&&<><div className={fieldGrid}>{field('title','Resource title')}{field('subject','Subject / research area')}{field('resourceUrl','Resource link','url',false)}</div>{area('description','Description / resource notes')}</>}
@@ -55,7 +56,8 @@ export default function FacultyWorkspace({section='home'}){
     {section==='publications'&&<><div className={fieldGrid}>{field('title','Publication title')}{field('institute','Institute')}{field('department','Department')}</div>{area('abstract','Abstract / summary')}<label className="block space-y-2"><span className="text-sm font-medium text-slate-300">Publication type</span><select className={input} value={f.publicationType} onChange={e=>set('publicationType',e.target.value)}><option value="journal">Journal</option><option value="conference">Conference</option><option value="book">Book</option><option value="patent">Patent</option><option value="preprint">Preprint</option><option value="other">Other</option></select></label></>}
     {section==='community'&&<textarea required minLength={1} maxLength={3000} className={input} rows={4} placeholder="Message verified faculty colleagues…" value={f.text} onChange={e=>set('text',e.target.value)}/>}
     <div className="flex flex-wrap items-center gap-3 border-t border-white/10 pt-4"><button disabled={busy} className={button}>{busy?'Saving…':section==='community'?<><Send size={15} className="inline"/> Send message</>:'Share with faculty'}</button><button type="button" onClick={()=>setF(blank)} className="rounded-xl border border-white/10 px-4 py-3 text-sm text-slate-300 hover:bg-white/5">Clear form</button></div>
-   </form>
+    </form>
+   </CreatePostPanel>
    <section className="space-y-3"><div className="flex items-center gap-3"><h2 className="text-lg font-semibold">{section==='community'?'Faculty messages':heading}</h2><span className="h-px flex-1 bg-white/10"/></div>
     {cards.map(x=><article key={x.id} className={card+' faculty-panel'}><div className="flex flex-wrap items-start justify-between gap-2"><p className="text-xs font-medium text-[#b6d0a8]">{x.meta||heading}</p>{x.date&&<time className="text-xs text-slate-500">{new Date(x.date).toLocaleString()}</time>}</div><h3 className="mt-2 text-base font-semibold">{x.title}</h3>{x.body&&<p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{x.body}</p>}{x.link&&<a href={x.link} target="_blank" rel="noreferrer" className="mt-3 inline-flex break-all text-sm text-[#c2d8ae] underline underline-offset-4">{x.link}</a>}{x.author&&<p className="mt-3 border-t border-white/5 pt-3 text-xs text-slate-500">{x.author}</p>}</article>)}
     {!cards.length&&<div className={card+' faculty-panel flex items-center justify-center py-10 text-center text-sm text-slate-400'}>Nothing posted yet — add the first faculty contribution.</div>}
