@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import EventCreate from '../../components/events/EventCreate.jsx'
+import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
 import EventCard from '../../components/events/EventCard.jsx'
 import EventDetailsModal from '../../components/events/EventDetailsModal.jsx'
 import Loader from '../../components/common/Loader.jsx'
@@ -60,59 +61,7 @@ export default function Events() {
   )
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="sage-page-theme space-y-6"
-    >
-      {/* Header Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="page-hero relative overflow-hidden rounded-3xl border border-[#a8c49a]/20 bg-[radial-gradient(ellipse_at_85%_5%,rgba(115,145,105,.22),transparent_38%),linear-gradient(120deg,#1b2820,#26382c_58%,#1b2a23)] p-6 md:p-8"
-      >
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-[#a8c49a]/15 blur-3xl"
-        />
-        
-        <div className="relative z-10 flex items-center gap-3">
-          <motion.div
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
-            className="rounded-xl border border-[#a8c49a]/25 bg-[#a8c49a]/10 p-3"
-          >
-            <Calendar size={28} className="text-[#b6d0a8]" />
-          </motion.div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#f0f1e8]">
-              Events
-            </h1>
-            <p className="mt-1 text-[#c1cbbd]">Discover and create amazing campus events</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Create Event */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <EventCreate onCreated={() => {
-          toast.success('Event submitted! Awaiting admin approval')
-          load()
-        }} />
-      </motion.div>
+    <CreatePostPanel title="Create a campus event" description="Share an event with students and faculty across the IIT community." buttonLabel="Add event"><EventCreate onCreated={() => { toast.success('Event submitted! Awaiting admin approval'); load() }} /></CreatePostPanel>
 
       {/* Upcoming Events */}
       <motion.section

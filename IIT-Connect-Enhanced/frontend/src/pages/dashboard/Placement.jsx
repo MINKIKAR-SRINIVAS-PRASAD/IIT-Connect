@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import PlacementCreate from '../../components/placement/PlacementCreate.jsx'
+import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
 import PlacementFilters from '../../components/placement/PlacementFilters.jsx'
 import PlacementCard from '../../components/placement/PlacementCard.jsx'
 import Loader from '../../components/common/Loader.jsx'
@@ -29,8 +30,8 @@ export default function Placement() {
   }, [])
 
   return (
-    <div className="space-y-4">
-      <PlacementCreate onCreated={() => toast('Awaiting admin approval')} />
+    <div className="sage-page-theme space-y-6">
+      <CreatePostPanel eyebrow="CAREER COMMUNITY" title="Share an interview experience" description="Help fellow students prepare with placement insights." buttonLabel="Add experience"><PlacementCreate onCreated={() => toast('Awaiting admin approval')} /></CreatePostPanel>
       <PlacementFilters
         onApply={(f) => {
           setFilters(f)
