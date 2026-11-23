@@ -19,7 +19,7 @@ function StudentDetails({ author }) {
   if (!author) {
     return <div className="text-sm text-amber-300">Submitter account details are unavailable.</div>
   }
-  const profile = author.profile || {}
+  const profile = author.profile || author.facultyProfile || {}
   return (
     <section className="mt-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
       <div className="mb-3 flex items-center gap-3">
@@ -79,12 +79,12 @@ function ApprovalCard({ item, type, onAction }) {
       </div>
       <h3 className="mt-2 text-lg font-semibold text-white">{title || `${type} submission`}</h3>
 
-      {type === 'Gallery' && item.imageUrl ? (
+      {(type === 'Gallery' || type === 'Faculty Gallery') && item.imageUrl ? (
         <img src={item.imageUrl} alt="Submitted gallery post" className="mt-4 max-h-72 w-full rounded-xl border border-slate-800 object-contain" />
       ) : null}
 
       <div className="mt-4 grid gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:grid-cols-2 lg:grid-cols-3">
-        {type === 'Gallery' && <>
+        {(type === 'Gallery' || type === 'Faculty Gallery') && <>
           <Detail label="Caption">{item.caption}</Detail>
           <Detail label="Institute on post">{item.iit}</Detail>
           <Detail label="Submitted">{item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</Detail>
@@ -221,7 +221,7 @@ export default function Approvals() {
             <div className="grid gap-4 xl:grid-cols-2">
               {section.items.map((item) => {
                 const type = section.cardType || section.type
-                return <ApprovalCard key={item._id} item={item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
+                return <ApprovalCard key={item._id} item={section.authorField?{...item,authorId:item[section.authorField]}:item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
               })}
             </div>
           ) : <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400">No pending {section.type.toLowerCase()} requests.</div>}
