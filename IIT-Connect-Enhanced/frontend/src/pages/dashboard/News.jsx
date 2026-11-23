@@ -43,7 +43,9 @@ export default function News(){
     href:faculty?'/faculty/news':'/app/placements',icon:BriefcaseBusiness
    }))
   }
-  const externalData=results[3]?.status==='fulfilled'?results[3].value.data:{}\n  ;(externalData.items||[]).forEach(x=>next.push({id:'external-'+x.id,type:x.category==='linkedin'?'LinkedIn':'International news',title:x.title,description:x.description||'Open the original source for the full story.',date:x.date,source:x.source||'External source',href:x.url,external:true,icon:x.category==='linkedin'?Linkedin:Globe2}))\n  setLoadError(results.some(x=>x.status==='rejected')||Boolean(externalData.partialFailure))
+  const externalData=results[3]?.status==='fulfilled'?results[3].value.data:{}
+  ;(externalData.items||[]).forEach(x=>next.push({id:'external-'+x.id,type:x.category==='linkedin'?'LinkedIn':'International news',title:x.title,description:x.description||'Open the original source for the full story.',date:x.date,source:x.source||'External source',href:x.url,external:true,icon:x.category==='linkedin'?Linkedin:Globe2}))
+  setLoadError(results.some(x=>x.status==='rejected')||Boolean(externalData.partialFailure))
   next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))
   setItems(next)
   setLoading(false)
