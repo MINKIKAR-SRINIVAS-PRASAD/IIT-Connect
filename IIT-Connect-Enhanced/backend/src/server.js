@@ -21,7 +21,7 @@ import studyRoutes from './routes/study.routes.js'
 import commentRoutes from './routes/comment.routes.js'
 import likeRoutes from './routes/like.routes.js'
 import adminRoutes from './routes/admin.routes.js'
-import healthRoutes from './routes/health.routes.js'
+import healthRoutes from './routes/health.routes.js'\nimport newsRoutes from './routes/news.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
 
@@ -48,7 +48,7 @@ async function bootstrap() {
     res.json({ ok: true, name: 'IIT Connect API' })
   })
 
-  app.use('/api/health', healthRoutes)
+  app.use('/api/health', healthRoutes)\n  app.use('/api/news', newsRoutes)
   app.use('/api/auth', authRoutes)
   app.use('/api/profile', profileRoutes)
   app.use('/api/chat', chatRoutes)
