@@ -12,7 +12,7 @@ function ApprovalCard({ item, type, onAction }) {
     <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
       <div className="text-sm text-slate-400">{type}</div>
       <div className="mt-1 font-semibold">
-        {type === 'Gallery' ? item.caption || 'Gallery post' : type === 'Placement' ? `${item.companyName} • ${item.role}` : item.title}
+        {type === 'Gallery' ? item.caption || 'Gallery post' : type === 'Placement' ? `${item.companyName} • ${item.role}` : type === 'Faculty' ? `${item.section} · ${item.title}` : item.title}
       </div>
       <div className="text-xs text-slate-400 mt-1">By: {item.authorId?.profile?.name || item.authorId?.email}</div>
       {type === 'Gallery' && item.imageUrl ? <img src={item.imageUrl} className="mt-3 w-full h-40 object-cover rounded-xl border border-slate-800" /> : null}
@@ -33,6 +33,7 @@ export default function Approvals() {
   const [gallery, setGallery] = useState([])
   const [placements, setPlacements] = useState([])
   const [events, setEvents] = useState([])
+  const [facultyPosts, setFacultyPosts] = useState([])
 
   async function load() {
     setLoading(true)
@@ -41,6 +42,7 @@ export default function Approvals() {
       setGallery(data.gallery)
       setPlacements(data.placements)
       setEvents(data.events)
+      setFacultyPosts(data.facultyPosts || [])
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load approvals')
     } finally {
@@ -51,7 +53,7 @@ export default function Approvals() {
   async function act(kind, id, status, rejectionReason) {
     try {
       const endpoint =
-        kind === 'Gallery' ? `/admin/approvals/gallery/${id}` : kind === 'Placement' ? `/admin/approvals/placements/${id}` : `/admin/approvals/events/${id}`
+        kind === 'Gallery' ? `/admin/approvals/gallery/${id}` : kind === 'Placement' ? `/admin/approvals/placements/${id}` : kind === 'Faculty' ? `/admin/approvals/faculty/${id}` : `/admin/approvals/events/${id}`
       await api.put(endpoint, { status, rejectionReason })
       toast.success(`${kind} ${status}`)
       load()
@@ -85,6 +87,14 @@ export default function Approvals() {
             <ApprovalCard key={p._id} item={p} type="Placement" onAction={(s, r) => act('Placement', p._id, s, r)} />
           ))}
           {!placements.length ? <div className="text-sm text-slate-400">No pending placement posts.</div> : null}
+        </div>
+      </div>
+
+      <div>
+        <div className="text-lg font-semibold">Pending Faculty Posts</div>
+        <div className="mt-3 grid md:grid-cols-2 gap-4">
+          {facultyPosts.map((p) => <ApprovalCard key={p._id} item={{...p, authorId:p.facultyId}} type="Faculty" onAction={(status, reason) => act('Faculty', p._id, status, reason)} />)}
+          {!facultyPosts.length ? <div className="text-sm text-slate-400">No pending faculty posts.</div> : null}
         </div>
       </div>
 
