@@ -8,14 +8,14 @@ const facultySections = ['publications', 'placement', 'study', 'events', 'galler
 export const listPosts = asyncHandler(async (req, res) => {
   const section = String(req.query.section || '')
   if (!facultySections.includes(section)) throw new ApiError(400, 'Invalid faculty section')
-  const posts = await FacultyPost.find({ section }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile.name').lean()
+  const posts = await FacultyPost.find({ section, $or: [{ status: 'Approved' }, { facultyId: req.user._id }] }).sort({ createdAt: -1 }).limit(100).populate('facultyId', 'email profile.name').lean()
   res.json({ success: true, posts })
 })
 export const createPost = asyncHandler(async (req, res) => {
-  const { section, title, description, link } = req.body
+  const { section, title, description, link, data } = req.body
   if (!facultySections.includes(section) || !String(title || '').trim()) throw new ApiError(400, 'Section and title are required')
-  const post = await FacultyPost.create({ facultyId: req.user._id, section, title: String(title).trim(), description: String(description || '').slice(0,5000), link: String(link || '') })
-  res.status(201).json({ success: true, post })
+  const post = await FacultyPost.create({ facultyId: req.user._id, section, title: String(title).trim(), description: String(description || '').slice(0,5000), link: String(link || ''), data: data && typeof data === 'object' ? data : {}, status: 'Pending' })
+  res.status(201).json({ success: true, post, message: 'Faculty post submitted for admin approval' })
 })
 export const listMessages = asyncHandler(async (_req, res) => {
   const messages = await FacultyMessage.find().sort({ createdAt: 1 }).limit(300).lean()
