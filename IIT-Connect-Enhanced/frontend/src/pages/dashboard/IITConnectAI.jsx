@@ -31,7 +31,7 @@ export default function IITConnectAI() {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(true)
-  const [historyOpen, setHistoryOpen] = useState(true)
+  const [historyOpen, setHistoryOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
   const [search, setSearch] = useState('')
   const messagesRef = useRef(null)
 
@@ -144,8 +144,8 @@ export default function IITConnectAI() {
     (item.preview || '').toLowerCase().includes(search.toLowerCase())
   )
 
-  return <div className="mx-auto flex h-[72vh] min-h-[30rem] max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-[#101a18]">
-    {historyOpen && <aside className="flex h-full min-h-0 w-[250px] shrink-0 flex-col border-r border-white/10 bg-[#0b1411] sm:w-[270px]">
+  return <div className="relative mx-auto flex h-[calc(100dvh-9rem)] min-h-[26rem] max-h-[900px] w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-[#101a18] sm:h-[72vh] sm:min-h-[30rem] sm:rounded-3xl">
+    {historyOpen && <><button type="button" aria-label="Close chat history" onClick={() => setHistoryOpen(false)} className="absolute inset-0 z-10 bg-black/55 sm:hidden"/><aside className="absolute inset-y-0 left-0 z-20 flex h-full min-h-0 w-[min(82vw,300px)] shrink-0 flex-col border-r border-white/10 bg-[#0b1411] shadow-2xl sm:relative sm:z-auto sm:w-[250px] sm:shadow-none md:w-[270px]">
       <div className="flex items-center gap-2 border-b border-white/10 p-3">
         <button type="button" onClick={newChat} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#a8c49a] px-3 py-2.5 text-sm font-semibold text-[#101810] hover:bg-[#bdd5ae]"><Plus size={16}/> New chat</button>
         <button type="button" onClick={() => setHistoryOpen(false)} title="Hide history" className="rounded-xl border border-white/10 p-2.5 text-slate-400 hover:text-white"><PanelLeftClose size={16}/></button>
@@ -167,9 +167,9 @@ export default function IITConnectAI() {
         </div>) : <p className="px-3 py-4 text-xs leading-5 text-slate-500">Your saved chats will appear here.</p>}
       </div>
       <div className="border-t border-white/10 p-3"><div className="truncate text-[11px] font-medium text-slate-300">{user?.profile?.name || user?.facultyProfile?.name || user?.email}</div><div className="mt-1 text-[10px] text-slate-500">Private chat history for your account</div></div>
-    </aside>}
+    </aside></>}
 
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
       <header className="flex items-center gap-3 border-b border-white/10 bg-white/[.025] p-4 sm:p-5">
         {!historyOpen && <button type="button" onClick={()=>setHistoryOpen(true)} title="Show chat history" className="rounded-xl border border-white/10 p-2.5 text-slate-400 hover:text-white"><PanelLeftOpen size={16}/></button>}
         <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#a8c49a]/15 text-[#b9d5aa]"><Bot size={22}/></span>
