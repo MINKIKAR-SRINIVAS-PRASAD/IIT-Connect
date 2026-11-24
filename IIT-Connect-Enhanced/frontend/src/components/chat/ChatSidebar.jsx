@@ -49,6 +49,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
 
   useEffect(() => {
     loadConvos().catch(() => {})
+    loadRequests().catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -91,6 +92,11 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         <div className="mt-3">
           <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or roll number..." />
         </div>
+        <div className="mt-3 flex flex-wrap gap-1">
+          {['people','requests','connections'].map(key => <button key={key} onClick={() => setRequestTab(key)} className={'rounded-full px-3 py-2 text-xs ' + (requestTab === key ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400')}>{key === 'people' ? 'Discover' : key === 'requests' ? 'Requests (' + requests.incoming.length + ')' : 'Connections'}</button>)}
+        </div>
+        {requestTab === 'requests' && <div className="mt-3 space-y-2">{requests.incoming.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3"><p className="text-sm text-white">{row.requester?.profile?.name || row.requester?.email} wants to connect</p><div className="mt-2 flex gap-2"><button onClick={() => respond(row._id, 'accept')} className="rounded-lg bg-indigo-600 px-3 py-1 text-xs text-white">Accept</button><button onClick={() => respond(row._id, 'reject')} className="rounded-lg bg-slate-800 px-3 py-1 text-xs text-slate-300">Reject</button></div></div>)}{requests.outgoing.map(row => <p key={row._id} className="text-xs text-slate-400">Pending · {row.recipient?.profile?.name || row.recipient?.email}</p>)}{!requests.incoming.length && !requests.outgoing.length && <p className="text-xs text-slate-500">No pending requests.</p>}</div>}
+        {requestTab === 'connections' && <div className="mt-3 space-y-2">{requests.connections.map(row => <div key={row._id} className="flex items-center justify-between rounded-xl border border-slate-800 p-3"><span className="text-sm text-white">{row.user?.profile?.name || row.user?.email}</span><Button size="sm" className="chat-action-button" onClick={() => onStartDM(getId(row.user))}>Message</Button></div>)}{!requests.connections.length && <p className="text-xs text-slate-500">No connections yet.</p>}</div>}
         {(() => {
           const hasCommunity = convos.some((conversation) => conversation.type === 'community')
           const hasIitGroup = convos.some((conversation) => conversation.type === 'group')
