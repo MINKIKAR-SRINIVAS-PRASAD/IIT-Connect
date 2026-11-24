@@ -5,7 +5,8 @@ import jwt from 'jsonwebtoken'
 import { env } from '../config/env.js'
 import User from '../models/User.js'
 import Conversation from '../models/Conversation.js'
-import Message from '../models/Message.js'\nimport ConnectionRequest from '../models/ConnectionRequest.js'
+import Message from '../models/Message.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 
 const onlineUsers = new Map()
 
@@ -112,8 +113,18 @@ export function initSocket(httpServer, corsOrigin) {
           )
 
         if (!isMember) return
+      if (convo.type === 'dm') {
+        const otherId = convo.participants.find(p => p.toString() !== userId)
+        const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
+        if (!accepted) return
+      }
 
-        const convo = await Conversation.findById(conversationId)\n      if (!convo) return\n      if (convo.type === 'dm') {\n        if (!convo.participants.some(p => p.toString() === userId)) return\n        const otherId = convo.participants.find(p => p.toString() !== userId)\n        const connected = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })\n        if (!connected) return\n      } else if (convo.type === 'group' && !convo.participants.some(p => p.toString() === userId)) return\n      socket.join(conversationId) // socket join requires accepted connection
+        if (convo.type === 'dm') {
+          const otherId = convo.participants.find(p => p.toString() !== userId)
+          const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
+          if (!accepted) return
+        }
+        socket.join(conversationId)
       } catch (error) {
         console.error('Join conversation error:', error)
       }
