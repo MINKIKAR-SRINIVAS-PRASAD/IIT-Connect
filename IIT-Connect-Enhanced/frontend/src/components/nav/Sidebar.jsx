@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, Network, X, LogOut, Sparkles } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, X, LogOut, Sparkles } from 'lucide-react'
 import BrandSymbol from '../common/BrandSymbol'
 
 const links = [
@@ -47,7 +47,7 @@ export default function Sidebar() {
     <aside className="dashboard-sidebar sticky top-0 hidden h-screen w-[258px] shrink-0 flex-col border-r border-white/[0.07] bg-[#090c19] px-4 py-5 md:flex">
       <div className="flex items-center justify-between md:block">
         <Brand faculty={isFaculty}/>
-        <button type="button" aria-label="Open page navigation" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)} className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 md:hidden"><Network size={19}/></button>
+        <button type="button" aria-label={mobileMenuOpen ? 'Close page navigation' : 'Open page navigation'} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(value => !value)} className="mobile-menu-toggle ml-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-[#a8c49a]/20 bg-[#a8c49a]/[0.06] text-[#c8d9bc] transition-colors hover:bg-[#a8c49a]/[0.12] md:hidden"><span className={`mobile-menu-icon ${mobileMenuOpen ? 'is-open' : ''}`} aria-hidden="true"><span/><span/><span/></span></button>
       </div>
       <div className="mt-9 px-3"><div className="text-[9px] font-bold tracking-[.2em] text-slate-600">WORKSPACE</div></div>
       <nav className="mt-3 flex-1 space-y-1">
@@ -61,10 +61,10 @@ export default function Sidebar() {
     </aside>
     <header className="mobile-brand-header fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-white/10 bg-[#090c19]/95 px-4 py-2.5 backdrop-blur-xl md:hidden">
       <Brand faculty={isFaculty}/>
-      <button type="button" aria-label="Open page navigation" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300"><Network size={19}/></button>
+      <button type="button" aria-label={mobileMenuOpen ? 'Close page navigation' : 'Open page navigation'} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(value => !value)} className="mobile-menu-toggle flex h-11 w-11 items-center justify-center rounded-2xl border border-[#a8c49a]/20 bg-[#a8c49a]/[0.06] text-[#c8d9bc] transition-colors hover:bg-[#a8c49a]/[0.12] "><span className={`mobile-menu-icon ${mobileMenuOpen ? 'is-open' : ''}`} aria-hidden="true"><span/><span/><span/></span></button>
     </header>
-    {mobileMenuOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-5 py-8 backdrop-blur-sm md:hidden" onClick={() => setMobileMenuOpen(false)}>
-      <section role="dialog" aria-modal="true" aria-label="Page navigation" className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#111827] p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+    {mobileMenuOpen && <div className="mobile-nav-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-5 py-8 backdrop-blur-sm md:hidden" onClick={() => setMobileMenuOpen(false)}>
+      <section role="dialog" aria-modal="true" aria-label="Page navigation" className="mobile-nav-panel w-full max-w-sm rounded-3xl border border-white/10 bg-[#111827] p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between px-1"><div className="flex items-center gap-2"><BrandSymbol className="h-7 w-[54px] object-contain"/><div><div className="text-sm font-bold text-white">{isFaculty ? 'IITProfessorsOS' : 'IITStudentsOS'}</div><div className="mt-1 text-[10px] tracking-wider text-slate-400">{isFaculty ? 'FACULTY NAVIGATION' : 'NAVIGATE TO A PAGE'}</div></div></div><button type="button" aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-white/5"><X size={20}/></button></div>
         <div className="grid grid-cols-2 gap-2">
           {activeLinks.map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} onClick={() => setMobileMenuOpen(false)} className={({isActive}) => `flex items-center gap-2.5 rounded-xl border px-3 py-3 text-sm ${isActive ? 'border-indigo-300/30 bg-indigo-300/10 text-indigo-100' : 'border-white/5 bg-white/[0.03] text-slate-300'}`}><Icon size={17}/><span>{label}</span></NavLink>)}
