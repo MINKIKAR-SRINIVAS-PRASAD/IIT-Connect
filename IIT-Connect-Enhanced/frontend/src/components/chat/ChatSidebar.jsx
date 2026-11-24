@@ -125,10 +125,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         })()}
       </div>
 
-      <div className="px-4 pt-3 flex gap-2 text-xs">{[['people','Discover'],['requests','Requests'],['connections','Connections']].map(([key,label]) => <button key={key} onClick={() => setRequestTab(key)} className={`rounded-full px-3 py-2 ${requestTab === key ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'}`}>{label}{key === 'requests' && requests.incoming.length > 0 ? ` (${requests.incoming.length})` : ''}</button>)}</div>
-      {requestTab === 'requests' && <div className="px-3 py-2 space-y-2">{requests.incoming.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 flex items-center justify-between gap-2"><span className="text-sm text-white">{row.requester?.profile?.name || row.requester?.email || 'Student'} wants to connect</span><div className="flex gap-1"><button onClick={() => respond(row._id,'accept')} className="rounded-lg bg-indigo-600 px-2 py-1 text-xs text-white">Accept</button><button onClick={() => respond(row._id,'reject')} className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-300">Reject</button></div></div>)}{requests.outgoing.map(row => <p key={row._id} className="text-xs text-slate-400 px-2">Request sent to {row.recipient?.profile?.name || row.recipient?.email || 'student'} · Pending</p>)}{!requests.incoming.length && !requests.outgoing.length && <p className="text-xs text-slate-500 px-2">No pending requests.</p>}</div>}
-      {requestTab === 'connections' && <div className="px-3 py-2 space-y-2">{requests.connections.map(row => <div key={row._id} className="flex items-center justify-between rounded-xl border border-slate-800 p-3"><span className="text-sm text-white">{row.user?.profile?.name || row.user?.email || 'Connection'}</span><Button size="sm" className="chat-action-button" onClick={() => onStartDM(getId(row.user))}>Message</Button></div>)}{!requests.connections.length && <p className="text-xs text-slate-500 px-2">No connections yet. Send a request to connect.</p>}</div>}
-      {requestTab === 'people' && <>
+      {requestTab === 'people' && <div>
       <div className="instagram-inbox-label flex items-center justify-between px-4 pt-3">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{showArchived ? 'Archived chats' : 'Recent conversations'}</div>
         <button type="button" onClick={() => setShowArchived((value) => !value)} className="text-xs text-indigo-300 hover:text-indigo-200">
@@ -187,7 +184,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
             </div>
           ))}
           {q.trim() && matchingUsers.length === 0 && <p className="px-2 py-4 text-sm text-slate-400">No students found for “{q.trim()}”. Try a name or roll number.</p>}
-        </>}
+        </div>}
       </div>
     </aside>
   )
