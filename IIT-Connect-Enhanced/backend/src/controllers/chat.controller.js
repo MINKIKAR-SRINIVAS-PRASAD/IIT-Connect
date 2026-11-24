@@ -2,7 +2,8 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
-import User from '../models/User.js'\nimport ConnectionRequest from '../models/ConnectionRequest.js'
+import User from '../models/User.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim()
