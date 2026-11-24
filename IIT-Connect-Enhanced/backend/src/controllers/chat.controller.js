@@ -3,6 +3,7 @@ import { ApiError } from '../utils/apiError.js'
 import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 import ConversationPreference from '../models/ConversationPreference.js'
 import { removeUserFromConversation, broadcastMessageToConversation, isUserViewingConversation } from '../socket/index.js'
 import { sendPushToUser } from '../services/pushNotifications.js'
@@ -20,6 +21,51 @@ async function withParticipants(conversation) {
     select: participantFields
   })
 }
+
+export const listConnectionRequests = asyncHandler(async (req, res) => {
+  const uid = req.user._id
+  const [incoming, outgoing, connections] = await Promise.all([
+    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'email role profile').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'email role profile').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'email role profile').lean()
+  ])
+  res.json({ success: true, incoming, outgoing, connections: connections.map(row => ({
+    _id: row._id,
+    user: String(row.requester?._id) === String(uid) ? row.recipient : row.requester,
+    acceptedAt: row.respondedAt
+  })) })
+})
+
+export const sendConnectionRequest = asyncHandler(async (req, res) => {
+  const targetId = req.params.userId
+  if (!targetId || String(targetId) === String(req.user._id)) throw new ApiError(400, 'Choose another student')
+  const target = await User.findById(targetId).select('_id isBanned role')
+  if (!target || target.isBanned || target.role === 'admin') throw new ApiError(404, 'Student not found')
+  const uid = req.user._id
+  const reciprocal = await ConnectionRequest.findOne({ requester: target._id, recipient: uid, status: 'pending' })
+  if (reciprocal) {
+    reciprocal.status = 'accepted'; reciprocal.respondedAt = new Date(); await reciprocal.save()
+    return res.json({ success: true, status: 'accepted', request: reciprocal })
+  }
+  let request = await ConnectionRequest.findOne({ requester: uid, recipient: target._id })
+  if (request?.status === 'accepted') return res.json({ success: true, status: 'accepted', request })
+  if (request?.status === 'pending') return res.json({ success: true, status: 'pending', request })
+  if (request) { request.status = 'pending'; request.respondedAt = null; await request.save() }
+  else request = await ConnectionRequest.create({ requester: uid, recipient: target._id, status: 'pending' })
+  res.status(201).json({ success: true, status: 'pending', request })
+})
+
+export const respondToConnectionRequest = asyncHandler(async (req, res) => {
+  const { action } = req.body
+  if (!['accept', 'reject'].includes(action)) throw new ApiError(400, 'Choose accept or reject')
+  const request = await ConnectionRequest.findOne({ _id: req.params.requestId, recipient: req.user._id, status: 'pending' })
+  if (!request) throw new ApiError(404, 'Pending request not found')
+  request.status = action === 'accept' ? 'accepted' : 'rejected'
+  request.respondedAt = new Date()
+  await request.save()
+  res.json({ success: true, status: request.status, request })
+})
+
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
