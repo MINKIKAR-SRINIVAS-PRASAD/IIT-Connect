@@ -54,6 +54,13 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('conversation:join', async ({ conversationId }) => {
       if (!conversationId) return
+      const convo = await Conversation.findById(conversationId)
+      if (!convo || !convo.participants.some(p => p.toString() === userId)) return
+      if (convo.type === 'dm') {
+        const otherId = convo.participants.find(p => p.toString() !== userId)
+        const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
+        if (!accepted) return
+      }
       socket.join(conversationId)
     })
 
