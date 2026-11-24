@@ -79,18 +79,30 @@ export const listUsers = asyncHandler(async (req, res) => {
 
   if (q) {
     const safeQuery = escapeRegex(q)
+    // Search current and legacy profile layouts; older imported accounts
+    // stored profile fields at the document root or used alternate name keys.
     filter.$or = [
       { email: { $regex: safeQuery, $options: 'i' } },
+      { name: { $regex: safeQuery, $options: 'i' } },
+      { fullName: { $regex: safeQuery, $options: 'i' } },
+      { rollNumber: { $regex: safeQuery, $options: 'i' } },
+      { institute: { $regex: safeQuery, $options: 'i' } },
+      { iit: { $regex: safeQuery, $options: 'i' } },
+      { department: { $regex: safeQuery, $options: 'i' } },
       { 'profile.name': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.fullName': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.displayName': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.username': { $regex: safeQuery, $options: 'i' } },
       { 'profile.rollNumber': { $regex: safeQuery, $options: 'i' } },
       { 'profile.iit': { $regex: safeQuery, $options: 'i' } },
       { 'profile.institute': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.branch': { $regex: safeQuery, $options: 'i' } },
       { 'profile.department': { $regex: safeQuery, $options: 'i' } }
     ]
   }
 
   const users = await User.find(filter)
-    .select('profile.name profile.rollNumber profile.iit profile.branch profile.photoUrl lastSeenAt')
+    .select('name fullName rollNumber institute iit department profile.name profile.fullName profile.displayName profile.username profile.rollNumber profile.iit profile.institute profile.branch profile.department profile.photoUrl lastSeenAt')
     .limit(q ? 0 : 25)
     .sort({ createdAt: -1 })
 
