@@ -1,17 +1,23 @@
-export async function notifySuccessfulLogin(user) {
+export async function requestLoginNotificationPermission() {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   try {
-    let permission = Notification.permission;
-    // Request permission only while handling the user's login action.
-    if (permission === 'default') permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+  } catch (error) {
+    console.warn('Notification permission was not granted:', error);
+  }
+}
 
+export async function notifySuccessfulLogin(user) {
+  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
     let registration = null;
     if ('serviceWorker' in navigator) {
       try {
         registration = await navigator.serviceWorker.ready;
       } catch {
-        // The regular Notification API is a fallback where service workers are unavailable.
+        // Use the standard Notification API as a fallback.
       }
     }
 
