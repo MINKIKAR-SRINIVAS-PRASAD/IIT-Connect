@@ -72,7 +72,7 @@ export const listUsers = asyncHandler(async (req, res) => {
   const filter = {
     _id: { $ne: req.user._id },
     role: 'student',
-    isBanned: false
+    isBanned: { $ne: true }
   }
 
   if (q) {
