@@ -1687,3 +1687,47 @@ body {
 .home-share-cta > div > div > div {color:#b9d1a9 !important}
 .home-share-cta a {background:linear-gradient(110deg,#78936c,#a2bd91) !important;color:#142017 !important;border-color:rgba(190,215,173,.3) !important;box-shadow:0 8px 22px rgba(80,110,68,.15)}
 .home-share-cta a:hover {filter:brightness(1.08)}
+
+
+/* Instagram-inspired inbox refresh — keeps IIT Connect brand palette */
+.instagram-chat-page { color:var(--ic-ink); }
+.instagram-chat-page-heading { margin-bottom:2px; }
+.instagram-chat-page .section-kicker { letter-spacing:.14em; }
+.instagram-chat-shell { background:#fff; border-color:#e8e9e4 !important; box-shadow:0 18px 58px rgba(24,39,28,.075); }
+.instagram-chat-sidebar { background:#fff !important; border-color:#eceee9 !important; }
+.instagram-inbox-top { border-color:#eceee9 !important; }
+.instagram-inbox-top h2 { font-size:1.22rem; letter-spacing:-.035em; color:#1d2c22 !important; }
+.instagram-inbox-top input { border-radius:13px !important; background:#f5f7f3 !important; border:1px solid #edf0e9 !important; color:#24352a !important; }
+.instagram-inbox-label { color:#667468; }
+.instagram-conversation { border-color:transparent !important; background:transparent !important; transition:background .18s ease,border-color .18s ease,transform .18s ease; }
+.instagram-conversation:hover { background:#f6f8f4 !important; transform:translateX(2px); }
+.instagram-conversation.is-active { background:#eef4e9 !important; border-color:#e0ead8 !important; }
+.instagram-avatar { border:2px solid #fff !important; background:linear-gradient(145deg,#dcebd2,#edf3e8) !important; color:#42634a !important; box-shadow:0 0 0 1px #dce6d7; }
+.instagram-chat-window { background:#fff !important; }
+.instagram-chat-header { min-height:76px; background:#fff !important; border-color:#eceee9 !important; }
+.instagram-chat-header h2 { color:#1d2c22 !important; font-weight:650; }
+.instagram-chat-header .text-xs { color:#829084 !important; }
+.instagram-message-list { background:radial-gradient(ellipse at 50% 0%,#fbfcf9 0%,#fff 65%); }
+.instagram-message-row { margin:8px 0; }
+.instagram-message-bubble { border-radius:22px !important; padding:11px 15px !important; box-shadow:0 3px 12px rgba(30,45,30,.045) !important; }
+.instagram-message-row.is-own .instagram-message-bubble { background:linear-gradient(135deg,#6e9366,#4f7952) !important; border:0 !important; color:#fff !important; border-bottom-right-radius:7px !important; }
+.instagram-message-row.is-other .instagram-message-bubble { background:#f1f3ef !important; border:1px solid #edf0e9 !important; color:#29372c !important; border-bottom-left-radius:7px !important; }
+.instagram-message-row.is-own .instagram-message-bubble .text-indigo-100\/70 { color:rgba(255,255,255,.72) !important; }
+.instagram-message-row.is-other .instagram-message-bubble .text-slate-400 { color:#879287 !important; }
+.instagram-chat-composer { background:#fff !important; border-color:#eceee9 !important; }
+.instagram-composer-inner { background:#f7f8f5 !important; border-color:#e8ece4 !important; padding:6px 8px 6px 15px !important; }
+.instagram-composer-inner input { background:transparent !important; border:0 !important; box-shadow:none !important; color:#29372c !important; }
+.instagram-send-button { min-height:40px; border-radius:999px !important; padding:0 19px !important; background:#557d55 !important; color:white !important; font-weight:650; }
+.instagram-send-button:disabled { opacity:.45; }
+.instagram-mobile-back { width:32px;height:32px;align-items:center;justify-content:center;border-radius:50%;color:#536b53;background:#f2f5ef; }
+.instagram-chat-brand { display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:#eef4e9;color:#52734d;font-size:12px;font-weight:700; }
+@media(max-width:767px) {
+ .instagram-chat-page-heading { padding:0 2px; }
+ .instagram-chat-shell { min-height:calc(100dvh - 180px) !important;border-radius:20px !important; }
+ .instagram-chat-sidebar { border-right:0 !important; }
+ .instagram-chat-shell.has-active-chat .instagram-chat-sidebar { display:none !important; }
+ .instagram-chat-shell.has-active-chat .instagram-chat-window { min-height:calc(100dvh - 190px) !important; }
+ .instagram-mobile-back { display:flex; }
+ .instagram-chat-header { padding-left:10px !important; }
+ .instagram-message-list { padding:16px 12px !important; }
+}
