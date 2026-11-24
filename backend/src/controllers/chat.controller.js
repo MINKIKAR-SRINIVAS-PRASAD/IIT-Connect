@@ -153,13 +153,8 @@ export const myConversations = asyncHandler(async (req, res) => {
 
   const acceptedRows = await ConnectionRequest.find({ status: 'accepted', $or: [{ requester: userId }, { recipient: userId }] }).select('requester recipient').lean()
   const acceptedIds = acceptedRows.map(row => String(row.requester) === String(userId) ? row.recipient : row.requester)
-  const conversations = await Conversation.find({
-    $or: [
-      { type: 'dm', participants: { $all: [userId, { $in: acceptedIds }] } },
-      { participants: userId, type: { $ne: 'dm' } },
-      { type: 'group' }, { type: 'community' }
-    ]
-  })
+  const dmFilters = acceptedIds.map(otherId => ({ type: 'dm', participants: { $all: [userId, otherId] } }))
+  const conversations = await Conversation.find({ $or: [...dmFilters, { participants: userId, type: { $ne: 'dm' } }, { type: 'group' }, { type: 'community' }] })
     .populate({
       path: 'participants',
       select: 'email role profile isBanned'
