@@ -2,7 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
-import User from '../models/User.js'
+import User from '../models/User.js'\nimport ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim()
@@ -114,4 +114,72 @@ export const messages = asyncHandler(async (req, res) => {
     .limit(500)
 
   res.json({ success: true, messages: msgs })
+})
+
+
+// Connection requests: private DMs are available only after acceptance.
+export const listConnectionRequests = asyncHandler(async (req, res) => {
+  const uid = req.user._id
+  const [incoming, outgoing, connections] = await Promise.all([
+    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'email role profile').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'email role profile').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'email role profile').lean()
+  ])
+  res.json({ success: true, incoming, outgoing, connections: connections.map(row => ({
+    _id: row._id,
+    user: String(row.requester?._id) === String(uid) ? row.recipient : row.requester,
+    acceptedAt: row.respondedAt
+  })) })
+})
+
+export const sendConnectionRequest = asyncHandler(async (req, res) => {
+  const targetId = req.params.userId
+  if (!targetId || String(targetId) === String(req.user._id)) throw new ApiError(400, 'Choose another student')
+  const target = await User.findById(targetId).select('_id isBanned role')
+  if (!target || target.isBanned || target.role === 'admin') throw new ApiError(404, 'Student not found')
+  const uid = req.user._id
+  const reciprocal = await ConnectionRequest.findOne({ requester: target._id, recipient: uid, status: 'pending' })
+  if (reciprocal) {
+    reciprocal.status = 'accepted'; reciprocal.respondedAt = new Date(); await reciprocal.save()
+    return res.json({ success: true, status: 'accepted', request: reciprocal })
+  }
+  let request = await ConnectionRequest.findOne({ requester: uid, recipient: target._id })
+  if (request?.status === 'accepted') return res.json({ success: true, status: 'accepted', request })
+  if (request?.status === 'pending') return res.json({ success: true, status: 'pending', request })
+  if (request) { request.status = 'pending'; request.respondedAt = null; await request.save() }
+  else request = await ConnectionRequest.create({ requester: uid, recipient: target._id, status: 'pending' })
+  res.status(201).json({ success: true, status: 'pending', request })
+})
+
+export const respondToConnectionRequest = asyncHandler(async (req, res) => {
+  const { action } = req.body
+  if (!['accept', 'reject'].includes(action)) throw new ApiError(400, 'Choose accept or reject')
+  const request = await ConnectionRequest.findOne({ _id: req.params.requestId, recipient: req.user._id, status: 'pending' })
+  if (!request) throw new ApiError(404, 'Pending request not found')
+  request.status = action === 'accept' ? 'accepted' : 'rejected'
+  request.respondedAt = new Date()
+  await request.save()
+  res.json({ success: true, status: request.status, request })
+})
+
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { conversationId, text } = req.body
+  const cleanText = String(text || '').trim()
+  if (!conversationId || !cleanText) throw new ApiError(400, 'Conversation and message are required')
+  const convo = await Conversation.findById(conversationId)
+  if (!convo) throw new ApiError(404, 'Conversation not found')
+  const uid = String(req.user._id)
+  const member = convo.participants.some(p => String(p) === uid)
+  if (convo.type === 'dm') {
+    if (!member || convo.participants.length !== 2) throw new ApiError(403, 'You are not part of this chat')
+    const otherId = convo.participants.find(p => String(p) !== uid)
+    const connected = await ConnectionRequest.exists({ status: 'accepted', $or: [
+      { requester: req.user._id, recipient: otherId }, { requester: otherId, recipient: req.user._id }
+    ] })
+    if (!connected) throw new ApiError(403, 'Accept the connection request before messaging')
+  } else if (convo.type === 'group' && !member) throw new ApiError(403, 'Join this group to message')
+  const message = await Message.create({ conversationId, senderId: req.user._id, text: cleanText.slice(0, 2000), seenBy: [req.user._id] })
+  convo.lastMessageAt = new Date(); convo.lastMessageText = message.text; await convo.save()
+  const populated = await Message.findById(message._id).populate('senderId', 'email role profile').lean()
+  res.status(201).json({ success: true, message: populated })
 })
