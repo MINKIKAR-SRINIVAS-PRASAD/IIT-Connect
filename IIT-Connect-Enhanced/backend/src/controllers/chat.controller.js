@@ -71,7 +71,9 @@ export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
   const filter = {
     _id: { $ne: req.user._id },
-    role: 'student',
+    // Include legacy student accounts with missing/older role values,
+    // while keeping staff/admin accounts out of the student directory.
+    role: { $nin: ['admin', 'faculty'] },
     isBanned: { $ne: true }
   }
 
@@ -81,7 +83,9 @@ export const listUsers = asyncHandler(async (req, res) => {
       { email: { $regex: safeQuery, $options: 'i' } },
       { 'profile.name': { $regex: safeQuery, $options: 'i' } },
       { 'profile.rollNumber': { $regex: safeQuery, $options: 'i' } },
-      { 'profile.iit': { $regex: safeQuery, $options: 'i' } }
+      { 'profile.iit': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.institute': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.department': { $regex: safeQuery, $options: 'i' } }
     ]
   }
 
