@@ -4,7 +4,11 @@ import { listConnectionRequests, sendConnectionRequest, respondToConnectionReque
 
 const router = Router()
 
-router.get('/requests', requireAuth, listConnectionRequests)\nrouter.post('/connect/:userId', requireAuth, sendConnectionRequest)\nrouter.patch('/requests/:requestId', requireAuth, respondToConnectionRequest)\nrouter.post('/messages', requireAuth, sendMessage)\nrouter.get('/users', requireAuth, listUsers)
+router.get('/requests', requireAuth, listConnectionRequests)
+router.post('/connect/:userId', requireAuth, sendConnectionRequest)
+router.patch('/requests/:requestId', requireAuth, respondToConnectionRequest)
+router.post('/messages', requireAuth, sendMessage)
+router.get('/users', requireAuth, listUsers)
 router.get('/conversations', requireAuth, myConversations)
 router.post('/dm', requireAuth, getOrCreateDM)
 router.post('/group', requireAuth, getOrCreateIitGroup)
