@@ -7,19 +7,21 @@ import CampusNews from '../models/CampusNews.js'
 import PlacementPost from '../models/PlacementPost.js'
 import StudyPost from '../models/StudyPost.js'
 import TravelPost from '../models/TravelPost.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const getPublicStudentProfile = asyncHandler(async (req, res) => {
   const user = await User.findOne({ _id: req.params.userId, role: 'student', isBanned: { $ne: true } }).select('_id role profile createdAt')
   if (!user) throw new ApiError(404, 'Student profile not found')
   const authorId = user._id
   const approved = { authorId, status: 'Approved' }
-  const [gallery, events, news, placements, study, travel] = await Promise.all([
+  const [gallery, events, news, placements, study, travel, connections] = await Promise.all([
     GalleryPost.find(approved).sort({ createdAt: -1 }).limit(60).select('caption imageUrl iit createdAt status'),
     EventPost.find(approved).sort({ createdAt: -1 }).limit(60).select('title description posterUrl datetime venue iit createdAt status'),
     CampusNews.find(approved).sort({ createdAt: -1 }).limit(60).select('title body category institute sourceUrl createdAt status'),
     PlacementPost.find(approved).sort({ createdAt: -1 }).limit(60).select('companyName role ctc tips createdAt status'),
     StudyPost.find(approved).sort({ createdAt: -1 }).limit(60).select('title description subject semester branch resourceType links tags createdAt status'),
-    TravelPost.find(approved).sort({ createdAt: -1 }).limit(60).select('destination location category description budget travelDate from to createdAt status')
+    TravelPost.find(approved).sort({ createdAt: -1 }).limit(60).select('destination location category description budget travelDate from to createdAt status'),
+    ConnectionRequest.find({ status: 'accepted', $or: [{ requester: authorId }, { recipient: authorId }] }).populate('requester', 'profile.name profile.photoUrl profile.iit profile.branch profile.batch').populate('recipient', 'profile.name profile.photoUrl profile.iit profile.branch profile.batch').limit(500)
   ])
   const sections = [
     ...gallery.map(post => ({ ...post.toObject(), section: 'Gallery', type: 'image', text: post.caption })),
@@ -34,6 +36,7 @@ export const getPublicStudentProfile = asyncHandler(async (req, res) => {
     photoUrl: user.profile?.photoUrl || '', rollNumber: user.profile?.rollNumber || '',
     institute: user.profile?.iit || '', branch: user.profile?.branch || '',
     batch: user.profile?.batch || '', bio: user.profile?.bio || '',
-    joinedAt: user.createdAt
+    joinedAt: user.createdAt,
+    connections: connections.map(row => { const person = String(row.requester._id) === String(authorId) ? row.recipient : row.requester; return { id: String(person._id), name: person.profile?.name || 'Student', photoUrl: person.profile?.photoUrl || '', institute: person.profile?.iit || '', branch: person.profile?.branch || '', batch: person.profile?.batch || '' } })
   }, posts: sections })
 })
