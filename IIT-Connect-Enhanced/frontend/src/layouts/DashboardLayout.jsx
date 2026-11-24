@@ -19,5 +19,5 @@ function StudentMobileBar(){
  </nav>
 }
 export default function DashboardLayout(){
- return <PortalShell><Outlet/><StudentMobileBar/></PortalShell>
+ return <><PortalShell><Outlet/></PortalShell><StudentMobileBar/></>
 }
