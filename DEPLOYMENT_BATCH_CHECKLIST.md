@@ -71,3 +71,15 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Ensure Students Search points to the actual student discovery/search experience (confirm route/API; do not point it to a placeholder).
 - [ ] Apply the mobile navigation consistently to the student portal in both frontend copies; do not unintentionally replace the separate faculty/admin navigation.
 - [ ] Test mobile widths, Android safe-area/browser bars, route transitions, and profile/chat navigation before batch deployment.
+
+## Cross-IIT student connections and accepted-only private chat (new request)
+
+- [ ] Any eligible student account can discover/search students from any IIT (not restricted to their own institute); show institute and safe public profile fields to distinguish users.
+- [ ] Student A can send a connection request to Student B across IITs; prevent self-requests and duplicate/pending requests.
+- [ ] Student B can accept or reject; requester can see request status and withdraw/cancel if supported.
+- [ ] Create/maintain a connection only after acceptance; both students can see accepted connection state.
+- [ ] Enable private one-to-one chat only for mutually accepted connections; pending/rejected/blocked users cannot start or continue private conversations.
+- [ ] Enforce connection authorization on backend/API and socket/message endpoints, not only by hiding frontend buttons.
+- [ ] Refresh/update request, acceptance, rejection, and chat access states reliably in both student UI copies.
+- [ ] Preserve student/faculty separation, prevent unauthorized access, and avoid exposing private email or sensitive account data in discovery.
+- [ ] Test cross-institute cases, both request directions, rejected/pending states, duplicate requests, and direct API/socket access before batch deployment.
