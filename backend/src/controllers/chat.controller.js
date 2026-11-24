@@ -4,7 +4,8 @@ import { ApiError } from '../utils/apiError.js'
 
 import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
-import User from '../models/User.js'\nimport ConnectionRequest from '../models/ConnectionRequest.js'
+import User from '../models/User.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 
 // 1. List students and users
 export const listUsers = asyncHandler(async (req, res) => {
