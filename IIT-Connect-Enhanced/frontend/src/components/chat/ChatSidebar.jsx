@@ -184,8 +184,8 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
             </div>
           ))}
           {q.trim() && matchingUsers.length === 0 && <p className="px-2 py-4 text-sm text-slate-400">No students found for “{q.trim()}”. Try a name or roll number.</p>}
-        </div>}
-      </div>
+        </div>
+      </div>}
     </aside>
   )
 }
