@@ -16,7 +16,7 @@ export default function MessageBubble({ me, msg, isSeen, showSender = true }) {
   const photoUrl = sender?.profile?.photoUrl || sender?.photoUrl || ''
 
   return (
-    <div className={`flex w-full items-end gap-2 ${me ? 'justify-end' : 'justify-start'}`}>
+    <div className={`instagram-message-row flex w-full items-end gap-2 ${me ? 'justify-end' : 'justify-start'}`}>
       {!me && (
         <div className="mb-1 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center text-[10px] font-semibold text-slate-200">
           {photoUrl ? (
@@ -25,7 +25,7 @@ export default function MessageBubble({ me, msg, isSeen, showSender = true }) {
         </div>
       )}
 
-      <div className={`max-w-[min(78%,620px)] min-w-[88px] rounded-2xl border px-3.5 py-2.5 shadow-sm ${me
+      <div className={`instagram-message-bubble max-w-[min(78%,620px)] min-w-[88px] rounded-2xl border px-3.5 py-2.5 shadow-sm ${me
         ? 'rounded-br-md border-indigo-400/30 bg-gradient-to-br from-indigo-600/35 to-violet-600/20 text-white'
         : 'rounded-bl-md border-slate-700/80 bg-slate-900/90 text-slate-100'
       }`}>
