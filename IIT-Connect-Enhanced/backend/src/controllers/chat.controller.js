@@ -7,7 +7,7 @@ import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim().slice(0, 80)
-  const escapedQ = q.replace(/[.*+?^$|(){}[\\]\\\\]/g, '\\$&')
+  const escapedQ = q.replace(/[.*+?^$|(){}[\]\\]/g, '\\$&')
   const filter = {
     isBanned: { $ne: true },
     role: 'student',
