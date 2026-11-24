@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, X, LogOut, Sparkles } from 'lucide-react'
