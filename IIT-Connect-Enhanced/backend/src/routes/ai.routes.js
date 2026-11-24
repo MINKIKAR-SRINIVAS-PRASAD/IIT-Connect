@@ -32,35 +32,51 @@ router.post('/chat', requireAuth, aiLimiter, async (req, res, next) => {
       }))
     contents.push({ role: 'user', parts: [{ text: message }] })
 
-    const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{
-              text: 'You are IIT Connect AI, a helpful assistant for students and faculty. Help with learning, engineering concepts, coding, research, teaching, campus guidance, and planning. Be clear, supportive, and honest. Do not invent official IIT policies or campus announcements; ask users to verify official information.'
-            }]
-          },
-          contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-        })
-      }
-    )
+    const requestBody = {
+      systemInstruction: {
+        parts: [{
+          text: 'You are IIT Connect AI, a helpful assistant for students and faculty. Help with learning, engineering concepts, coding, research, teaching, campus guidance, and planning. Be clear, supportive, and honest. Do not invent official IIT policies or campus announcements; ask users to verify official information.'
+        }]
+      },
+      contents,
+      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+    }
 
-    const data = await response.json().catch(() => ({}))
+    const callGemini = async model => {
+      const result = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
+          },
+          body: JSON.stringify(requestBody)
+        }
+      )
+      return { response: result, data: await result.json().catch(() => ({})) }
+    }
+
+    // Gemini 3.8 Flash can return 503 during capacity spikes. Try Google's
+    // recommended efficient fallback model before returning an error to the UI.
+    let { response, data } = await callGemini('gemini-3.8-flash')
+    if (response.status === 503) {
+      console.warn('[IIT Connect AI] Gemini 3.8 Flash overloaded (503); attempting gemini-3.5-flash-lite fallback.')
+      const fallback = await callGemini('gemini-3.5-flash-lite')
+      response = fallback.response
+      data = fallback.data
+      if (response.ok) {
+        console.info('[IIT Connect AI] Fallback model gemini-3.5-flash-lite responded successfully.')
+      }
+    }
+
     if (!response.ok) {
       const upstreamMessage = data?.error?.message || 'The AI provider could not complete the request.'
-      // Keep provider diagnostics in Render logs (never log the API key or user prompt).
       console.error(`[IIT Connect AI] Gemini HTTP ${response.status} (${data?.error?.status || 'unknown'}): ${upstreamMessage}`)
       const status = response.status === 429 ? 429 : response.status === 401 || response.status === 403 ? 503 : 502
       return res.status(status).json({
         message: response.status === 429
-          ? 'Gemini free-tier limit reached for now. Please wait and try again.'
+          ? 'Gemini request limit reached. Please wait and try again.'
           : status === 503
             ? 'The AI provider rejected the configured API key. Check the Gemini key in Render.'
             : 'The AI service is temporarily unavailable. Please try again.'
