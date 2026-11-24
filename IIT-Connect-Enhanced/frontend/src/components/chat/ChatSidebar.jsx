@@ -72,12 +72,12 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   }
 
   return (
-    <aside className="w-full shrink-0 border-b border-slate-800 bg-slate-950 md:w-[340px] md:border-b-0 md:border-r">
-      <div className="border-b border-slate-800 p-4">
+    <aside className="instagram-chat-sidebar w-full shrink-0 border-b md:w-[350px] md:border-b-0 md:border-r">
+      <div className="instagram-inbox-top border-b p-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-white">Messages</h2>
-            <p className="text-xs text-slate-500">Your IIT Connect inbox</p>
+            <h2 className="font-semibold text-white">Inbox</h2>
+            <p className="text-xs text-slate-500">Your conversations</p>
           </div>
           <Button className="chat-ghost-button" variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
         </div>
@@ -112,13 +112,13 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         })()}
       </div>
 
-      <div className="flex items-center justify-between px-4 pt-3">
+      <div className="instagram-inbox-label flex items-center justify-between px-4 pt-3">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{showArchived ? 'Archived chats' : 'Recent conversations'}</div>
         <button type="button" onClick={() => setShowArchived((value) => !value)} className="text-xs text-indigo-300 hover:text-indigo-200">
           {showArchived ? 'Show inbox' : 'Archived'}
         </button>
       </div>
-      <div className="max-h-[280px] space-y-2 overflow-y-auto p-3 md:max-h-[calc(70vh-190px)]">
+      <div className="instagram-inbox-list max-h-[280px] space-y-2 overflow-y-auto p-3 md:max-h-[calc(72vh-160px)]">
         {convosSorted.map((conversation) => {
           const label = conversationLabel(conversation, currentUserId)
           const photo = conversationAvatar(conversation, currentUserId)
@@ -127,7 +127,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
             <div key={conversation._id} className={activeId === conversation._id ? 'rounded-xl border border-indigo-500/50 bg-indigo-500/10 px-2 py-2' : 'rounded-xl border border-slate-800 bg-slate-900/50 px-2 py-2'}>
               <div className="flex items-center gap-3">
                 <button type="button" onClick={() => onSelectConversation(conversation)} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-left">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-slate-200">
+                  <div className="instagram-avatar flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold">
                     {photo ? <img src={photo} alt={label} className="h-full w-full object-cover" /> : conversation.type === 'dm' ? label.slice(0, 1).toUpperCase() : conversation.type === 'community' ? '🌐' : '👥'}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -158,7 +158,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
           <div className="px-1 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Find students</div>
           {matchingUsers.map((person) => (
             <div key={person._id} className="flex items-center gap-3 rounded-xl border border-slate-800/80 bg-slate-900/30 p-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 text-xs font-semibold text-slate-200">
+              <div className="instagram-avatar instagram-find-avatar flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-semibold">
                 {person.profile?.photoUrl ? <img src={person.profile.photoUrl} alt={person.profile?.name || 'Student'} className="h-full w-full object-cover" /> : (person.profile?.name || 'S').slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
