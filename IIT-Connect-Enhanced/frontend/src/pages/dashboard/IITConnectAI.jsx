@@ -3,7 +3,7 @@ import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
 import {
   Bot, Send, Sparkles, UserRound, Trash2, LoaderCircle, Plus,
-  MessageSquare, Pencil, PanelLeftClose, PanelLeftOpen, Search, MoreHorizontal
+  MessageSquare, Pencil, PanelLeftClose, PanelLeftOpen, Search, MoreHorizontal, Paperclip, X, FileText, FolderUp
 } from 'lucide-react'
 
 const prompts = [
@@ -29,6 +29,10 @@ export default function IITConnectAI() {
   const [activeId, setActiveId] = useState(null)
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
+  const [attachments, setAttachments] = useState([])
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
+  const folderInputRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [historyOpen, setHistoryOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
@@ -119,13 +123,15 @@ export default function IITConnectAI() {
 
   async function send(value = text) {
     const message = value.trim()
-    if (!message || busy) return
+    if ((!message && !attachments.length) || busy || uploading) return
     const tempId = `local-${Date.now()}`
-    setMessages(prev => [...prev, { id: tempId, role: 'user', content: message }])
+    const pendingAttachments = [...attachments]
+    setMessages(prev => [...prev, { id: tempId, role: 'user', content: message || 'Please analyze these attachments.', attachments: pendingAttachments }])
     setText('')
+    setAttachments([])
     setBusy(true)
     try {
-      const { data } = await api.post('/ai/chat', { message, conversationId: activeId })
+      const { data } = await api.post('/ai/chat', { message: message || 'Please analyze these attachments.', conversationId: activeId, attachments: pendingAttachments })
       if (data.conversationId && data.conversationId !== activeId) setActiveId(data.conversationId)
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer }])
       await loadConversations()
@@ -137,6 +143,21 @@ export default function IITConnectAI() {
     } finally {
       setBusy(false)
     }
+  }
+
+  async function selectFiles(event) {
+    const files = Array.from(event.target.files || [])
+    event.target.value = ''
+    if (!files.length) return
+    if (files.length + attachments.length > 10) { window.alert('You can attach up to 10 files per message.'); return }
+    setUploading(true)
+    try {
+      const form = new FormData()
+      files.forEach(file => form.append('files', file))
+      const { data } = await api.post('/ai/upload', form)
+      setAttachments(prev => [...prev, ...(data.files || [])])
+    } catch (error) { window.alert(error?.response?.data?.message || 'Could not upload files. Please try again.') }
+    finally { setUploading(false) }
   }
 
   const visibleConversations = conversations.filter(item =>
@@ -182,7 +203,7 @@ export default function IITConnectAI() {
         {busy&&<div className="flex items-center gap-2 text-xs text-slate-400"><LoaderCircle size={15} className="animate-spin"/> IIT Connect AI is thinking…</div>}
 
       </main>
-      <form onSubmit={e=>{e.preventDefault();send()}} className="border-t border-white/10 bg-black/10 p-4 sm:p-5"><div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0b1411] p-2 focus-within:border-[#a8c49a]/40"><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}} rows={2} maxLength={6000} placeholder="Ask IIT Connect AI anything…" className="max-h-40 min-h-[48px] flex-1 resize-y bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-slate-500"/><button type="submit" disabled={!text.trim()||busy} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#a8c49a] text-[#101810] transition hover:bg-[#bdd5ae] disabled:opacity-40"><Send size={18}/></button></div><p className="mt-2 text-center text-[10px] text-slate-500">AI can make mistakes. Verify important academic or official information.</p></form>
+      <form onSubmit={e=>{e.preventDefault();send()}} className="border-t border-white/10 bg-black/10 p-4 sm:p-5"><input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.txt,.csv,.md,.json,.doc,.docx,.pptx,.xlsx" className="hidden" onChange={selectFiles}/><input ref={folderInputRef} type="file" multiple webkitdirectory="" directory="" className="hidden" onChange={selectFiles}/>{attachments.length>0&&<div className="mb-2 flex flex-wrap gap-2">{attachments.map((file,i)=><span key={file.fileId} className="inline-flex max-w-full items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-2.5 py-1.5 text-xs text-slate-300"><FileText size={13}/><span className="max-w-[180px] truncate">{file.filename}</span><button type="button" onClick={()=>setAttachments(prev=>prev.filter((_,j)=>j!==i))} aria-label="Remove attachment"><X size={13}/></button></span>)}</div>}<div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0b1411] p-2 focus-within:border-[#a8c49a]/40"><button type="button" disabled={busy||uploading} onClick={()=>fileInputRef.current?.click()} title="Attach files or images" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 disabled:opacity-40"><Paperclip size={18}/></button><button type="button" disabled={busy||uploading} onClick={()=>folderInputRef.current?.click()} title="Attach folder" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 disabled:opacity-40"><FolderUp size={18}/></button><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}} rows={2} maxLength={6000} placeholder="Ask IIT Connect AI anything…" className="max-h-40 min-h-[48px] flex-1 resize-y bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-slate-500"/><button type="submit" disabled={(!text.trim()&&!attachments.length)||busy||uploading} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#a8c49a] text-[#101810] transition hover:bg-[#bdd5ae] disabled:opacity-40"><Send size={18}/></button></div><p className="mt-2 text-center text-[10px] text-slate-500">AI can make mistakes. Verify important academic or official information.</p></form>
     </section>
   </div>
 }
