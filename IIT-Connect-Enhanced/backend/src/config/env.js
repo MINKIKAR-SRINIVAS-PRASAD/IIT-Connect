@@ -15,6 +15,8 @@ export const env = {
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '60d',
   ADMIN_EMAILS: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   FACULTY_EMAILS: (process.env.FACULTY_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-6.2-astra',
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PORT: Number(process.env.SMTP_PORT || 587),
   SMTP_SECURE: String(process.env.SMTP_SECURE || 'false') === 'true',
