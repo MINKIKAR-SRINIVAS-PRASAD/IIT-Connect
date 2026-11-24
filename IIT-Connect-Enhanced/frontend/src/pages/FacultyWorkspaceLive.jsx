@@ -13,10 +13,10 @@ const input='w-full rounded-xl border border-white/10 bg-[#101a30] px-3.5 py-3 t
 const panel='rounded-2xl border border-[#a8c49a]/15 bg-gradient-to-br from-[#1b2820] to-[#151f18] p-5 shadow-[0_12px_34px_rgba(0,0,0,.12)]'
 const paths={events:'/events',gallery:'/faculty/gallery',study:'/study',publications:'/publications',travel:'/travel'}
 const titles={home:'Faculty Home',events:'Faculty Events',gallery:'Faculty Gallery',study:'Faculty Study Hub',publications:'Faculty Publications',travel:'Faculty Travel',community:'Faculty Community',news:'Faculty News'}
-const requiredFields={events:['title','startAt','venue','description'],gallery:['imageUrl','caption'],study:['title','subject','description','resourceUrl'],publications:['title','abstract','institute','department'],travel:['title','from','to','travelDate','description']}
+const requiredFields={events:['title','startAt','venue','description'],gallery:['caption'],study:['title','subject','description','resourceUrl'],publications:['title','abstract','institute','department'],travel:['title','from','to','travelDate','description']}
 export default function FacultyWorkspace({section='home'}){
  const {user,logout}=useAuth(),navigate=useNavigate()
- const [items,setItems]=useState([]),[f,setF]=useState(blank),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[showForm,setShowForm]=useState(false),[query,setQuery]=useState(''),[mobileOpen,setMobileOpen]=useState(false),[homeEvents,setHomeEvents]=useState([]),[homeGallery,setHomeGallery]=useState([]),[homeNews,setHomeNews]=useState([]),[homeFeedStatus,setHomeFeedStatus]=useState('')
+ const [items,setItems]=useState([]),[f,setF]=useState(blank),[galleryFile,setGalleryFile]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[showForm,setShowForm]=useState(false),[query,setQuery]=useState(''),[mobileOpen,setMobileOpen]=useState(false),[homeEvents,setHomeEvents]=useState([]),[homeGallery,setHomeGallery]=useState([]),[homeNews,setHomeNews]=useState([]),[homeFeedStatus,setHomeFeedStatus]=useState('')
  const path=paths[section],heading=titles[section]||'Faculty Network'
  const set=(k,v)=>setF(p=>({...p,[k]:v}))
  async function load(){
@@ -43,24 +43,31 @@ export default function FacultyWorkspace({section='home'}){
   }catch(e){if(section!=='home')toast.error(e?.response?.data?.message||'Unable to load faculty content')}
   finally{setLoading(false)}
  }
- useEffect(()=>{setItems([]);setF(blank);setShowForm(false);load()},[section])
+ useEffect(()=>{setItems([]);setF(blank);setGalleryFile(null);setShowForm(false);load()},[section])
  useEffect(()=>{if(section!=='community')return;const timer=setInterval(async()=>{try{const {data}=await api.get('/faculty/community/messages');setItems(data.messages||[])}catch{}},5000);return()=>clearInterval(timer)},[section])
  async function submit(e){
   e.preventDefault()
   const missing=(requiredFields[section]||[]).filter(k=>!String(f[k]||'').trim())
   if(missing.length){toast.error('Please complete every required field.');return}
-  if(section==='gallery'&&!/^https:\/\//i.test(f.imageUrl)){toast.error('Use a valid HTTPS image URL.');return}
+  if(section==='gallery'&&!galleryFile){toast.error('Please select an image file.');return}
   if(section==='study'&&!/^https:\/\//i.test(f.resourceUrl)){toast.error('Use a valid HTTPS resource link.');return}
   if(section==='events'&&new Date(f.startAt)<=new Date()){toast.error('Choose a future event date and time.');return}
   if(section==='travel'&&new Date(f.travelDate)<new Date(new Date().toDateString())){toast.error('Travel date cannot be in the past.');return}
   setBusy(true)
   try{
-   const payload={...f}
+   let payload={...f},requestConfig={}
    if(section==='events')payload.startAt=new Date(f.startAt).toISOString()
    if(section==='travel')payload.travelDate=new Date(f.travelDate).toISOString()
-   const {data}=await api.post(section==='community'?'/faculty/community/messages':path,payload)
+   let endpoint=section==='community'?'/faculty/community/messages':path
+   if(section==='gallery'){
+    payload=new FormData()
+    payload.append('caption',f.caption.trim())
+    payload.append('image',galleryFile)
+    endpoint='/gallery'
+   }
+   const {data}=await api.post(endpoint,payload,requestConfig)
    toast.success(section==='community'?'Message sent to faculty colleagues':(data.message||'Submitted for admin approval'))
-   setF(blank);setShowForm(false);await load()
+   setF(blank);setGalleryFile(null);setShowForm(false);await load()
   }catch(e){toast.error(e?.response?.data?.message||'Submission failed')}
   finally{setBusy(false)}
  }
@@ -91,7 +98,7 @@ export default function FacultyWorkspace({section='home'}){
  </div>:<div className="space-y-5">
  {showForm&&section!=='community'&&<form onSubmit={submit} className={panel+' space-y-4'}><div><h2 className="text-lg font-semibold text-[#f0f1e8]">Create {heading.toLowerCase()} post</h2><p className="mt-1 text-xs text-slate-400">All marked fields are mandatory. Your submission will appear after admin approval.</p></div>
  {section==='events'&&<EventCreate onCreated={async()=>{setShowForm(false);toast.success('Event submitted for admin approval');await load()}}/>}
- {section==='gallery'&&<div className="grid gap-4 md:grid-cols-2">{field('imageUrl','HTTPS image URL','url')}{area('caption','Photo caption')}</div>}
+ {section==='gallery'&&<div className="rounded-2xl border border-white/10 bg-[#101a30]/60 p-4"><h3 className="font-semibold text-slate-100">Upload to Gallery</h3><div className="mt-3 grid gap-3 md:grid-cols-2"><label className="block space-y-1.5"><span className="text-xs font-medium text-slate-300">Caption <span className="text-rose-300">*</span></span><input className={input} required minLength={3} maxLength={500} value={f.caption||''} onChange={e=>set('caption',e.target.value)} placeholder="A moment at campus..."/></label><label className="block space-y-1.5"><span className="text-xs font-medium text-slate-300">Image <span className="text-rose-300">*</span></span><input type="file" accept="image/*" required className="block w-full cursor-pointer rounded-xl border border-white/10 bg-[#101a30] p-3 text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-[#91ad83] file:px-3 file:py-2 file:font-semibold file:text-[#101810]" onChange={e=>setGalleryFile(e.target.files?.[0]||null)}/>{galleryFile&&<span className="block truncate text-xs text-slate-400">{galleryFile.name}</span>}</label></div></div>}
  {section==='study'&&<div className="grid gap-4 md:grid-cols-2">{field('title','Resource title')}{field('subject','Subject / research area')}{field('resourceUrl','HTTPS resource link','url')}{area('description','Resource description')}</div>}
  {section==='publications'&&<div className="grid gap-4 md:grid-cols-2">{field('title','Publication title')}{field('institute','Institute')}{field('department','Department')}{<label className="block space-y-1.5 text-xs text-slate-300">Publication type *<select required className={input} value={f.publicationType} onChange={e=>set('publicationType',e.target.value)}><option value="">Select type</option>{['journal','conference','book','patent','preprint','other'].map(x=><option key={x} value={x}>{x[0].toUpperCase()+x.slice(1)}</option>)}</select></label>}{area('abstract','Abstract')}</div>}
  {section==='travel'&&<div className="grid gap-4 md:grid-cols-2">{field('title','Conference / travel title')}{field('from','Origin')}{field('to','Destination')}{field('travelDate','Travel date','date')}{area('description','Travel / collaboration details')}</div>}
