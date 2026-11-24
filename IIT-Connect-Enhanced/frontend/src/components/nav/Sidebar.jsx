@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
@@ -38,6 +38,40 @@ export default function Sidebar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const touchStart = useRef(null)
+  const menuOpenRef = useRef(false)
+
+  useEffect(() => { menuOpenRef.current = mobileMenuOpen }, [mobileMenuOpen])
+
+  // Open from a rightward swipe that begins at the left screen edge;
+  // close with a leftward swipe while the drawer is open.
+  useEffect(() => {
+    const onTouchStart = (event) => {
+      if (window.innerWidth >= 768 || event.touches.length !== 1) return
+      const touch = event.touches[0]
+      touchStart.current = { x: touch.clientX, y: touch.clientY }
+    }
+    const onTouchEnd = (event) => {
+      if (window.innerWidth >= 768 || !touchStart.current || event.changedTouches.length !== 1) return
+      const start = touchStart.current
+      const touch = event.changedTouches[0]
+      const dx = touch.clientX - start.x
+      const dy = touch.clientY - start.y
+      touchStart.current = null
+      if (Math.abs(dy) > 65 || Math.abs(dx) < 65) return
+      if (!menuOpenRef.current && start.x <= 28 && dx > 0) setMobileMenuOpen(true)
+      else if (menuOpenRef.current && dx < 0) setMobileMenuOpen(false)
+    }
+    const onTouchCancel = () => { touchStart.current = null }
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+    window.addEventListener('touchcancel', onTouchCancel, { passive: true })
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchend', onTouchEnd)
+      window.removeEventListener('touchcancel', onTouchCancel)
+    }
+  }, [])
   const isFaculty = user?.role === 'faculty'
   const activeLinks = isFaculty ? facultyLinks : links
   const displayName = isFaculty ? (user?.facultyProfile?.name || user?.email || 'Faculty') : (user?.profile?.name || user?.email || 'IIT Student')
@@ -63,8 +97,9 @@ export default function Sidebar() {
       <Brand faculty={isFaculty}/>
       <button type="button" aria-label={mobileMenuOpen ? 'Close page navigation' : 'Open page navigation'} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(value => !value)} className="mobile-menu-toggle flex h-11 w-11 items-center justify-center rounded-2xl border border-[#a8c49a]/20 bg-[#a8c49a]/[0.06] text-[#c8d9bc] transition-colors hover:bg-[#a8c49a]/[0.12] "><span className={`mobile-menu-icon ${mobileMenuOpen ? 'is-open' : ''}`} aria-hidden="true"><span/><span/><span/></span></button>
     </header>
-    {mobileMenuOpen && <div className="mobile-nav-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-5 py-8 backdrop-blur-sm md:hidden" onClick={() => setMobileMenuOpen(false)}>
-      <section role="dialog" aria-modal="true" aria-label="Page navigation" className="mobile-nav-panel w-full max-w-sm rounded-3xl border border-white/10 bg-[#111827] p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+    <AnimatePresence>
+      {mobileMenuOpen && <motion.div className="mobile-nav-backdrop fixed inset-0 z-[100] flex justify-start bg-black/65 backdrop-blur-sm md:hidden" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={() => setMobileMenuOpen(false)}>
+      <motion.section role="dialog" aria-modal="true" aria-label="Page navigation" className="mobile-nav-panel h-full w-[min(86vw,360px)] overflow-y-auto rounded-r-3xl border-r border-white/10 bg-[#111827] p-4 pb-[max(20px,env(safe-area-inset-bottom))] shadow-2xl" initial={{x:'-100%'}} animate={{x:0}} exit={{x:'-100%'}} transition={{type:'tween',duration:.24,ease:'easeOut'}} onClick={(event) => event.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between px-1"><div className="flex items-center gap-2"><BrandSymbol className="h-7 w-[54px] object-contain"/><div><div className="text-sm font-bold text-white">{isFaculty ? 'IITProfessorsOS' : 'IITStudentsOS'}</div><div className="mt-1 text-[10px] tracking-wider text-slate-400">{isFaculty ? 'FACULTY NAVIGATION' : 'NAVIGATE TO A PAGE'}</div></div></div><button type="button" aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-white/5"><X size={20}/></button></div>
         <div className="grid grid-cols-2 gap-2">
           {activeLinks.map(({to,label,icon:Icon,end}) => <NavLink key={to} to={to} end={end} onClick={() => setMobileMenuOpen(false)} className={({isActive}) => `flex items-center gap-2.5 rounded-xl border px-3 py-3 text-sm ${isActive ? 'border-indigo-300/30 bg-indigo-300/10 text-indigo-100' : 'border-white/5 bg-white/[0.03] text-slate-300'}`}><Icon size={17}/><span>{label}</span></NavLink>)}
@@ -72,7 +107,8 @@ export default function Sidebar() {
           {user?.role === 'admin' && <NavLink to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-3 text-sm text-emerald-200"><ShieldCheck size={17}/>Admin</NavLink>}
         </div>
         <button type="button" onClick={async () => { setMobileMenuOpen(false); try { await logout(); navigate('/login', { replace: true }) } catch { navigate('/login', { replace: true }) } }} className="mt-3 flex w-full items-center gap-2 rounded-xl border border-rose-400/15 bg-rose-400/[0.05] px-3 py-3 text-sm font-medium text-rose-200"><LogOut size={17}/>Sign out</button>
-      </section>
-    </div>}
+      </motion.section>
+    </motion.div>}
+    </AnimatePresence>
   </>
 }
