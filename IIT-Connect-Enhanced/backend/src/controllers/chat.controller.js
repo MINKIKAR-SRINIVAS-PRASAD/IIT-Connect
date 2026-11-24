@@ -106,6 +106,9 @@ export const listUsers = asyncHandler(async (req, res) => {
     .limit(q ? 0 : 25)
     .sort({ createdAt: -1 })
 
+  // Directory results change as students register/update profiles; never serve cached empty results.
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  res.set('Pragma', 'no-cache')
   res.json({ success: true, users })
 })
 
