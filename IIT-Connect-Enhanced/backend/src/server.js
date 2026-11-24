@@ -28,6 +28,7 @@ import notificationsRoutes from './routes/notifications.routes.js'
 import facultyContentRoutes from './routes/facultyContent.routes.js'
 import facultyRoutes from './routes/faculty.routes.js'
 import newsRoutes from './routes/news.routes.js'
+import aiRoutes from './routes/ai.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
 import { requireTrustedOrigin } from './middleware/origin.middleware.js'
@@ -61,6 +62,7 @@ async function bootstrap() {
 
   app.use('/api/health', healthRoutes)
   app.use('/api/news', newsRoutes)
+  app.use('/api/ai', aiRoutes)
   app.use('/api/notifications', notificationsRoutes)
   app.use('/api/auth', authRoutes)
   app.use('/api/profile', profileRoutes)
