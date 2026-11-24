@@ -13,7 +13,7 @@ const aiLimiter = rateLimit({
   message: { success: false, message: 'AI usage limit reached. Please wait a few minutes and try again.' }
 })
 
-const isFacultyAllowed = user => user.role !== 'faculty' || user.facultyVerified
+const isFacultyAllowed = user => user.role !== 'faculty' || user.facultyAccessStatus === 'approved'
 const titleFromMessage = message => {
   const clean = String(message || '').replace(/\s+/g, ' ').trim()
   return clean.length > 64 ? `${clean.slice(0, 61)}…` : (clean || 'New chat')
