@@ -184,6 +184,7 @@ export const approveCampusNews=asyncHandler(async(req,res)=>{
  if(!post)throw new ApiError(404,'Campus news not found')
  post.status=status;post.rejectionReason=status==='Rejected'?(rejectionReason||'Rejected'):''
  await post.save()
+ await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'CampusNews', sourceId: post._id, approved: status === 'Approved' })
  await log(req.user._id,status==='Approved'?'APPROVE_CAMPUS_NEWS':'REJECT_CAMPUS_NEWS','CampusNews',post._id,{rejectionReason:post.rejectionReason})
  res.json({success:true,post})
 })
