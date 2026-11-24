@@ -14,6 +14,7 @@ export const listUsers = asyncHandler(async (req, res) => {
     ...(q ? { $or: [
       { 'profile.name': { $regex: escapedQ, $options: 'i' } },
       { 'profile.iit': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.institute': { $regex: escapedQ, $options: 'i' } },
       { 'profile.branch': { $regex: escapedQ, $options: 'i' } },
       { 'profile.rollNumber': { $regex: escapedQ, $options: 'i' } }
     ] } : {})
