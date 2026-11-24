@@ -3,6 +3,7 @@ import Input from '../common/Input'
 import Button from '../common/Button'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
+import StudentProfilePreview from './StudentProfilePreview.jsx'
 
 function getId(value) {
   if (!value) return ''
@@ -27,6 +28,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   const [users, setUsers] = useState([])
   const [convos, setConvos] = useState([])
   const [showArchived, setShowArchived] = useState(false)
+  const [profileUserId, setProfileUserId] = useState('')
   const currentUserId = getId(user?.id || user?._id)
   const matchingUsers = users.filter((person) => getId(person) !== currentUserId)
 
@@ -162,16 +164,17 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
                 {person.profile?.photoUrl ? <img src={person.profile.photoUrl} alt={person.profile?.name || 'Student'} className="h-full w-full object-cover" /> : (person.profile?.name || 'S').slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-slate-100">{person.profile?.name || 'Student'}</div>
+                <button type="button" onClick={() => setProfileUserId(person._id)} className="truncate text-left text-sm font-medium text-slate-100 hover:text-[#b8d5a7]" title="View student profile">{person.profile?.name || 'Student'}</button>
                 {person.profile?.rollNumber && <div className="truncate text-[11px] text-slate-500">{person.profile.rollNumber}</div>}
                 <div className="truncate text-xs text-slate-400">{[person.profile?.iit, person.profile?.branch].filter(Boolean).join(' • ') || 'IIT student'}</div>
               </div>
-              <Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button>
+              <div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={() => setProfileUserId(person._id)} className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-800">Profile</button><Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button></div>
             </div>
           ))}
           {q.trim() && matchingUsers.length === 0 && <p className="px-2 py-4 text-sm text-slate-400">No students found for “{q.trim()}”. Try a name or roll number.</p>}
         </>}
       </div>
     </aside>
+    {profileUserId && <StudentProfilePreview userId={profileUserId} onClose={() => setProfileUserId('')} onMessage={() => { const id = profileUserId; setProfileUserId(''); onStartDM(id) }} />}
   )
 }
