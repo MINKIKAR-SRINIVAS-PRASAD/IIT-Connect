@@ -5,21 +5,23 @@ const categories = ['All', 'Gallery', 'Events', 'Campus News', 'Placements', 'St
 
 export default function StudentProfilePreview({ userId, onClose, onMessage }) {
   const [data, setData] = useState(null)
+  const [activeProfileId, setActiveProfileId] = useState(userId)
   const [category, setCategory] = useState('All')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  useEffect(() => { setActiveProfileId(userId) }, [userId])
   useEffect(() => {
     let alive = true
     setLoading(true)
     setError('')
     setData(null)
-    api.get(`/profile/${userId}`).then(({ data: response }) => {
+    api.get(`/profile/${activeProfileId}`).then(({ data: response }) => {
       if (alive) setData(response)
     }).catch(err => {
       if (alive) setError(err?.response?.data?.message || 'Could not load this profile')
     }).finally(() => alive && setLoading(false))
     return () => { alive = false }
-  }, [userId])
+  }, [activeProfileId])
   const profile = data?.profile
   const posts = data?.posts || []
   const visible = category === 'All' ? posts : posts.filter(post => post.section === category)
@@ -36,7 +38,7 @@ export default function StudentProfilePreview({ userId, onClose, onMessage }) {
             {profile.photoUrl ? <img src={profile.photoUrl} alt={profile.name} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center text-4xl">{(profile.name || 'S')[0]}</div>}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-3"><h2 className="text-2xl font-semibold">{profile.name}</h2><button onClick={onMessage} className="rounded-xl bg-[#a8c69a] px-4 py-2 text-sm font-semibold text-[#142014] hover:bg-[#bdd5ae]">Message</button></div>
+            <div className="flex flex-wrap items-center gap-3"><h2 className="text-2xl font-semibold">{profile.name}</h2><button onClick={() => onMessage?.(activeProfileId)} className="rounded-xl bg-[#a8c69a] px-4 py-2 text-sm font-semibold text-[#142014] hover:bg-[#bdd5ae]">Message</button></div>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm"><span><b>{posts.length}</b> posts</span><span><b>{profile.connections?.length || 0}</b> connected people</span></div>
             <div className="mt-4 space-y-1 text-sm text-slate-300"><p className="font-medium text-white">{profile.institute || 'Institute not added'}</p><p>{[profile.branch, profile.batch ? `Batch ${profile.batch}` : ''].filter(Boolean).join(' · ')}</p>{profile.rollNumber && <p>Roll no. {profile.rollNumber}</p>}{profile.bio && <p className="mt-2 whitespace-pre-wrap">{profile.bio}</p>}</div>
           </div>
