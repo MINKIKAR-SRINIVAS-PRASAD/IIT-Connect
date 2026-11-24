@@ -7,7 +7,7 @@ import {api} from '../utils/api'
 import toast from 'react-hot-toast'
 import EventCreate from '../components/events/EventCreate.jsx'
 
-const nav=[['home','Faculty Home',Home],['events','Events',CalendarDays],['gallery','Gallery',Images],['study','Study',BookOpen],['publications','Publications',FileText],['travel','Travel',Plane],['community','Chat & Community',MessageSquare],['news','News',Newspaper]]
+const nav=[['home','Faculty Home',Home],['events','Events',CalendarDays],['gallery','Gallery',Images],['study','Study',BookOpen],['publications','Publications',FileText],['travel','Travel',Plane],['community','Chat & Community',MessageSquare],['ai','IIT Connect AI',Sparkles],['news','News',Newspaper]]
 const blank={title:'',description:'',startAt:'',venue:'',registrationUrl:'',imageUrl:'',caption:'',subject:'',resourceUrl:'',from:'',to:'',travelDate:'',text:'',abstract:'',institute:'',department:'',publicationType:'journal'}
 const input='w-full rounded-xl border border-white/10 bg-[#101a30] px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-[#a8c49a]/60 focus:ring-2 focus:ring-[#a8c49a]/10'
 const panel='rounded-2xl border border-[#a8c49a]/15 bg-gradient-to-br from-[#1b2820] to-[#151f18] p-5 shadow-[0_12px_34px_rgba(0,0,0,.12)]'
