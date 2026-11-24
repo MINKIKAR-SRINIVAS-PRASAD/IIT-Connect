@@ -7,15 +7,15 @@ import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim()
-  const filter = q
-    ? {
-        $or: [
+  const filter = {
+    isBanned: { $ne: true },
+    role: { $ne: 'admin' },
+    ...(q ? { $or: [
           { email: { $regex: q, $options: 'i' } },
           { 'profile.name': { $regex: q, $options: 'i' } },
           { 'profile.iit': { $regex: q, $options: 'i' } }
-        ]
-      }
-    : {}
+        ] } : {})
+  }
 
   const users = await User.find(filter)
     .select('email role profile isBanned lastSeenAt')
@@ -92,7 +92,7 @@ export const myConversations = asyncHandler(async (req, res) => {
   const acceptedRows = await ConnectionRequest.find({ status: 'accepted', $or: [{ requester: userId }, { recipient: userId }] }).select('requester recipient').lean()
   const acceptedIds = acceptedRows.map(row => String(row.requester) === String(userId) ? row.recipient : row.requester)
   const dmFilters = acceptedIds.map(otherId => ({ type: 'dm', participants: { $all: [userId, otherId] } }))
-  const convos = await Conversation.find({ $or: [...dmFilters, { participants: userId, type: { $ne: 'dm' } }, { type: 'group' }, { type: 'community' }] })
+  const convos = await Conversation.find({ $or: [...dmFilters, { participants: userId, type: 'group' }, { type: 'community' }] })
     .sort({ lastMessageAt: -1, updatedAt: -1 })
     .limit(50)
 
