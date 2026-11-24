@@ -4,6 +4,15 @@ const messageSchema = new mongoose.Schema(
   {
     role: { type: String, enum: ['user', 'assistant'], required: true },
     content: { type: String, required: true, maxlength: 12000 },
+    attachments: {
+      type: [{
+        fileId: { type: String, required: true },
+        filename: { type: String, required: true, maxlength: 255 },
+        mimeType: { type: String, default: 'application/octet-stream' },
+        size: { type: Number, default: 0 }
+      }],
+      default: []
+    },
     status: { type: String, enum: ['pending', 'complete', 'failed'], default: 'complete' }
   },
   { timestamps: { createdAt: true, updatedAt: false } }
