@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt'
+import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env.js'
@@ -153,36 +154,76 @@ export const logout = asyncHandler(async (req, res) => {
   res.json({ success: true })
 })
 
+const passwordResetMailer = env.SMTP_USER && env.SMTP_APP_PASSWORD
+  ? nodemailer.createTransport({
+      host: env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(env.SMTP_PORT || 465),
+      secure: String(env.SMTP_SECURE ?? 'true') !== 'false',
+      auth: { user: env.SMTP_USER, pass: String(env.SMTP_APP_PASSWORD).replace(/\\s/g, '') }
+    })
+  : null
+
 export const forgotPassword = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
   const user = await User.findOne({ email })
-  // Always return the same response so the endpoint does not reveal registered accounts.
-  if (user && !user.isBanned && isAllowedIitEmail(email) && env.RESEND_API_KEY && env.EMAIL_FROM) {
-    const now = Date.now()
-    if (!user.passwordResetSentAt || now - user.passwordResetSentAt.getTime() >= 60_000) {
-      const otp = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0')
-      user.passwordResetOtpHash = crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`reset:${email}:${otp}`).digest('hex')
-      user.passwordResetExpiresAt = new Date(now + 10 * 60_000)
-      user.passwordResetAttempts = 0
-      user.passwordResetSentAt = new Date(now)
-      await user.save()
+  const genericMessage = 'If that institute email has an account, a reset code will be sent.'
+  if (!user || user.isBanned || !isAllowedIitEmail(email)) {
+    return res.json({ success: true, message: genericMessage })
+  }
+
+  // Fail visibly instead of reporting success when the mail provider is not configured.
+  if (!env.RESEND_API_KEY && (!passwordResetMailer || !(env.EMAIL_FROM || env.SMTP_FROM || env.SMTP_USER))) {
+    throw new ApiError(503, 'Password reset email is not configured on the server. Please contact support.')
+  }
+
+  const now = Date.now()
+  if (user.passwordResetSentAt && now - user.passwordResetSentAt.getTime() < 60_000) {
+    throw new ApiError(429, 'Please wait 60 seconds before requesting another reset code.')
+  }
+
+  const otp = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0')
+  user.passwordResetOtpHash = crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`reset:${email}:${otp}`).digest('hex')
+  user.passwordResetExpiresAt = new Date(now + 10 * 60_000)
+  user.passwordResetAttempts = 0
+  user.passwordResetSentAt = new Date(now)
+  await user.save()
+
+  try {
+    if (env.RESEND_API_KEY) {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: env.EMAIL_FROM,
+          from: env.EMAIL_FROM || env.SMTP_FROM,
           to: [email],
           subject: 'Reset your IIT Connect password',
           text: `Your IIT Connect password reset code is ${otp}. It expires in 10 minutes. If you did not request this, ignore this email.`
         })
       })
       if (!response.ok) {
-        console.error('Password reset email failed:', response.status)
-        throw new ApiError(502, 'Could not send the reset email. Please try again later.')
+        const providerMessage = await response.text().catch(() => '')
+        console.error('Password reset email failed:', response.status, providerMessage.slice(0, 300))
+        throw new Error('Resend rejected the email')
       }
+    } else {
+      await passwordResetMailer.sendMail({
+        from: env.SMTP_FROM || env.EMAIL_FROM || env.SMTP_USER,
+        to: email,
+        subject: 'Reset your IIT Connect password',
+        text: `Your IIT Connect password reset code is ${otp}. It expires in 10 minutes. If you did not request this, ignore this email.`,
+        html: `<div style="font-family:Arial,sans-serif"><h2>IIT Connect</h2><p>Your password reset code:</p><strong style="font-size:28px;letter-spacing:6px">${otp}</strong><p>This code expires in 10 minutes.</p></div>`
+      })
     }
+  } catch (error) {
+    user.passwordResetOtpHash = null
+    user.passwordResetExpiresAt = null
+    user.passwordResetSentAt = null
+    await user.save()
+    console.error('Password reset delivery failed:', error.message)
+    throw new ApiError(502, 'Could not deliver the reset code. Check the email provider settings and try again.')
   }
-  res.json({ success: true, message: 'If that institute email has an account, a reset code will be sent.' })
+
+  res.json({ success: true, message: genericMessage })
 })
 
 export const resetPassword = asyncHandler(async (req, res) => {
