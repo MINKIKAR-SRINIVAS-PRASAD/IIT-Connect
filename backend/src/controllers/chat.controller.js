@@ -151,11 +151,13 @@ export const getOrCreateCommunity = asyncHandler(async (req, res) => {
 export const myConversations = asyncHandler(async (req, res) => {
   const userId = req.user._id
 
+  const acceptedRows = await ConnectionRequest.find({ status: 'accepted', $or: [{ requester: userId }, { recipient: userId }] }).select('requester recipient').lean()
+  const acceptedIds = acceptedRows.map(row => String(row.requester) === String(userId) ? row.recipient : row.requester)
   const conversations = await Conversation.find({
     $or: [
-      { participants: userId },
-      { type: 'group' },
-      { type: 'community' }
+      { type: 'dm', participants: { $all: [userId, { $in: acceptedIds }] } },
+      { participants: userId, type: { $ne: 'dm' } },
+      { type: 'group' }, { type: 'community' }
     ]
   })
     .populate({
