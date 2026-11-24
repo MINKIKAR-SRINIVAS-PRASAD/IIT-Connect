@@ -61,3 +61,13 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Batch deployment only after the queued code is reviewed and build-tested.
 - [ ] Verify Vercel production and backend status, environment variables, API proxy, and live flows.
 - [ ] Keep the checklist open until each feature is verified in production.
+
+## Mobile-first student navigation (new request)
+
+- [ ] Keep desktop navigation/layout unchanged; redesign the student mobile experience to feel like a native social app (Instagram-inspired, not copied).
+- [ ] Add a fixed, safe-area-aware bottom navigation on mobile with exactly five destinations: Home, Study, Chat, Students Search, Profile.
+- [ ] Keep the bottom bar visible while scrolling, with active-route state, accessible labels, and enough page bottom padding so content is not obscured.
+- [ ] Move all other student sections (News, Events, Gallery, Placements, Trip, Travel Home, AI, etc.) into a discoverable menu on the Home page/mobile home experience; avoid cluttering the fixed bottom bar.
+- [ ] Ensure Students Search points to the actual student discovery/search experience (confirm route/API; do not point it to a placeholder).
+- [ ] Apply the mobile navigation consistently to the student portal in both frontend copies; do not unintentionally replace the separate faculty/admin navigation.
+- [ ] Test mobile widths, Android safe-area/browser bars, route transitions, and profile/chat navigation before batch deployment.
