@@ -175,7 +175,7 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   }, { upsert: true, new: true, setDefaultsOnInsert: true })
   try {
     await otpMailer.sendMail({
-      from: env.SMTP_FROM || env.SMTP_USER, to: email,
+      from: env.SMTP_FROM, to: email,
       subject: 'Your IIT Connect verification code',
       text: `Your IIT Connect registration code is ${otp}. It expires in 5 minutes. If you did not request this, ignore this email.`,
       html: `<div style="font-family:Arial,sans-serif"><h2>IIT Connect</h2><p>Your email verification code:</p><div style="font-size:30px;font-weight:bold;letter-spacing:8px">${otp}</div><p>This code expires in 5 minutes.</p></div>`
@@ -261,7 +261,7 @@ export const sendPasswordResetOtp = asyncHandler(async (req, res) => {
 
   try {
     await otpMailer.sendMail({
-      from: env.SMTP_FROM || env.SMTP_USER,
+      from: env.SMTP_FROM,
       to: email,
       subject: 'IIT Connect password reset code',
       text: `Your IIT Connect password reset code is ${otp}. It expires in 10 minutes. If you did not request this, ignore this email.`,
