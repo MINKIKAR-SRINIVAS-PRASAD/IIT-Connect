@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, Network, X, LogOut } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, Network, X, LogOut, Sparkles } from 'lucide-react'
 import BrandSymbol from '../common/BrandSymbol'
 
 const links = [
   { to: '/app', label: 'Home', icon: Home, end: true },
   { to: '/app/chat', label: 'Chat', icon: MessageCircle },
+  { to: '/app/ai', label: 'IIT Connect AI', icon: Sparkles },
   { to: '/app/study', label: 'Study Hub', icon: BookOpen },
   { to: '/app/gallery', label: 'Gallery', icon: Images },
   { to: '/app/placements', label: 'Placements', icon: BriefcaseBusiness },
@@ -25,6 +26,7 @@ const facultyLinks = [
   { to: '/faculty/publications', label: 'Publications', icon: BriefcaseBusiness },
   { to: '/faculty/travel', label: 'Travel', icon: Plane },
   { to: '/faculty/community', label: 'Chat & Community', icon: MessageCircle },
+  { to: '/faculty/ai', label: 'IIT Connect AI', icon: Sparkles },
   { to: '/faculty/news', label: 'News', icon: Newspaper },
 ]
 
