@@ -7,6 +7,7 @@ import { api } from '../../utils/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { useSocket } from '../../hooks/useSocket'
+import { ChevronLeft } from 'lucide-react'
 
 function getId(value) {
   if (!value) return ''
@@ -29,7 +30,7 @@ function Avatar({ person, size = 'h-10 w-10' }) {
   )
 }
 
-export default function ChatWindow({ conversation }) {
+export default function ChatWindow({ conversation, onBack }) {
   const { user } = useAuth()
   const { socket } = useSocket()
 
@@ -168,8 +169,8 @@ export default function ChatWindow({ conversation }) {
   }
 
   return (
-    <section className="chat-window flex min-h-[520px] min-w-0 flex-1 flex-col bg-slate-950/70">
-      <header className="flex items-center gap-3 border-b border-slate-800 bg-slate-950/90 px-4 py-3">
+    <section className="chat-window instagram-chat-window flex min-h-[520px] min-w-0 flex-1 flex-col">
+      <header className="instagram-chat-header flex items-center gap-3 border-b px-4 py-3"><button type="button" onClick={onBack} aria-label="Back to inbox" className="instagram-mobile-back md:hidden"><ChevronLeft size={21}/></button>
         {conversation.type === 'dm' ? (
           <Avatar person={otherParticipant} />
         ) : (
@@ -191,7 +192,7 @@ export default function ChatWindow({ conversation }) {
         </div>
       </header>
 
-      <div ref={listRef} className="chat-message-list flex-1 space-y-4 overflow-y-auto px-4 py-5 md:px-6">
+      <div ref={listRef} className="chat-message-list instagram-message-list flex-1 space-y-4 overflow-y-auto px-4 py-5 md:px-6">
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[260px] flex-col items-center justify-center text-center">
             <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 text-2xl">✉️</div>
@@ -218,8 +219,8 @@ export default function ChatWindow({ conversation }) {
         )}
       </div>
 
-      <footer className="chat-composer border-t border-slate-800 p-3 md:p-4">
-        <div className="chat-composer-inner flex items-end gap-2 rounded-2xl border border-slate-700 p-2">
+      <footer className="chat-composer instagram-chat-composer border-t p-3 md:p-4">
+        <div className="chat-composer-inner instagram-composer-inner flex items-end gap-2 rounded-full border p-2">
           <Input
             className="min-w-0 flex-1"
             label={null}
@@ -233,7 +234,7 @@ export default function ChatWindow({ conversation }) {
               }
             }}
           />
-          <Button className="chat-action-button" onClick={send} disabled={!text.trim() || !socket || sending}>
+          <Button className="chat-action-button instagram-send-button" onClick={send} disabled={!text.trim() || !socket || sending}>
             {sending ? 'Sending…' : 'Send'}
           </Button>
         </div>
