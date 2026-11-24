@@ -33,6 +33,8 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
   if (!other) throw new ApiError(404, 'User not found')
 
   const me = req.user._id
+  const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: me, recipient: other._id }, { requester: other._id, recipient: me }] })
+  if (!accepted) throw new ApiError(403, 'Send a connection request and wait for acceptance before messaging')
 
   let convo = await Conversation.findOne({
     type: 'dm',
@@ -109,6 +111,7 @@ export const messages = asyncHandler(async (req, res) => {
     : convo.participants.some((p) => p.toString() === req.user._id.toString())
 
   if (!isMember) throw new ApiError(403, 'Not a member')
+  if (convo.type === 'dm') { const otherId = convo.participants.find(p => p.toString() !== userId); const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: req.user._id, recipient: otherId }, { requester: otherId, recipient: req.user._id }] }); if (!accepted) throw new ApiError(403, 'Connection is required to view private messages') }
 
   const msgs = await Message.find({ conversationId })
     .sort({ createdAt: 1 })
