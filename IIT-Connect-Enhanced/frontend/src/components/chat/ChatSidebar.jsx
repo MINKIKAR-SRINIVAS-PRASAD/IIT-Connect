@@ -4,6 +4,7 @@ import Input from '../common/Input'
 import Button from '../common/Button'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
+import StudentProfilePreview from './StudentProfilePreview.jsx'
 
 function getId(value) {
   if (!value) return ''
@@ -30,6 +31,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   const [showArchived, setShowArchived] = useState(false)
   const [requests, setRequests] = useState({ incoming: [], outgoing: [], connections: [] })
   const [requestTab, setRequestTab] = useState('people')
+  const [profileUserId, setProfileUserId] = useState('')
   async function loadRequests() { const { data } = await api.get('/chat/requests'); setRequests({ incoming: data.incoming || [], outgoing: data.outgoing || [], connections: data.connections || [] }) }
   async function connect(personId) { try { const { data } = await api.post(`/chat/connect/${personId}`); toast.success(data.status === 'accepted' ? 'Connection accepted — chat unlocked!' : 'Connection request sent'); await loadRequests(); await loadConvos() } catch (e) { toast.error(e?.response?.data?.message || 'Could not send request') } }
   async function respond(requestId, action) { try { await api.patch(`/chat/requests/${requestId}`, { action }); toast.success(action === 'accept' ? 'Request accepted' : 'Request declined'); await loadRequests(); await loadConvos() } catch (e) { toast.error(e?.response?.data?.message || 'Could not update request') } }
@@ -176,7 +178,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
                 {person.profile?.photoUrl ? <img src={person.profile.photoUrl} alt={person.profile?.name || 'Student'} className="h-full w-full object-cover" /> : (person.profile?.name || 'S').slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-slate-100">{person.profile?.name || 'Student'}</div>
+                <button type="button" onClick={() => setProfileUserId(person._id)} className="truncate text-left text-sm font-medium text-slate-100 hover:text-[#b8d5a7]" title="View student profile">{person.profile?.name || 'Student'}</button>
                 {person.profile?.rollNumber && <div className="truncate text-[11px] text-slate-500">{person.profile.rollNumber}</div>}
                 <div className="truncate text-xs text-slate-400">{[person.profile?.iit, person.profile?.branch].filter(Boolean).join(' • ') || 'IIT student'}</div>
               </div>
@@ -188,5 +190,6 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
       </div>
       </div>}
     </aside>
+    {profileUserId && <StudentProfilePreview userId={profileUserId} onClose={() => setProfileUserId('')} onMessage={() => { const id = profileUserId; setProfileUserId(''); onStartDM(id) }} />}
   )
 }
