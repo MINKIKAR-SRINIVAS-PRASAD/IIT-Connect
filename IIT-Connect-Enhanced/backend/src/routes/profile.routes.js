@@ -5,8 +5,11 @@ import { validate } from '../middleware/validate.middleware.js'
 import { upload } from '../middleware/upload.middleware.js'
 import { validateImageUpload } from '../middleware/imageUpload.middleware.js'
 import { updateProfile } from '../controllers/profile.controller.js'
+import { getPublicStudentProfile } from '../controllers/publicProfile.controller.js'
 
 const router = Router()
+
+router.get('/:userId', requireAuth, getPublicStudentProfile)
 
 router.put(
   '/',
