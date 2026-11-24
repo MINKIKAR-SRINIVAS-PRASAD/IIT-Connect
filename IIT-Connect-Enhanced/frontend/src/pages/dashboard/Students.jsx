@@ -19,7 +19,7 @@ export default function Students() {
         api.get('/chat/users', { params: { q: query.trim() } }),
         api.get('/chat/requests')
       ])
-      setUsers((userResponse.data.users || []).filter(person => person.role === 'student'))
+      setUsers((userResponse.data.users || []).filter(person => person.role ? person.role === 'student' : true).map(person => ({ ...person, _id: person._id || person.id })))
       setRequests({
         incoming: requestResponse.data.incoming || [],
         outgoing: requestResponse.data.outgoing || [],
