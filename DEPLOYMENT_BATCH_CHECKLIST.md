@@ -131,3 +131,16 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Merge/release and validate the complete checklist on production. Do not mark this batch complete until production verification succeeds.
 
 Latest branch commit at checklist update: `44f33fc708686ac475a2c820e1e874912b153152`.
+
+
+## Connected-student group chats and community-wide student profiles (new request)
+
+- [ ] Let students create group conversations from their accepted/connected people list.
+- [ ] Allow the creator to name the group, select multiple accepted connections, and create the group; validate membership and accepted-connection eligibility server-side.
+- [ ] Group members can view the group conversation and send messages; only members can read, send, or manage that group's messages and membership.
+- [ ] Provide group details/member list and sensible member add/remove/leave controls; prevent non-members from accessing the group through direct API/socket requests.
+- [ ] Keep group chats separate from public community posts and do not award contribution points for chat messages.
+- [ ] Make every student's safe public profile discoverable/viewable by eligible community members, including students from other IITs and students who are not connected.
+- [ ] Profile visibility must not expose email, private account fields, private posts, or private content; apply audience rules to profile posts and API responses.
+- [ ] Verify profile opening from community posts, student search, and chat/group member lists across both IITs and both student portal copies.
+- [ ] Test group creation with valid/invalid members, member-only access, cross-IIT participants, and public-profile privacy before production.
