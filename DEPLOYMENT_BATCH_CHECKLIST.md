@@ -144,3 +144,9 @@ Latest branch commit at checklist update: `44f33fc708686ac475a2c820e1e874912b153
 - [ ] Profile visibility must not expose email, private account fields, private posts, or private content; apply audience rules to profile posts and API responses.
 - [ ] Verify profile opening from community posts, student search, and chat/group member lists across both IITs and both student portal copies.
 - [ ] Test group creation with valid/invalid members, member-only access, cross-IIT participants, and public-profile privacy before production.
+
+
+## Mobile AI Chat Layout Fix (2026-11-25)
+- [x] Fix IIT Connect AI page mobile overflow: chat history is a slide-over drawer on small screens instead of occupying a permanent sidebar.
+- [x] Make chat area full-width on mobile and use dynamic viewport height; retain the desktop two-panel layout.
+- [ ] Verify mobile layout on physical device / browser responsive mode and production deployment.
