@@ -105,3 +105,16 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Ensure drawer gesture does not conflict with browser navigation, chat swipe/gestures, scrolling, or fixed bottom navigation; support touch and accessibility.
 - [ ] Apply to mobile student portal; preserve desktop behavior and faculty/admin separation unless explicitly specified.
 - [ ] Test composer destination, post metadata/category, public cross-IIT visibility, upload flow, and moderation before batch deployment.
+
+## Post privacy controls (newly approved)
+
+- [ ] Add an audience selector to the unified post composer; default visibility is Public.
+- [ ] Public posts remain visible to all eligible IITStudentsOS community members across IITs, connected or not.
+- [ ] Support Private audience options: (a) Only me, (b) accepted connections only, and (c) a custom list of specifically selected students.
+- [ ] Persist visibility/audience and selected-user IDs per post; validate the author and allowed audience on the backend.
+- [ ] Private posts must be excluded from public/community feeds, section-wide public feeds, public profile post lists, and public search/indexing.
+- [ ] Enforce private visibility for post detail, media/file access, comments/reactions as applicable, APIs, and any direct URL; frontend hiding alone is insufficient.
+- [ ] Only the author and selected audience can view a private post; only-me is author-only. Custom audience selection must use safe student identities and not expose email.
+- [ ] Private post visibility must not be confused with connection/chat permissions; audience access does not automatically grant private chat, and accepted connection status does not reveal a private post unless its audience allows it.
+- [ ] Respect moderation, deletion, and account access rules; do not leak private content through notifications, previews, cached responses, or profile/feed APIs.
+- [ ] Test public defaults, each private audience mode, adding/removing audience members, unauthorized direct API/media access, and cross-IIT accounts before batch deployment.
