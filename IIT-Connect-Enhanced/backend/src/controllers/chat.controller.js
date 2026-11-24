@@ -11,8 +11,8 @@ export const listUsers = asyncHandler(async (req, res) => {
     isBanned: { $ne: true },
     role: 'student',
     ...(q ? { $or: [
-      { 'profile.name': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
-      { 'profile.iit': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
+      { 'profile.name': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.iit': { $regex: escapedQ, $options: 'i' } },
       { 'profile.branch': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } }
     ] } : {})
   }
