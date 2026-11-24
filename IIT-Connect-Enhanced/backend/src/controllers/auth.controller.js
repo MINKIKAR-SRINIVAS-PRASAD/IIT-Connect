@@ -207,3 +207,90 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
   setAuthCookies(res, { accessToken, refreshToken })
   res.status(201).json({ success: true, message: 'Email verified; account created', user: publicUser(user) })
 })
+
+
+// Password recovery uses its own OTP collection so it cannot interfere with
+// pending registration verification codes.
+export const sendPasswordResetOtp = asyncHandler(async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase()
+  if (!email || !isAllowedIitEmail(email)) throw new ApiError(400, 'Enter a valid approved institute email')
+
+  // Keep the response generic to avoid exposing whether an account exists.
+  const genericMessage = 'If an account exists for this email, a password reset code has been sent.'
+  const user = await User.findOne({ email })
+  if (!user) return res.json({ success: true, message: genericMessage })
+  if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_APP_PASSWORD) {
+    throw new ApiError(503, 'Password recovery email is not configured. Please contact support.')
+  }
+
+  const PasswordResetOtp = (await import('../models/PasswordResetOtp.js')).default
+  const previous = await PasswordResetOtp.findOne({ email })
+  if (previous && Date.now() - previous.lastSentAt.getTime() < 60000) {
+    throw new ApiError(429, 'Please wait 60 seconds before requesting another reset code.')
+  }
+
+  const otp = String(crypto.randomInt(0, 1000000)).padStart(6, '0')
+  const otpHash = crypto.createHash('sha256').update(otp + email).digest('hex')
+  await PasswordResetOtp.findOneAndUpdate({ email }, {
+    email, otpHash, expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    lastSentAt: new Date(), attempts: 0
+  }, { upsert: true, new: true, setDefaultsOnInsert: true })
+
+  try {
+    await otpMailer.sendMail({
+      from: env.SMTP_FROM || env.SMTP_USER,
+      to: email,
+      subject: 'IIT Connect password reset code',
+      text: `Your IIT Connect password reset code is ${otp}. It expires in 10 minutes. If you did not request this, ignore this email.`,
+      html: `<div style="font-family:Arial,sans-serif"><h2>IIT Connect</h2><p>Your password reset code:</p><div style="font-size:30px;font-weight:bold;letter-spacing:8px">${otp}</div><p>This code expires in 10 minutes. If you didn't request it, ignore this email.</p></div>`
+    })
+  } catch (error) {
+    await PasswordResetOtp.deleteOne({ email })
+    console.error('Password reset OTP email failed:', error.message)
+    throw new ApiError(502, 'Could not send reset email. Check the SMTP configuration and try again.')
+  }
+
+  res.json({ success: true, message: genericMessage })
+})
+
+export const resetPasswordWithOtp = asyncHandler(async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase()
+  const otp = String(req.body.otp || '').trim()
+  const password = String(req.body.password || '')
+  if (!email || !isAllowedIitEmail(email)) throw new ApiError(400, 'Enter a valid approved institute email')
+  if (!/^\\d{6}$/.test(otp)) throw new ApiError(400, 'Enter the 6-digit reset code')
+  if (password.length < 8) throw new ApiError(400, 'Password must be at least 8 characters')
+
+  const PasswordResetOtp = (await import('../models/PasswordResetOtp.js')).default
+  const record = await PasswordResetOtp.findOne({ email })
+  if (!record) throw new ApiError(400, 'No active reset code. Request a new one.')
+  if (record.expiresAt.getTime() < Date.now()) {
+    await PasswordResetOtp.deleteOne({ email })
+    throw new ApiError(400, 'Reset code expired. Request a new one.')
+  }
+  if (record.attempts >= 5) {
+    await PasswordResetOtp.deleteOne({ email })
+    throw new ApiError(429, 'Too many incorrect attempts. Request a new code.')
+  }
+
+  const suppliedHash = crypto.createHash('sha256').update(otp + email).digest('hex')
+  if (suppliedHash !== record.otpHash) {
+    record.attempts += 1
+    await record.save()
+    throw new ApiError(400, 'Incorrect reset code')
+  }
+
+  const user = await User.findOne({ email })
+  if (!user) {
+    await PasswordResetOtp.deleteOne({ email })
+    throw new ApiError(400, 'Unable to reset this account. Request a new code.')
+  }
+  user.passwordHash = await bcrypt.hash(password, 12)
+  user.refreshTokenHash = undefined
+  await user.save()
+  await PasswordResetOtp.deleteOne({ email })
+  const opts = cookieOptions()
+  res.clearCookie('accessToken', opts)
+  res.clearCookie('refreshToken', opts)
+  res.json({ success: true, message: 'Password reset successfully. Please sign in again.' })
+})
