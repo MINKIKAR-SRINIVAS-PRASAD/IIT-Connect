@@ -103,14 +103,24 @@ router.post('/chat', aiLimiter, async (req, res, next) => {
     if (conversation.messages.length > 250) conversation.messages.splice(0, conversation.messages.length - 250)
     await conversation.save()
 
-    // Reuse the saved thread so existing history, search, rename and delete features remain intact.
+    // Build provider context from this exact saved thread. Include older messages even
+    // when legacy records have no status field, but exclude failed/pending messages.
+    // The current user message is added exactly once at the end.
     const history = conversation.messages
-      .filter(item => item.status === 'complete' && ['user', 'assistant'].includes(item.role))
+      .filter(item => ['user', 'assistant'].includes(item.role) && (!item.status || item.status === 'complete'))
+      .filter(item => String(item._id) !== String(userMessage._id))
       .slice(-16)
       .map(item => ({ role: item.role, content: item.content.slice(0, 6000) }))
     history.push({ role: 'user', content: message })
 
-    const systemPrompt = 'You are IIT Connect AI, a helpful assistant for students and faculty. Help with learning, engineering concepts, coding, research, teaching, campus guidance, and planning. Be clear, supportive, and honest. Do not invent official IIT policies or campus announcements; ask users to verify official information.'
+    const systemPrompt = [
+      'You are IIT Connect AI, a helpful assistant for students and faculty. Help with learning, engineering concepts, coding, research, teaching, campus guidance, and planning. Be clear, supportive, and honest.',
+      'IMPORTANT CONVERSATION HISTORY RULES:',
+      'The messages supplied after this system instruction are the saved history of the currently opened IIT Connect AI conversation, followed by the latest user message. Read and use that context to answer follow-up questions and continue prior work in this thread.',
+      'Never claim you cannot see earlier messages in this same conversation, or that every chat session is independent, when prior messages are present in the supplied context.',
+      'You can refer to and continue the currently opened saved conversation. You cannot browse or retrieve a different, unopened conversation unless its contents are included in the messages supplied to you. If the user means another saved chat, explain that they can open it from the history sidebar.',
+      'Do not invent official IIT policies or campus announcements; ask users to verify official information.'
+    ].join(' ')
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
