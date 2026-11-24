@@ -19,7 +19,11 @@ const router = Router()
 
 router.use(requireAuth, requireCompletedProfile)
 
-router.get('/requests', requireAuth, listConnectionRequests)\nrouter.post('/connect/:userId', requireAuth, sendConnectionRequest)\nrouter.patch('/requests/:requestId', requireAuth, respondToConnectionRequest)\nrouter.post('/messages', requireAuth, sendMessage)\nrouter.get('/users', listUsers)
+router.get('/requests', requireAuth, listConnectionRequests)
+router.post('/connect/:userId', requireAuth, sendConnectionRequest)
+router.patch('/requests/:requestId', requireAuth, respondToConnectionRequest)
+router.post('/messages', requireAuth, sendMessage)
+router.get('/users', listUsers)
 router.get('/conversations', myConversations)
 
 router.post('/dm', getOrCreateDM)
