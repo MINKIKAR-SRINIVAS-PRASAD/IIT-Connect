@@ -8,8 +8,6 @@ import { achievementSummary, issueAchievementCertificate, verifyAchievementCerti
 import { getPublicStudentProfile } from '../controllers/publicProfile.controller.js'
 
 const router = Router()
-router.get('/:userId', requireAuth, getPublicStudentProfile)
-
 router.put(
   '/',
   requireAuth,
@@ -26,5 +24,8 @@ router.put(
 router.get('/achievements', requireAuth, achievementSummary)
 router.post('/achievement-certificate', requireAuth, issueAchievementCertificate)
 router.get('/achievement-certificate/verify/:certificateId', verifyAchievementCertificate)
+
+// Keep the dynamic public-profile route last so it cannot shadow static routes.
+router.get('/:userId', requireAuth, getPublicStudentProfile)
 
 export default router
