@@ -112,7 +112,7 @@ export const messages = asyncHandler(async (req, res) => {
     : convo.participants.some((p) => p.toString() === req.user._id.toString())
 
   if (!isMember) throw new ApiError(403, 'Not a member')
-  if (convo.type === 'dm') { const otherId = convo.participants.find(p => p.toString() !== userId); const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: req.user._id, recipient: otherId }, { requester: otherId, recipient: req.user._id }] }); if (!accepted) throw new ApiError(403, 'Connection is required to view private messages') }
+  if (convo.type === 'dm') { const uid = String(req.user._id); if (convo.participants.length !== 2 || !convo.participants.some(p => String(p) === uid)) throw new ApiError(403, 'You are not part of this chat'); const otherId = convo.participants.find(p => String(p) !== uid); const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: req.user._id, recipient: otherId }, { requester: otherId, recipient: req.user._id }] }); if (!accepted) throw new ApiError(403, 'Connection is required to view private messages') }
 
   const msgs = await Message.find({ conversationId })
     .sort({ createdAt: 1 })
