@@ -189,7 +189,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         </>}
       </div>
       </div>}
-    </aside>
     {profileUserId && <StudentProfilePreview userId={profileUserId} onClose={() => setProfileUserId('')} onMessage={() => { const id = profileUserId; setProfileUserId(''); onStartDM(id) }} />}
+    </aside>
   )
 }
