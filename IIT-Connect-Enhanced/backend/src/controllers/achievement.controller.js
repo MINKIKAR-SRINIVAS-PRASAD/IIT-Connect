@@ -22,6 +22,7 @@ export const achievementSummary = asyncHandler(async (req, res) => {
 export const issueAchievementCertificate = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
+  if (user.role !== 'student') throw new ApiError(403, 'The internship contribution certificate is available to student accounts only')
   if (Number(user.postStreakPoints || 0) < 10000) throw new ApiError(403, 'The Platinum certificate unlocks at 10,000 approved post contribution points')
   if (!user.achievementCertificateId) {
     user.achievementCertificateId = 'IITSO-PLAT-' + crypto.randomBytes(6).toString('hex').toUpperCase()
@@ -45,8 +46,8 @@ export const issueAchievementCertificate = asyncHandler(async (req, res) => {
 
 export const verifyAchievementCertificate = asyncHandler(async (req, res) => {
   const user = await User.findOne({ achievementCertificateId: String(req.params.certificateId || '').trim() })
-    .select('achievementCertificateId achievementCertificateIssuedAt postStreakPoints profile.name profile.iit profile.branch profile.batch')
-  if (!user || Number(user.postStreakPoints || 0) < 10000) throw new ApiError(404, 'Certificate not found or no longer eligible')
+    .select('role achievementCertificateId achievementCertificateIssuedAt postStreakPoints profile.name profile.iit profile.branch profile.batch')
+  if (!user || user.role !== 'student' || Number(user.postStreakPoints || 0) < 10000) throw new ApiError(404, 'Certificate not found or no longer eligible')
   res.json({
     success: true,
     verified: true,
