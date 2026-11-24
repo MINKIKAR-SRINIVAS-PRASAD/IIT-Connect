@@ -83,3 +83,14 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Refresh/update request, acceptance, rejection, and chat access states reliably in both student UI copies.
 - [ ] Preserve student/faculty separation, prevent unauthorized access, and avoid exposing private email or sensitive account data in discovery.
 - [ ] Test cross-institute cases, both request directions, rejected/pending states, duplicate requests, and direct API/socket access before batch deployment.
+
+## Community-wide public posts (new request)
+
+- [ ] Posts are public to all eligible IITStudentsOS community members by default, regardless of the author's IIT/institute.
+- [ ] Public posts are visible to students from every IIT, not filtered to same-institute users.
+- [ ] Public posts are visible to all community members, not only accepted connections/friends.
+- [ ] Connection status controls private messaging only; it must not gate visibility of public posts.
+- [ ] Apply consistent public visibility across community feed, section feeds (News, Events, Gallery, Study, placements and other post sections as applicable), and public student profiles.
+- [ ] Preserve admin moderation, removed/deleted content behavior, and any explicitly private content; do not accidentally expose private messages, private account fields, or unpublished drafts.
+- [ ] Review backend query filters, authorization rules, and frontend feed filters in both student portal copies; verify cross-IIT and unconnected-user visibility.
+- [ ] Test with users from different IITs and users who are not connected before batch deployment.
