@@ -38,7 +38,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   }
 
   async function searchUsers() {
-    const { data } = await api.get('/chat/users', { params: { q } })
+    const { data } = await api.get('/chat/users', { params: { q, _searchRefresh: Date.now() }, headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } })
     setUsers(data.users || [])
   }
 
