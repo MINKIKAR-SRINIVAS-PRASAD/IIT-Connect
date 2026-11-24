@@ -22,6 +22,7 @@ import Trip from './pages/dashboard/Trip.jsx'
 import TravelHome from './pages/dashboard/TravelHome.jsx'
 import Study from './pages/dashboard/Study.jsx'
 import News from './pages/dashboard/News.jsx'
+import IITConnectAI from './pages/dashboard/IITConnectAI.jsx'
 import FacultyWorkspace from './pages/FacultyWorkspaceLive.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
@@ -109,6 +110,7 @@ export default function App() {
       >
         <Route index element={<HomeFeed />} />
         <Route path="chat" element={<Chat />} />
+        <Route path="ai" element={<IITConnectAI />} />
         <Route path="gallery" element={<Gallery />} />
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
@@ -131,6 +133,7 @@ export default function App() {
       <Route path="/faculty/publications" element={<FacultyOnly><FacultyWorkspace section="publications" /></FacultyOnly>} />
       <Route path="/faculty/travel" element={<FacultyOnly><FacultyWorkspace section="travel" /></FacultyOnly>} />
       <Route path="/faculty/community" element={<FacultyOnly><FacultyWorkspace section="community" /></FacultyOnly>} />
+      <Route path="/faculty/ai" element={<FacultyOnly><PortalShell><IITConnectAI /></PortalShell></FacultyOnly>} />
 
       <Route
         path="/admin"
