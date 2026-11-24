@@ -113,12 +113,6 @@ export function initSocket(httpServer, corsOrigin) {
           )
 
         if (!isMember) return
-      if (convo.type === 'dm') {
-        const otherId = convo.participants.find(p => p.toString() !== userId)
-        const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
-        if (!accepted) return
-      }
-
         if (convo.type === 'dm') {
           const otherId = convo.participants.find(p => p.toString() !== userId)
           const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
@@ -157,6 +151,11 @@ export function initSocket(httpServer, corsOrigin) {
           )
 
         if (!isMember) return
+        if (convo.type === 'dm') {
+          const otherId = convo.participants.find(p => p.toString() !== userId)
+          const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
+          if (!accepted) return
+        }
 
         const msg = await Message.create({
           conversationId,
