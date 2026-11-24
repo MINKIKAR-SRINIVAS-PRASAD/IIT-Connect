@@ -54,15 +54,7 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('conversation:join', async ({ conversationId }) => {
       if (!conversationId) return
-      const convo = await Conversation.findById(conversationId)
-      if (!convo) return
-      if (convo.type === 'dm') {
-        if (!convo.participants.some(p => p.toString() === userId)) return
-        const otherId = convo.participants.find(p => p.toString() !== userId)
-        const connected = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
-        if (!connected) return
-      } else if (convo.type === 'group' && !convo.participants.some(p => p.toString() === userId)) return
-      socket.join(conversationId) // socket join requires accepted connection
+      socket.join(conversationId)
     })
 
     socket.on('conversation:typing', ({ conversationId, isTyping }) => {
@@ -79,6 +71,11 @@ export function initSocket(httpServer, corsOrigin) {
       // Community type is open to all; others require membership
       const isMember = convo.type === 'community' || convo.participants.some((p) => p.toString() === userId)
       if (!isMember) return
+      if (convo.type === 'dm') {
+        const otherId = convo.participants.find(p => p.toString() !== userId)
+        const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
+        if (!accepted) return
+      }
 
       const msg = await Message.create({
         conversationId,
