@@ -2,24 +2,31 @@ import PostContribution from '../models/PostContribution.js'
 import User from '../models/User.js'
 
 /**
- * Award one contribution point for an approved post.
- * Chat messages and private/community messages must never call this helper.
- * The unique source index makes approval retries idempotent.
+ * Keep the award ledger synchronized with the moderation status of a post.
+ * Only approved posts earn one point. Chat and message models never call this.
+ * Unique sourceModel/sourceId protects against repeated approval requests.
  */
-export async function awardApprovedPost({ authorId, sourceModel, sourceId }) {
-  if (!authorId || !sourceModel || !sourceId) return null
+export async function syncApprovedPostContribution({ authorId, sourceModel, sourceId, approved }) {
+  if (!authorId || !sourceModel || !sourceId) return
 
-  try {
-    await PostContribution.create({ authorId, sourceModel, sourceId, points: 1 })
-  } catch (error) {
-    if (error?.code === 11000) return null // already awarded
-    throw error
+  if (approved) {
+    try {
+      await PostContribution.create({ authorId, sourceModel, sourceId, points: 1 })
+    } catch (error) {
+      if (error?.code === 11000) return // already credited
+      throw error
+    }
+    const result = await User.updateOne({ _id: authorId }, { $inc: { postStreakPoints: 1 } })
+    if (!result.matchedCount) {
+      await PostContribution.deleteOne({ sourceModel, sourceId })
+      throw new Error('Contribution author was not found')
+    }
+    return
   }
 
-  const update = await User.updateOne({ _id: authorId }, { $inc: { postStreakPoints: 1 } })
-  if (!update.matchedCount) {
-    await PostContribution.deleteOne({ sourceModel, sourceId })
-    throw new Error('Contribution author was not found')
+  const existing = await PostContribution.findOneAndDelete({ sourceModel, sourceId })
+  if (existing) {
+    await User.updateOne({ _id: existing.authorId }, { $inc: { postStreakPoints: -existing.points } })
+    await User.updateOne({ _id: existing.authorId, postStreakPoints: { $lt: 0 } }, { $set: { postStreakPoints: 0 } })
   }
-  return { awarded: true, points: 1 }
 }
