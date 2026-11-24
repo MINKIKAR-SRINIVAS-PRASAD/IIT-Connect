@@ -31,7 +31,7 @@ export default function Chat() {
     <div className="instagram-chat-page-heading flex flex-wrap items-end justify-between gap-3"><div><div className="section-kicker">YOUR CAMPUS, IN YOUR DMS</div><h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#e8ece2]">Messages</h1><p className="mt-1 text-sm text-[#aab5a3]">Private chats, institute groups and your IIT community.</p></div><div className="instagram-chat-brand"><Instagram size={17}/><span>Inbox</span><Sparkles size={14}/></div></div>
     <div className="chat-workspace instagram-chat-shell flex min-h-[72vh] flex-col overflow-hidden rounded-[26px] border md:flex-row">
       <ChatSidebar activeId={active?._id} onSelectConversation={setActive} onStartDM={startDM} onJoinGroup={joinGroup} onJoinCommunity={joinCommunity} onLeaveConversation={(id)=>setActive(current=>current?._id===id?null:current)}/>
-      <ChatWindow conversation={active}/>
+      <ChatWindow conversation={active} onBack={() => setActive(null)}/>
     </div>
   </motion.div>
 }
