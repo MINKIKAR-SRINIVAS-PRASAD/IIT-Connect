@@ -111,6 +111,7 @@ router.get('/conversations/:id', async (req, res, next) => {
           id: String(message._id),
           role: message.role,
           content: message.content,
+          attachments: message.attachments || [],
           status: message.status,
           createdAt: message.createdAt
         }))
