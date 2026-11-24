@@ -11,6 +11,8 @@ export default function StudentProfilePreview({ userId, onClose, onMessage }) {
   useEffect(() => {
     let alive = true
     setLoading(true)
+    setError('')
+    setData(null)
     api.get(`/profile/${userId}`).then(({ data: response }) => {
       if (alive) setData(response)
     }).catch(err => {
