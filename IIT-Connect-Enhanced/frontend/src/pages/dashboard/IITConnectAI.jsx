@@ -144,7 +144,7 @@ export default function IITConnectAI() {
     (item.preview || '').toLowerCase().includes(search.toLowerCase())
   )
 
-  return <div className="mx-auto flex h-[calc(100dvh-12rem)] min-h-[30rem] max-h-[calc(100dvh-8rem)] max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-[#101a18]">
+  return <div className="mx-auto flex h-[72vh] min-h-[30rem] max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-[#101a18]">
     {historyOpen && <aside className="flex h-full min-h-0 w-[250px] shrink-0 flex-col border-r border-white/10 bg-[#0b1411] sm:w-[270px]">
       <div className="flex items-center gap-2 border-b border-white/10 p-3">
         <button type="button" onClick={newChat} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#a8c49a] px-3 py-2.5 text-sm font-semibold text-[#101810] hover:bg-[#bdd5ae]"><Plus size={16}/> New chat</button>
