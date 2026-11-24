@@ -94,3 +94,14 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Preserve admin moderation, removed/deleted content behavior, and any explicitly private content; do not accidentally expose private messages, private account fields, or unpublished drafts.
 - [ ] Review backend query filters, authorization rules, and frontend feed filters in both student portal copies; verify cross-IIT and unconnected-user visibility.
 - [ ] Test with users from different IITs and users who are not connected before batch deployment.
+
+## Mobile unified post composer and swipe drawer (new request)
+
+- [ ] On mobile, remove repeated Upload/Create Post controls from individual section pages; keep a clear post/upload entry point on the student's Profile page and/or one unified composer.
+- [ ] Add a mobile left-edge left-to-right swipe gesture to open a page/section drawer; provide an accessible visible fallback trigger and close gesture/button.
+- [ ] Drawer lists available post destinations/sections (e.g. News, Gallery, Events, Study, Placements and other supported sections) and lets the user choose where the post belongs.
+- [ ] After choosing a destination, open a unified composer with destination-specific required fields/details and relevant media upload; validate required inputs.
+- [ ] Publish to the selected section/category, with the established community-wide public visibility and moderation/approval rules.
+- [ ] Ensure drawer gesture does not conflict with browser navigation, chat swipe/gestures, scrolling, or fixed bottom navigation; support touch and accessibility.
+- [ ] Apply to mobile student portal; preserve desktop behavior and faculty/admin separation unless explicitly specified.
+- [ ] Test composer destination, post metadata/category, public cross-IIT visibility, upload flow, and moderation before batch deployment.
