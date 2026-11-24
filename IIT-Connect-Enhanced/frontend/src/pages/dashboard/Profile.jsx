@@ -231,9 +231,9 @@ export default function Profile() {
         <h2 className="text-lg font-semibold">Change password</h2>
         <p className="mt-1 text-sm text-slate-400">Use your current password to set a new one.</p>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <Input label="Current password" type="password" autoComplete="current-password" value={currentPassword} required onChange={e=>setCurrentPassword(e.target.value)} />
-          <Input label="New password (8+ characters)" type="password" autoComplete="new-password" value={newPassword} minLength={8} required onChange={e=>setNewPassword(e.target.value)} />
-          <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirmPassword} minLength={8} required onChange={e=>setConfirmPassword(e.target.value)} />
+          <Input label="Current password" type="password" autoComplete="current-password" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} />
+          <Input label="New password (8+ characters)" type="password" autoComplete="new-password" value={newPassword} minLength={8} onChange={e=>setNewPassword(e.target.value)} />
+          <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirmPassword} minLength={8} onChange={e=>setConfirmPassword(e.target.value)} />
           <div className="md:col-span-3"><Button type="button" disabled={passwordBusy} onClick={changePassword}>{passwordBusy ? 'Updating password…' : 'Change password'}</Button></div>
         </div>
       </section>
