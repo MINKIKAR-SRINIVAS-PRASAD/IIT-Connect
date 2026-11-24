@@ -22,7 +22,7 @@ export const env = {
   SMTP_SECURE: String(process.env.SMTP_SECURE || 'false') === 'true',
   SMTP_USER: process.env.SMTP_USER,
   SMTP_APP_PASSWORD: process.env.SMTP_APP_PASSWORD,
-  SMTP_FROM: process.env.SMTP_FROM || process.env.SMTP_USER,
+  SMTP_FROM: process.env.SMTP_FROM || 'connectingiitsoverindia@gmail.com',
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
