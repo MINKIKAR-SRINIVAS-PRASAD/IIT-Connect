@@ -73,8 +73,13 @@ router.delete('/conversations/:id', async (req, res, next) => {
 
 router.post('/chat', aiLimiter, async (req, res, next) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-    if (!apiKey) return res.status(503).json({ message: 'AI is not configured yet. Add GEMINI_API_KEY to the backend environment.' })
+    // Groq is the active provider. Keep the key only in Render environment variables.
+    const apiKey = process.env.GROQ_API_KEY
+    if (!apiKey) {
+      return res.status(503).json({
+        message: 'IIT Connect AI is not configured. Add GROQ_API_KEY to the backend environment on Render.'
+      })
+    }
 
     const message = typeof req.body?.message === 'string' ? req.body.message.trim() : ''
     if (!message) return res.status(400).json({ message: 'Please enter a message.' })
@@ -87,56 +92,55 @@ router.post('/chat', aiLimiter, async (req, res, next) => {
     } else {
       conversation = await AIConversation.create({ owner: req.user._id, title: titleFromMessage(message) })
     }
-    if (!conversation.messages.length || conversation.title === 'New chat') conversation.title = titleFromMessage(message)
+    if (!conversation.messages.length || conversation.title === 'New chat') {
+      conversation.title = titleFromMessage(message)
+    }
 
+    // Persist the user's message before calling the provider, as before.
     const userMessage = conversation.messages.create({ role: 'user', content: message, status: 'pending' })
     conversation.messages.push(userMessage)
     conversation.lastMessageAt = new Date()
     if (conversation.messages.length > 250) conversation.messages.splice(0, conversation.messages.length - 250)
     await conversation.save()
 
+    // Reuse the saved thread so existing history, search, rename and delete features remain intact.
     const history = conversation.messages
       .filter(item => item.status === 'complete' && ['user', 'assistant'].includes(item.role))
       .slice(-16)
-      .map(item => ({ role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content.slice(0, 6000) }] }))
-    history.push({ role: 'user', parts: [{ text: message }] })
+      .map(item => ({ role: item.role, content: item.content.slice(0, 6000) }))
+    history.push({ role: 'user', content: message })
 
-    const requestBody = {
-      systemInstruction: { parts: [{ text: 'You are IIT Connect AI, a helpful assistant for students and faculty. Help with learning, engineering concepts, coding, research, teaching, campus guidance, and planning. Be clear, supportive, and honest. Do not invent official IIT policies or campus announcements; ask users to verify official information.' }] },
-      contents: history,
-      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-    }
+    const systemPrompt = 'You are IIT Connect AI, a helpful assistant for students and faculty. Help with learning, engineering concepts, coding, research, teaching, campus guidance, and planning. Be clear, supportive, and honest. Do not invent official IIT policies or campus announcements; ask users to verify official information.'
 
-    const callGemini = async model => {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify(requestBody)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+        messages: [{ role: 'system', content: systemPrompt }, ...history],
+        max_completion_tokens: 2048
       })
-      return { response, data: await response.json().catch(() => ({})) }
-    }
+    })
 
-    let { response, data } = await callGemini('gemini-3.8-flash')
-    if (response.status === 503) {
-      console.warn('[IIT Connect AI] Gemini Flash overloaded; trying Flash Lite fallback.')
-      const fallback = await callGemini('gemini-3.5-flash-lite')
-      response = fallback.response
-      data = fallback.data
-    }
-
+    const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       userMessage.status = 'failed'
       await conversation.save()
       const upstream = data?.error?.message || 'Provider error'
-      console.error(`[IIT Connect AI] Gemini HTTP ${response.status}: ${upstream}`)
+      console.error(`[IIT Connect AI] Groq HTTP ${response.status}: ${upstream}`)
       const status = response.status === 429 ? 429 : response.status === 401 || response.status === 403 ? 503 : 502
-      return res.status(status).json({
-        conversationId: String(conversation._id),
-        message: response.status === 429 ? 'Gemini request limit reached. Please wait and try again.' : status === 503 ? 'The AI provider rejected the configured API key. Check the Gemini key in Render.' : 'The AI service is temporarily unavailable. Please try again.'
-      })
+      const message = response.status === 429
+        ? 'Groq rate limit or free-tier quota reached. Please wait and try again.'
+        : status === 503
+          ? 'Groq rejected the API key. Check GROQ_API_KEY in Render.'
+          : 'The AI service is temporarily unavailable. Please try again.'
+      return res.status(status).json({ conversationId: String(conversation._id), message })
     }
 
-    const answer = data?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('').trim()
+    const answer = data?.choices?.[0]?.message?.content?.trim()
     if (!answer) {
       userMessage.status = 'failed'
       await conversation.save()
@@ -148,7 +152,9 @@ router.post('/chat', aiLimiter, async (req, res, next) => {
     conversation.lastMessageAt = new Date()
     await conversation.save()
     return res.json({ answer, conversationId: String(conversation._id), title: conversation.title })
-  } catch (error) { next(error) }
+  } catch (error) {
+    next(error)
+  }
 })
 
 export default router
