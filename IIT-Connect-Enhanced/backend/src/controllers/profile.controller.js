@@ -4,12 +4,13 @@ import User from '../models/User.js'
 import { cloudinary } from '../config/cloudinary.js'
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, iit, branch, batch, bio } = req.body
+  const { name, rollNumber, iit, branch, batch, bio } = req.body
 
   const user = await User.findById(req.user._id)
   if (!user) throw new ApiError(404, 'User not found')
 
   user.profile.name = name ?? user.profile.name
+  user.profile.rollNumber = rollNumber ?? user.profile.rollNumber
   user.profile.iit = iit ?? user.profile.iit
   user.profile.branch = branch ?? user.profile.branch
   user.profile.batch = batch ?? user.profile.batch
