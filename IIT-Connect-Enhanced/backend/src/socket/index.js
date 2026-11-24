@@ -52,20 +52,29 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.broadcast.emit('presence:update', { userId, status: 'online' })
 
+    async function canAccessConversation(convo) {
+      if (!convo) return false
+      if (convo.type === 'community') return true
+      if (!convo.participants.some((p) => p.toString() === userId)) return false
+      if (convo.type !== 'dm') return true
+      if (convo.participants.length !== 2) return false
+      const otherId = convo.participants.find((p) => p.toString() !== userId)
+      return Boolean(await ConnectionRequest.exists({ status: 'accepted', $or: [
+        { requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }
+      ] }))
+    }
+
     socket.on('conversation:join', async ({ conversationId }) => {
       if (!conversationId) return
       const convo = await Conversation.findById(conversationId)
-      if (!convo || !convo.participants.some(p => p.toString() === userId)) return
-      if (convo.type === 'dm') {
-        const otherId = convo.participants.find(p => p.toString() !== userId)
-        const accepted = await ConnectionRequest.exists({ status: 'accepted', $or: [{ requester: user._id, recipient: otherId }, { requester: otherId, recipient: user._id }] })
-        if (!accepted) return
-      }
+      if (!await canAccessConversation(convo)) return
       socket.join(conversationId)
     })
 
-    socket.on('conversation:typing', ({ conversationId, isTyping }) => {
+    socket.on('conversation:typing', async ({ conversationId, isTyping }) => {
       if (!conversationId) return
+      const convo = await Conversation.findById(conversationId)
+      if (!await canAccessConversation(convo)) return
       socket.to(conversationId).emit('conversation:typing', { conversationId, userId, isTyping: !!isTyping })
     })
 
@@ -107,6 +116,8 @@ export function initSocket(httpServer, corsOrigin) {
 
     socket.on('message:seen', async ({ conversationId }) => {
       if (!conversationId) return
+      const convo = await Conversation.findById(conversationId)
+      if (!await canAccessConversation(convo)) return
       await Message.updateMany(
         { conversationId, seenBy: { $ne: user._id } },
         { $push: { seenBy: user._id } }
