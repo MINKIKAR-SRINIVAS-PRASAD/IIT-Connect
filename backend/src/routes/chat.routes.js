@@ -7,6 +7,10 @@ import {
 } from '../middleware/auth.middleware.js'
 
 import {
+  listConnectionRequests,
+  sendConnectionRequest,
+  respondToConnectionRequest,
+  sendMessage,
   getOrCreateDM,
   getOrCreateIitGroup,
   getOrCreateCommunity,
