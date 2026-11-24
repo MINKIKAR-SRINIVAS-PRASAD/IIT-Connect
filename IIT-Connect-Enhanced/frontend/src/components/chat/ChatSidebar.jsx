@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
 import Input from '../common/Input'
 import Button from '../common/Button'
 import { api } from '../../utils/api'
@@ -27,6 +28,12 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   const [users, setUsers] = useState([])
   const [convos, setConvos] = useState([])
   const [showArchived, setShowArchived] = useState(false)
+  const [requests, setRequests] = useState({ incoming: [], outgoing: [], connections: [] })
+  const [requestTab, setRequestTab] = useState('people')
+  async function loadRequests() { const { data } = await api.get('/chat/requests'); setRequests({ incoming: data.incoming || [], outgoing: data.outgoing || [], connections: data.connections || [] }) }
+  async function connect(personId) { try { const { data } = await api.post(`/chat/connect/${personId}`); toast.success(data.status === 'accepted' ? 'Connection accepted — chat unlocked!' : 'Connection request sent'); await loadRequests(); await loadConvos() } catch (e) { toast.error(e?.response?.data?.message || 'Could not send request') } }
+  async function respond(requestId, action) { try { await api.patch(`/chat/requests/${requestId}`, { action }); toast.success(action === 'accept' ? 'Request accepted' : 'Request declined'); await loadRequests(); await loadConvos() } catch (e) { toast.error(e?.response?.data?.message || 'Could not update request') } }
+  function relationship(personId) { if (requests.connections.some(row => getId(row.user) === personId)) return 'connected'; if (requests.outgoing.some(row => getId(row.recipient) === personId)) return 'pending'; if (requests.incoming.some(row => getId(row.requester) === personId)) return 'incoming'; return 'none' }
   const currentUserId = getId(user?.id || user?._id)
   const matchingUsers = users.filter((person) => getId(person) !== currentUserId)
 
@@ -112,7 +119,10 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
         })()}
       </div>
 
-      <div className="instagram-inbox-label flex items-center justify-between px-4 pt-3">
+      <div className="px-4 pt-3 flex gap-2 text-xs">{[['people','Discover'],['requests','Requests'],['connections','Connections']].map(([key,label]) => <button key={key} onClick={() => setRequestTab(key)} className={`rounded-full px-3 py-2 ${requestTab === key ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'}`}>{label}{key === 'requests' && requests.incoming.length > 0 ? ` (${requests.incoming.length})` : ''}</button>)}</div>
+      {requestTab === 'requests' && <div className="px-3 py-2 space-y-2">{requests.incoming.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 flex items-center justify-between gap-2"><span className="text-sm text-white">{row.requester?.profile?.name || row.requester?.email || 'Student'} wants to connect</span><div className="flex gap-1"><button onClick={() => respond(row._id,'accept')} className="rounded-lg bg-indigo-600 px-2 py-1 text-xs text-white">Accept</button><button onClick={() => respond(row._id,'reject')} className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-300">Reject</button></div></div>)}{requests.outgoing.map(row => <p key={row._id} className="text-xs text-slate-400 px-2">Request sent to {row.recipient?.profile?.name || row.recipient?.email || 'student'} · Pending</p>)}{!requests.incoming.length && !requests.outgoing.length && <p className="text-xs text-slate-500 px-2">No pending requests.</p>}</div>}
+      {requestTab === 'connections' && <div className="px-3 py-2 space-y-2">{requests.connections.map(row => <div key={row._id} className="flex items-center justify-between rounded-xl border border-slate-800 p-3"><span className="text-sm text-white">{row.user?.profile?.name || row.user?.email || 'Connection'}</span><Button size="sm" className="chat-action-button" onClick={() => onStartDM(getId(row.user))}>Message</Button></div>)}{!requests.connections.length && <p className="text-xs text-slate-500 px-2">No connections yet. Send a request to connect.</p>}</div>}
+      {requestTab === 'people' && <div className="instagram-inbox-label flex items-center justify-between px-4 pt-3">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{showArchived ? 'Archived chats' : 'Recent conversations'}</div>
         <button type="button" onClick={() => setShowArchived((value) => !value)} className="text-xs text-indigo-300 hover:text-indigo-200">
           {showArchived ? 'Show inbox' : 'Archived'}
@@ -166,7 +176,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
                 {person.profile?.rollNumber && <div className="truncate text-[11px] text-slate-500">{person.profile.rollNumber}</div>}
                 <div className="truncate text-xs text-slate-400">{[person.profile?.iit, person.profile?.branch].filter(Boolean).join(' • ') || 'IIT student'}</div>
               </div>
-              <Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button>
+              {relationship(getId(person)) === 'connected' ? <Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button> : relationship(getId(person)) === 'pending' ? <Button size="sm" variant="secondary" disabled>Requested</Button> : relationship(getId(person)) === 'incoming' ? <Button size="sm" className="chat-action-button" onClick={() => setRequestTab('requests')}>Respond</Button> : <Button size="sm" className="chat-action-button" onClick={() => connect(person._id)}>Connect</Button>}
             </div>
           ))}
           {q.trim() && matchingUsers.length === 0 && <p className="px-2 py-4 text-sm text-slate-400">No students found for “{q.trim()}”. Try a name or roll number.</p>}
