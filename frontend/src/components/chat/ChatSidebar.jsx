@@ -158,6 +158,9 @@ export default function ChatSidebar({
         />
       </div>
 
+    <div className="flex flex-wrap gap-1"><button onClick={() => setRequestTab('people')} className="rounded-full bg-indigo-600 px-3 py-2 text-xs text-white">Discover</button><button onClick={() => setRequestTab('requests')} className="rounded-full bg-slate-800 px-3 py-2 text-xs text-white">Requests ({requests.incoming.length})</button><button onClick={() => setRequestTab('connections')} className="rounded-full bg-slate-800 px-3 py-2 text-xs text-white">Connections</button></div>
+    {requestTab === 'requests' && <div className="space-y-2">{requests.incoming.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 text-sm text-white">{getUserName(row.requester)} wants to connect<div className="mt-2 flex gap-2"><button onClick={() => respond(row._id,'accept')} className="rounded bg-indigo-600 px-3 py-1 text-xs">Accept</button><button onClick={() => respond(row._id,'reject')} className="rounded bg-slate-800 px-3 py-1 text-xs">Decline</button></div></div>)}{requests.outgoing.map(row => <p key={row._id} className="text-xs text-slate-400">Pending · {getUserName(row.recipient)}</p>)}{!requests.incoming.length&&!requests.outgoing.length&&<p className="text-sm text-slate-500">No pending requests.</p>}</div>}
+    {requestTab === 'connections' && <div className="space-y-2">{requests.connections.map(row => <div key={row._id} className="flex items-center justify-between rounded-xl border border-slate-800 p-3 text-sm text-white">{getUserName(row.user)}<button onClick={() => handleStartDM(row.user._id)} className="text-indigo-300">Message</button></div>)}{!requests.connections.length&&<p className="text-sm text-slate-500">No connections yet.</p>}</div>}
       {/* IIT Group */}
       <button
         onClick={handleJoinGroup}
