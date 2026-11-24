@@ -63,7 +63,7 @@ const profileComplete = (profile) => {
       link.href = URL.createObjectURL(blob)
       link.download = 'IITStudentsOS-' + cert.certificateId + '.html'
       link.click()
-      URL.revokeObjectURL(link.href)
+      setTimeout(() => URL.revokeObjectURL(link.href), 1200)
       setAchievement((old) => old ? { ...old, certificateId: cert.certificateId } : old)
       toast.success('Certificate generated. Open the downloaded file and print or save as PDF.')
     } catch (error) { toast.error(error?.response?.data?.message || 'Unable to issue certificate') }
