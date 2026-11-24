@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../utils/api'
-import { notifySuccessfulLogin } from '../utils/loginNotification'
+import { notifySuccessfulLogin, requestLoginNotificationPermission } from '../utils/loginNotification'
 
 export const AuthContext = createContext(null)
 
@@ -18,6 +18,8 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({
     user, loading, setUser, refresh: fetchMe,
     async login(email, password) {
+      // Request permission within the user's login action, before the network await.
+      await requestLoginNotificationPermission()
       const { data } = await api.post('/auth/login', { email, password }); setUser(data.user); void notifySuccessfulLogin(data.user); return data.user
     },
     async sendRegistrationOtp(email, password, accountType = 'student', facultyProfile = {}) {
