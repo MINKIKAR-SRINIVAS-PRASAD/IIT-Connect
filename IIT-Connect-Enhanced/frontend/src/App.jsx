@@ -22,6 +22,7 @@ import Trip from './pages/dashboard/Trip.jsx'
 import TravelHome from './pages/dashboard/TravelHome.jsx'
 import Study from './pages/dashboard/Study.jsx'
 import News from './pages/dashboard/News.jsx'
+import Students from './pages/dashboard/Students.jsx'
 import IITConnectAI from './pages/dashboard/IITConnectAI.jsx'
 import FacultyWorkspace from './pages/FacultyWorkspaceLive.jsx'
 
@@ -110,6 +111,7 @@ export default function App() {
       >
         <Route index element={<HomeFeed />} />
         <Route path="chat" element={<Chat />} />
+        <Route path="students" element={<Students />} />
         <Route path="ai" element={<IITConnectAI />} />
         <Route path="gallery" element={<Gallery />} />
         <Route path="placements" element={<Placement />} />
