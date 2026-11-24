@@ -22,6 +22,12 @@ export default function ChatSidebar({
   const connect = async (id) => { try { const { data } = await api.post(`/chat/connect/${id}`); toast.success(data.status === 'accepted' ? 'Connection accepted — chat unlocked!' : 'Request sent'); await loadRequests() } catch (e) { toast.error(e?.response?.data?.message || 'Could not send request') } }
   const respond = async (id, action) => { try { await api.patch(`/chat/requests/${id}`, { action }); toast.success(action === 'accept' ? 'Request accepted' : 'Request declined'); await loadRequests(); await fetchConversations() } catch (e) { toast.error(e?.response?.data?.message || 'Could not update request') } }
   const relation = (id) => requests.connections.some(row => String(row.user?._id) === String(id)) ? 'connected' : requests.outgoing.some(row => String(row.recipient?._id) === String(id)) ? 'pending' : requests.incoming.some(row => String(row.requester?._id) === String(id)) ? 'incoming' : 'none'
+  const [requests, setRequests] = useState({ incoming: [], outgoing: [], connections: [] })
+  const [requestTab, setRequestTab] = useState('people')
+  const loadRequests = useCallback(async () => { const { data } = await api.get('/chat/requests'); setRequests({ incoming: data.incoming || [], outgoing: data.outgoing || [], connections: data.connections || [] }) }, [])
+  const connect = async (id) => { try { const { data } = await api.post(`/chat/connect/${id}`); toast.success(data.status === 'accepted' ? 'Connection accepted — chat unlocked!' : 'Request sent'); await loadRequests() } catch (e) { toast.error(e?.response?.data?.message || 'Could not send request') } }
+  const respond = async (id, action) => { try { await api.patch(`/chat/requests/${id}`, { action }); toast.success(action === 'accept' ? 'Request accepted' : 'Request declined'); await loadRequests(); await fetchConversations() } catch (e) { toast.error(e?.response?.data?.message || 'Could not update request') } }
+  const relation = (id) => requests.connections.some(row => String(row.user?._id) === String(id)) ? 'connected' : requests.outgoing.some(row => String(row.recipient?._id) === String(id)) ? 'pending' : requests.incoming.some(row => String(row.requester?._id) === String(id)) ? 'incoming' : 'none'
 
   const getUserName = (person) => {
     return (
@@ -89,6 +95,7 @@ export default function ChatSidebar({
   useEffect(() => {
     fetchConversations()
     fetchUsers()
+    loadRequests()
   }, [fetchConversations, fetchUsers, loadRequests])
 
   useEffect(() => {
@@ -216,9 +223,12 @@ export default function ChatSidebar({
       <div className="flex gap-2 flex-wrap"><button onClick={() => setRequestTab('people')} className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white">Discover</button><button onClick={() => setRequestTab('requests')} className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white">Requests ({requests.incoming.length})</button><button onClick={() => setRequestTab('connections')} className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white">Connections</button></div>
       {requestTab === 'requests' && <div className="space-y-2">{requests.incoming.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 text-sm text-white">{getUserName(row.requester)}<div className="flex gap-2 mt-2"><button onClick={() => respond(row._id,'accept')} className="rounded-lg bg-indigo-600 px-3 py-1">Accept</button><button onClick={() => respond(row._id,'reject')} className="rounded-lg bg-slate-800 px-3 py-1">Reject</button></div></div>)}{requests.outgoing.map(row => <p key={row._id} className="text-xs text-slate-400">Pending: {getUserName(row.recipient)}</p>)}</div>}
       {requestTab === 'connections' && <div className="space-y-2">{requests.connections.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 text-white flex justify-between">{getUserName(row.user)}<button onClick={() => handleStartDM(row.user._id)} className="text-indigo-300">Message</button></div>)}</div>}
+      <div className="flex gap-2 flex-wrap"><button onClick={() => setRequestTab('people')} className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white">Discover</button><button onClick={() => setRequestTab('requests')} className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white">Requests ({requests.incoming.length})</button><button onClick={() => setRequestTab('connections')} className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white">Connections</button></div>
+      {requestTab === 'requests' && <div className="space-y-2">{requests.incoming.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 text-sm text-white">{getUserName(row.requester)}<div className="flex gap-2 mt-2"><button onClick={() => respond(row._id,'accept')} className="rounded-lg bg-indigo-600 px-3 py-1">Accept</button><button onClick={() => respond(row._id,'reject')} className="rounded-lg bg-slate-800 px-3 py-1">Reject</button></div></div>)}{requests.outgoing.map(row => <p key={row._id} className="text-xs text-slate-400">Pending: {getUserName(row.recipient)}</p>)}</div>}
+      {requestTab === 'connections' && <div className="space-y-2">{requests.connections.map(row => <div key={row._id} className="rounded-xl border border-slate-800 p-3 text-white flex justify-between">{getUserName(row.user)}<button onClick={() => handleStartDM(row.user._id)} className="text-indigo-300">Message</button></div>)}</div>}
       {/* Students */}
       {requestTab === 'people' && <div>
-      <div>
+      {requestTab === 'people' && <div>
         <h3 className="text-sm text-slate-400 mb-3">
           Students
         </h3>
@@ -238,14 +248,14 @@ export default function ChatSidebar({
                 {student.profile?.iit || 'IIT'}
               </p>
 
-              <button
+              {relation(student._id) === 'connected' ? <button
                 onClick={() => handleStartDM(student._id)}
                 className="w-full mt-3 rounded-xl
                   bg-indigo-600 hover:bg-indigo-500
                   text-white font-semibold py-2"
               >
                 Message
-              </button>
+              </button> : relation(student._id) === 'pending' ? <button disabled className="w-full mt-3 rounded-xl bg-slate-800 text-slate-400 py-2">Request sent</button> : relation(student._id) === 'incoming' ? <button onClick={() => setRequestTab('requests')} className="w-full mt-3 rounded-xl bg-indigo-600 text-white py-2">Respond to request</button> : <button onClick={() => connect(student._id)} className="w-full mt-3 rounded-xl bg-indigo-600 text-white py-2">Connect</button>}
             </div>
           ))}
 
@@ -255,7 +265,7 @@ export default function ChatSidebar({
             </p>
           )}
         </div>
-      </div>
+      </div>}
     </aside>
   )
 }
