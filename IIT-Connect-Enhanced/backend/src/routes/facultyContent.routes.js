@@ -7,6 +7,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import FacultyEvent from '../models/FacultyEvent.js'
 import FacultyGallery from '../models/FacultyGallery.js'
+import GalleryPost from '../models/GalleryPost.js'
 import FacultyStudy from '../models/FacultyStudy.js'
 import FacultyTravel from '../models/FacultyTravel.js'
 import FacultyChannel from '../models/FacultyChannel.js'
@@ -21,7 +22,16 @@ const safeUrl=value=>!value||/^https:\/\//i.test(value)
 router.get('/events',asyncHandler(async(req,res)=>{const events=await FacultyEvent.find({$or:[{status:'Approved'},{author:req.user._id}]}).populate('author','facultyProfile').sort({startAt:1}).limit(100);res.json({success:true,events})}))
 router.post('/events',body('title').isString().trim().isLength({min:3,max:200}),body('startAt').isISO8601(),body('description').optional().isString().isLength({max:8000}),body('venue').optional().isString().isLength({max:300}),body('registrationUrl').optional().custom(safeUrl),validate,asyncHandler(async(req,res)=>{if(!institute(req))throw new ApiError(400,'Complete your faculty institute profile first');const event=await FacultyEvent.create({author:req.user._id,title:req.body.title,description:req.body.description||'',startAt:new Date(req.body.startAt),venue:req.body.venue||'',institute:institute(req),registrationUrl:req.body.registrationUrl||'',status:'Pending'});res.status(201).json({success:true,event,message:'Event submitted for admin approval'})}))
 
-router.get('/gallery',asyncHandler(async(req,res)=>{const posts=await FacultyGallery.find({$or:[{status:'Approved'},{author:req.user._id}]}).populate('author','facultyProfile').sort({createdAt:-1}).limit(100);res.json({success:true,posts})}))
+router.get('/gallery',asyncHandler(async(req,res)=>{
+ const [studentPosts,facultyPosts]=await Promise.all([
+  GalleryPost.find({status:'Approved'}).sort({createdAt:-1}).limit(100).populate('authorId','email profile'),
+  FacultyGallery.find({$or:[{status:'Approved'},{author:req.user._id}]}).populate('author','email facultyProfile').sort({createdAt:-1}).limit(100)
+ ])
+ const normalizedStudent=studentPosts.map(post=>({...post.toObject(),sourceType:'GalleryPost',author:post.authorId?{facultyProfile:{name:post.authorId.profile?.name},email:post.authorId.email}:null}))
+ const normalizedFaculty=facultyPosts.map(post=>({_id:post._id,imageUrl:post.imageUrl,caption:post.caption||'',institute:post.institute,createdAt:post.createdAt,status:post.status,rejectionReason:post.rejectionReason,sourceType:'FacultyGallery',author:post.author?{facultyProfile:post.author.facultyProfile,email:post.author.email}:null}))
+ const posts=[...normalizedStudent,...normalizedFaculty].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,150)
+ res.json({success:true,posts})
+}))
 router.post('/gallery',body('imageUrl').isURL({protocols:['https'],require_protocol:true}),body('caption').optional().isString().isLength({max:1000}),validate,asyncHandler(async(req,res)=>{if(!institute(req))throw new ApiError(400,'Complete your faculty institute profile first');const post=await FacultyGallery.create({author:req.user._id,imageUrl:req.body.imageUrl,caption:req.body.caption||'',institute:institute(req),status:'Pending'});res.status(201).json({success:true,post,message:'Gallery post submitted for admin approval'})}))
 
 router.get('/study',asyncHandler(async(req,res)=>{const resources=await FacultyStudy.find({$or:[{status:'Approved'},{author:req.user._id}]}).populate('author','facultyProfile').sort({createdAt:-1}).limit(100);res.json({success:true,resources})}))
