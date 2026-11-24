@@ -7,21 +7,21 @@ import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const listUsers = asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim().slice(0, 80)
+  const escapedQ = q.replace(/[.*+?^$|(){}[\\]\\\\]/g, '\\$&')
   const filter = {
     isBanned: { $ne: true },
     role: 'student',
     ...(q ? { $or: [
       { 'profile.name': { $regex: escapedQ, $options: 'i' } },
       { 'profile.iit': { $regex: escapedQ, $options: 'i' } },
-      { 'profile.branch': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } }
+      { 'profile.branch': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.rollNumber': { $regex: escapedQ, $options: 'i' } }
     ] } : {})
   }
 
-  // Student discovery is cross-institute, but only safe public profile fields
-  // are returned. Email is never a search/display field in this endpoint.
   const users = await User.find(filter)
-    .select('role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl')
-    .limit(25)
+    .select('role profile.name profile.iit profile.institute profile.branch profile.batch profile.rollNumber profile.photoUrl')
+    .limit(30)
     .sort({ createdAt: -1 })
     .lean()
 
