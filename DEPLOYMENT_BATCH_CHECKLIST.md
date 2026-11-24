@@ -118,3 +118,16 @@ This file is the running deployment queue. Do not remove an item until the code 
 - [ ] Private post visibility must not be confused with connection/chat permissions; audience access does not automatically grant private chat, and accepted connection status does not reveal a private post unless its audience allows it.
 - [ ] Respect moderation, deletion, and account access rules; do not leak private content through notifications, previews, cached responses, or profile/feed APIs.
 - [ ] Test public defaults, each private audience mode, adding/removing audience members, unauthorized direct API/media access, and cross-IIT accounts before batch deployment.
+
+## Work completed in the current batch (branch only; not production verified)
+
+- [x] Added cross-IIT student discovery UI at `frontend/src/pages/dashboard/Students.jsx`, connected to existing authenticated search and connection-request APIs.
+- [x] Added the student `/app/students` route.
+- [x] Added the student-only five-destination mobile bottom navigation (Home, Study, Chat, Search, Profile); faculty/admin navigation remains separate.
+- [x] Limited discovery and connection-list user projections to public profile fields (email excluded).
+- [x] Verified backend chat routes expose the request/search endpoints used by the new page and verify accepted connection status before DM access in the inspected controller.
+- [ ] Run a clean frontend/backend build and regression tests against the final branch commit; no local build runner was available in this connector-only session.
+- [ ] Deploy final commit. Vercel returned HTTP 402 `api-deployments-free-per-day` (100 deployments/day limit; retryAfter 86400 seconds). Latest available preview is older than this final commit.
+- [ ] Merge/release and validate the complete checklist on production. Do not mark this batch complete until production verification succeeds.
+
+Latest branch commit at checklist update: `44f33fc708686ac475a2c820e1e874912b153152`.
