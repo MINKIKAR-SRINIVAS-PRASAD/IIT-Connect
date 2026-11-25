@@ -192,3 +192,23 @@ export const logs = asyncHandler(async (req, res) => {
   const items = await AdminLog.find({}).sort({ createdAt: -1 }).limit(200).populate('adminId', 'email profile')
   res.json({ success: true, logs: items })
 })
+
+
+export const listFacultyRequests = asyncHandler(async (_req, res) => {
+  const requests = await User.find({ role: 'faculty', facultyAccessStatus: 'pending' })
+    .select('email role facultyAccessStatus profile createdAt')
+    .sort({ createdAt: 1 }).limit(200).lean()
+  res.json({ success: true, requests })
+})
+
+export const reviewFacultyRequest = asyncHandler(async (req, res) => {
+  const decision = String(req.body.decision || '').toLowerCase()
+  if (!['approve', 'reject'].includes(decision)) throw new ApiError(400, 'Decision must be approve or reject')
+  const user = await User.findById(req.params.id)
+  if (!user || user.role !== 'faculty') throw new ApiError(404, 'Faculty request not found')
+  if (user.facultyAccessStatus !== 'pending') throw new ApiError(409, 'This faculty request has already been reviewed')
+  user.facultyAccessStatus = decision === 'approve' ? 'approved' : 'rejected'
+  await user.save()
+  await log(req.user._id, decision === 'approve' ? 'APPROVE_FACULTY_ACCESS' : 'REJECT_FACULTY_ACCESS', 'User', user._id)
+  res.json({ success: true, request: { id: user._id, email: user.email, facultyAccessStatus: user.facultyAccessStatus } })
+})
