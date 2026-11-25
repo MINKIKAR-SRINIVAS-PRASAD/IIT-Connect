@@ -12,10 +12,10 @@ export const createCampusNews=asyncHandler(async(req,res)=>{
  res.status(201).json({success:true,post,message:'Campus news submitted for review'})
 })
 export const listApprovedCampusNews=asyncHandler(async(_req,res)=>{
- const posts=await CampusNews.find({status:'Approved'}).sort({createdAt:-1}).limit(100).populate('authorId','profile.name profile.iit profile.institute role')
+ const posts=await CampusNews.find({status:'Approved'}).sort({createdAt:-1}).populate('authorId','profile.name profile.iit profile.institute role')
  res.json({success:true,posts})
 })
 export const listMyCampusNews=asyncHandler(async(req,res)=>{
- const posts=await CampusNews.find({authorId:req.user._id}).sort({createdAt:-1}).limit(50)
+ const posts=await CampusNews.find({authorId:req.user._id}).sort({createdAt:-1})
  res.json({success:true,posts})
 })
