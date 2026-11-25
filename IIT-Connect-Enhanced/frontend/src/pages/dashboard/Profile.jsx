@@ -240,7 +240,7 @@ export default function Profile() {
             <p className="font-semibold">{displayName}</p>
             {bio && <p className="whitespace-pre-wrap text-slate-300">{bio}</p>}
             <p className="text-slate-400">{[user?.profile?.iit, user?.profile?.branch, user?.profile?.batch].filter(Boolean).join(' · ')}</p>
-            {user?.profile?.website && <a href={user.profile.website} target="_blank" rel="noreferrer" className="break-all font-semibold text-indigo-300 hover:underline">↗ {user.profile.website.replace(/^https?:\\/\\//,'')}</a>}
+            {user?.profile?.website && <a href={user.profile.website} target="_blank" rel="noreferrer" className="break-all font-semibold text-indigo-300 hover:underline">↗ {user.profile.website.replace('https://','').replace('http://','')}</a>}
           </div>
           <div className="mt-5 grid grid-cols-[1fr_1fr_44px] gap-2 sm:max-w-lg"><button type="button" onClick={()=>setEditing(true)} className="rounded-xl bg-[#30363b] px-4 py-2.5 text-sm font-semibold hover:bg-[#3b4248]">Edit profile</button><button type="button" onClick={shareProfile} className="rounded-xl bg-[#30363b] px-4 py-2.5 text-sm font-semibold hover:bg-[#3b4248]">Share profile</button><button type="button" onClick={()=>navigate('/app/search')} aria-label="Find people" className="flex items-center justify-center rounded-xl bg-[#30363b] text-lg hover:bg-[#3b4248]">♧</button></div>
         </div>
