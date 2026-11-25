@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import EventPost from '../models/EventPost.js'
 import { cloudinary } from '../config/cloudinary.js'
+import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 
 export const createEvent = asyncHandler(async (req, res) => {
   const { iit, title, datetime, venue, registrationLink, description } = req.body
@@ -56,3 +57,5 @@ export const myEvents = asyncHandler(async (req, res) => {
 
   res.json({ success: true, posts })
 })
+
+export const deleteEvent = deleteOwnedContent({ Model: EventPost, contentType: 'Event', titleFor: post => post.title || 'Event', imageIdField: 'posterPublicId' })
