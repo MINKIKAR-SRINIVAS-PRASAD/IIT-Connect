@@ -1763,3 +1763,44 @@ body {
 @media (min-width: 768px) {
   .mobile-bottom-nav { display: none !important; }
 }
+
+/* Final mobile bottom bar alignment: equal-width touch targets and consistent icon/label sizing */
+@media (max-width: 767px) {
+  nav.mobile-bottom-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    width: 100%;
+    min-height: 70px;
+    padding: 5px 0 calc(5px + env(safe-area-inset-bottom));
+  }
+  nav.mobile-bottom-nav > a.mobile-bottom-nav-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 58px;
+    margin: 0 !important;
+    padding: 5px 0 3px !important;
+    display: flex !important;
+    flex: none !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    text-align: center !important;
+    font-size: 10px !important;
+    line-height: 12px !important;
+    white-space: nowrap;
+  }
+  nav.mobile-bottom-nav > a.mobile-bottom-nav-item svg {
+    width: 21px !important;
+    height: 21px !important;
+    margin: 0 auto !important;
+  }
+  nav.mobile-bottom-nav > a.mobile-bottom-nav-item span {
+    display: block !important;
+    width: 100%;
+    line-height: 12px !important;
+    font-size: 10px !important;
+  }
+}
