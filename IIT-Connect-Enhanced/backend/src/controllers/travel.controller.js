@@ -1,4 +1,3 @@
-import TravelPost from '../models/TravelPost.js'
 import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
