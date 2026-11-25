@@ -6,8 +6,11 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['student', 'faculty', 'admin'], default: 'student' },
   facultyAccessStatus: { type: String, enum: ['not-applicable', 'pending', 'approved', 'rejected'], default: 'not-applicable' },
   isBanned: { type: Boolean, default: false },
+  postStreakPoints: { type: Number, default: 0, min: 0 },
+  achievementCertificateId: { type: String, default: undefined, unique: true, sparse: true },
+  achievementCertificateIssuedAt: { type: Date, default: null },
   profile: {
-    name: { type: String, default: '' }, iit: { type: String, default: '' },
+    name: { type: String, default: '' }, rollNumber: { type: String, default: '', uppercase: true, trim: true }, iit: { type: String, default: '' },
     branch: { type: String, default: '' }, batch: { type: String, default: '' },
     bio: { type: String, default: '' }, photoUrl: { type: String, default: '' },
     photoPublicId: { type: String, default: '' },
