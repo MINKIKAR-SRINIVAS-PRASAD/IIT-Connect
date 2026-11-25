@@ -128,8 +128,8 @@ export default function TravelHome() {
   async function removeBooking(id) {
     try {
       await api.delete('/transport-bookings/' + id)
-      toast.success('Booking removed.')
-      setBookings(current => current.filter(item => item._id !== id))
+      toast.success('Booking permanently removed from your account and admin review queue.')
+      await loadBookings()
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Could not remove booking')
     }
