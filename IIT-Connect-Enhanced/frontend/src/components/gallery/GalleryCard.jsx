@@ -16,6 +16,8 @@ export default function GalleryCard({ post }) {
   const [deleting, setDeleting] = useState(false)
   const postAuthorId = post.authorId?._id || post.authorId
   const currentUserId = user?._id || user?.id
+  const isAdmin = user?.role === 'admin'
+  const canDelete = String(postAuthorId) === String(currentUserId) || (isAdmin && post.visibility !== 'private')
 
   async function loadLikes() {
     const { data } = await api.get('/likes', { params: { targetType: 'GalleryPost', targetId: post._id } })
@@ -68,9 +70,9 @@ export default function GalleryCard({ post }) {
         <div className="mt-1 text-xs text-slate-400">{post.iit}</div>
         {post.caption ? <div className="mt-2 text-sm text-slate-200">{post.caption}</div> : null}
 
-        {String(postAuthorId) === String(currentUserId) && (
+        {canDelete && (
           <button type="button" disabled={deleting} onClick={deletePost} className="mt-3 rounded-lg border border-rose-500/30 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 disabled:opacity-50">
-            {deleting ? 'Deleting…' : 'Delete for everyone'}
+            {deleting ? 'Deleting…' : isAdmin && String(postAuthorId) !== String(currentUserId) ? 'Admin · Delete post' : 'Delete for everyone'}
           </button>
         )}
 
