@@ -3,11 +3,8 @@ import { ArrowLeft, Camera, Check, ImagePlus, LoaderCircle, X } from 'lucide-rea
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
 
-const destinations = ['Events', 'Placements', 'Gallery']
-
 export default function MobileCreatePost({ onClose, onCreated }) {
   const [caption, setCaption] = useState('')
-  const [section, setSection] = useState('Gallery')
   const [visibility, setVisibility] = useState('public')
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -37,7 +34,6 @@ export default function MobileCreatePost({ onClose, onCreated }) {
       const body = new FormData()
       body.append('media', file)
       body.append('caption', caption.trim())
-      body.append('section', section)
       body.append('visibility', visibility)
       await api.post('/posts', body)
       toast.success('Your post has been shared')
@@ -77,9 +73,9 @@ export default function MobileCreatePost({ onClose, onCreated }) {
 
         <section className="shrink-0 space-y-5 border-t border-white/10 bg-[#101612] px-4 pb-[max(18px,env(safe-area-inset-bottom))] pt-5 sm:px-6">
           <label className="block"><span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">Caption</span><textarea value={caption} onChange={e => setCaption(e.target.value)} maxLength={2000} rows={2} placeholder="Write something about this moment…" className="w-full resize-none rounded-xl border border-white/10 bg-[#080d09] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-[#a8c49a]/50"/></label>
-          <div><div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Where do you want to share?</div><div className="flex flex-wrap gap-2">{destinations.map(name => <button key={name} type="button" onClick={() => setSection(name)} className={'rounded-full border px-3.5 py-2 text-xs font-semibold transition '+(section===name?'border-[#a8c49a]/50 bg-[#a8c49a]/15 text-[#c6dfb8]':'border-white/10 bg-white/[.025] text-slate-400 hover:text-white')}>{section===name?'✓ ':''}{name}</button>)}</div></div>
+          <div className="rounded-xl border border-[#a8c49a]/20 bg-[#a8c49a]/[.06] px-4 py-3 text-sm text-[#c6dfb8]">Sharing to <strong>Gallery</strong>. Public posts are visible to everyone; private posts are visible only to your connections.</div>
           <div className="flex items-center justify-between gap-3"><span className="text-xs text-slate-500">Post visibility</span><div className="flex rounded-full border border-white/10 p-1"><button type="button" onClick={() => setVisibility('public')} className={'rounded-full px-3 py-1.5 text-xs '+(visibility==='public'?'bg-[#a8c49a]/15 text-[#c6dfb8]':'text-slate-500')}>Public</button><button type="button" onClick={() => setVisibility('private')} className={'rounded-full px-3 py-1.5 text-xs '+(visibility==='private'?'bg-[#a8c49a]/15 text-[#c6dfb8]':'text-slate-500')}>Private</button></div></div>
-          <button type="submit" disabled={busy || !file || !caption.trim()} className="w-full rounded-xl bg-[#a8c49a] px-5 py-3.5 text-sm font-bold text-[#142016] disabled:cursor-not-allowed disabled:opacity-40">{busy?'Sharing post…':`Share to ${section}`}</button>
+          <button type="submit" disabled={busy || !file || !caption.trim()} className="w-full rounded-xl bg-[#a8c49a] px-5 py-3.5 text-sm font-bold text-[#142016] disabled:cursor-not-allowed disabled:opacity-40">{busy?'Sharing post…':'Share to Gallery'}</button>
         </section>
       </form>
     </div>
