@@ -22,6 +22,7 @@ import Trip from './pages/dashboard/Trip.jsx'
 import TravelHome from './pages/dashboard/TravelHome.jsx'
 import Study from './pages/dashboard/Study.jsx'
 import News from './pages/dashboard/News.jsx'
+import Search from './pages/dashboard/Search.jsx'
 import IITConnectAI from './pages/dashboard/IITConnectAI.jsx'
 import FacultyWorkspace from './pages/FacultyWorkspaceLive.jsx'
 
@@ -115,6 +116,7 @@ export default function App() {
         <Route path="placements" element={<Placement />} />
         <Route path="events" element={<Events />} />
         <Route path="news" element={<News />} />
+        <Route path="search" element={<Search />} />
         <Route path="trip" element={<Trip />} />
         <Route path="travel-home" element={<TravelHome />} />
         <Route path="travel" element={<Navigate to="/app/travel-home" replace />} />
