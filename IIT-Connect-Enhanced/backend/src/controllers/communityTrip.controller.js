@@ -97,6 +97,8 @@ export const cancelCommunityTrip = asyncHandler(async (req, res) => {
   if (!trip) throw new ApiError(404, 'Trip not found')
   if (String(trip.authorId) !== String(req.user._id)) throw new ApiError(403, 'Only the organiser can cancel this trip')
   trip.status = 'Cancelled'
+  trip.approvalStatus = 'Rejected'
+  trip.rejectionReason = 'Cancelled by organiser'
   await trip.save()
   await TripJoinRequest.deleteMany({ tripId: trip._id })
   res.json({ success: true })
