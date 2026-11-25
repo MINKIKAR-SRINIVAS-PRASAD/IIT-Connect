@@ -17,7 +17,7 @@ export async function seedDemoAccounts(env) {
       email: env.DEMO_FACULTY_EMAIL,
       password: env.DEMO_FACULTY_PASSWORD,
       role: 'faculty',
-      facultyAccessStatus: 'approved',
+      facultyAccessStatus: 'pending', // New demo faculty identity starts as a reviewable request.
       profile: { name: 'Demo Faculty', institute: 'Demo Institute', department: 'Demo', designation: 'Faculty' }
     }
   ]
@@ -27,16 +27,19 @@ export async function seedDemoAccounts(env) {
     const password = String(account.password || '')
     if (!email || password.length < 8) continue
     const passwordHash = await bcrypt.hash(password, 12)
+    // Refresh demo credentials safely without resetting a faculty approval
+    // decision on every server restart/deploy. Status/profile are initialized
+    // only for a newly created demo identity.
     await User.findOneAndUpdate(
       { email },
-      { $set: {
-        passwordHash,
-        role: account.role,
-        facultyAccessStatus: account.facultyAccessStatus,
-        isBanned: false,
-        profile: account.profile,
-        refreshTokenHash: null
-      } },
+      {
+        $set: { passwordHash, isBanned: false, refreshTokenHash: null },
+        $setOnInsert: {
+          role: account.role,
+          facultyAccessStatus: account.facultyAccessStatus,
+          profile: account.profile
+        }
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     )
   }
