@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.middleware.js'
+import ExternalNews from '../models/ExternalNews.js'
 import { createCampusNews, listApprovedCampusNews, listMyCampusNews } from '../controllers/news.controller.js'
 
 const router = Router()
@@ -34,9 +35,39 @@ router.get('/external',async(_req,res)=>{
   if(!response.ok)throw new Error('RSS unavailable: '+response.status)
   return parseFeed(await response.text(),feed)
  }))
- const items=settled.flatMap(x=>x.status==='fulfilled'?x.value:[])
+ const now=new Date()
+ const fresh=settled.flatMap(x=>x.status==='fulfilled'?x.value:[])
  const failed=settled.filter(x=>x.status==='rejected').length
- items.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))
- res.json({items,partialFailure:failed>0,sourcesFailed:failed,updatedAt:new Date().toISOString()})
+ if(fresh.length){
+  await ExternalNews.bulkWrite(fresh.map(item=>({
+   updateOne:{
+    filter:{sourceKey:item.source+'|'+item.url},
+    update:{$set:{
+     sourceKey:item.source+'|'+item.url,
+     category:item.category,
+     source:item.source,
+     title:item.title,
+     description:item.description,
+     url:item.url,
+     date:item.date?new Date(item.date):null,
+     lastSeenAt:now
+    },$setOnInsert:{firstSeenAt:now}},
+    upsert:true
+   }
+  })),{ordered:false})
+ }
+ // Never prune an article merely because its RSS provider stops returning it.
+ // The collection is an archive of every item observed by this endpoint.
+ const archived=await ExternalNews.find({}).sort({date:-1,firstSeenAt:-1}).limit(5000).lean()
+ const items=archived.map(item=>({
+  id:item.sourceKey,
+  category:item.category,
+  source:item.source,
+  title:item.title,
+  description:item.description,
+  url:item.url,
+  date:item.date?new Date(item.date).toISOString():null
+ }))
+ res.json({items,partialFailure:failed>0,sourcesFailed:failed,updatedAt:now.toISOString(),archived:true})
 })
 export default router
