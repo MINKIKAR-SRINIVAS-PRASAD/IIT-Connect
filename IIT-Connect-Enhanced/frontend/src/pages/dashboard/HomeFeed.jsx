@@ -10,6 +10,7 @@ import {
 import { api } from '../../utils/api'
 import { formatDateTime, formatDate } from '../../utils/formatters'
 import Loader from '../../components/common/Loader.jsx'
+import MobileCreatePost from '../../components/common/MobileCreatePost.jsx'
 import { useAuth } from '../../hooks/useAuth'
 
 const reveal = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: .5, ease: [0.22,1,.36,1] } } }
@@ -26,6 +27,9 @@ export default function HomeFeed() {
   const [refreshing, setRefreshing] = useState(false)
   const [events, setEvents] = useState([])
   const [gallery, setGallery] = useState([])
+  const [createOpen, setCreateOpen] = useState(false)
+  const touchStart = useRef(null)
+  const touchOpened = useRef(false)
 
   async function loadData(isRefresh = false) {
     if (isRefresh) setRefreshing(true)
@@ -44,6 +48,44 @@ export default function HomeFeed() {
   }
 
   useEffect(() => { loadData() }, [])
+
+  useEffect(() => {
+    if (window.matchMedia('(min-width: 768px)').matches) return
+    // Capture a horizontal right swipe on Home before the shell drawer sees it.
+    const start = (event) => {
+      if (event.touches.length !== 1) return
+      const target = event.target
+      if (target?.closest?.('button,a,input,textarea,select,[role="dialog"],[data-no-create-swipe]')) {
+        touchStart.current = null
+        return
+      }
+      touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+      touchOpened.current = false
+    }
+    const move = (event) => {
+      if (!touchStart.current || touchOpened.current || event.touches.length !== 1) return
+      const dx = event.touches[0].clientX - touchStart.current.x
+      const dy = event.touches[0].clientY - touchStart.current.y
+      if (dx > 65 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+        touchOpened.current = true
+        event.preventDefault()
+        event.stopPropagation()
+        setCreateOpen(true)
+      }
+    }
+    const end = () => { touchStart.current = null }
+    window.addEventListener('touchstart', start, { passive: true, capture: true })
+    window.addEventListener('touchmove', move, { passive: false, capture: true })
+    window.addEventListener('touchend', end, { passive: true, capture: true })
+    window.addEventListener('touchcancel', end, { passive: true, capture: true })
+    return () => {
+      window.removeEventListener('touchstart', start, true)
+      window.removeEventListener('touchmove', move, true)
+      window.removeEventListener('touchend', end, true)
+      window.removeEventListener('touchcancel', end, true)
+    }
+  }, [])
+
 
   const firstName = user?.profile?.name?.trim()?.split(/\s+/)[0] || 'there'
   const institute = user?.profile?.iit || 'your IIT'
@@ -89,5 +131,6 @@ export default function HomeFeed() {
     </section>
 
     <section className="home-share-cta relative overflow-hidden rounded-3xl border p-6 md:p-8"><div className="pointer-events-none absolute -right-10 -top-24 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl"/><div className="relative flex flex-wrap items-center justify-between gap-5"><div><div className="text-[10px] font-bold tracking-[.2em] text-cyan-200">YOUR NEXT CONNECTION STARTS HERE</div><h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Have something worth sharing?</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">A useful note, a campus event, a placement experience or a travel plan — your contribution can help another student.</p></div><Link to="/app/study" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1]">Share something <ArrowUpRight size={16}/></Link></div></section>
+    {createOpen && <MobileCreatePost onClose={() => setCreateOpen(false)} />}
   </div>
 }
