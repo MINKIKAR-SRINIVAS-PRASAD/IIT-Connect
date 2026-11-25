@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useState} from 'react'
+import React,{useEffect,useMemo,useRef,useState} from 'react'
 import {useLocation} from 'react-router-dom'
 import {motion} from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -13,10 +13,14 @@ const dateLabel=value=>{if(!value)return 'Recently shared';const d=new Date(valu
 export default function News(){
  const faculty=useLocation().pathname.startsWith('/faculty')
  const [items,setItems]=useState([]),[mine,setMine]=useState([]),[loading,setLoading]=useState(true),[filter,setFilter]=useState('All news'),[query,setQuery]=useState(''),[loadError,setLoadError]=useState(false)
+ const refreshingRef=useRef(false)
  const [formOpen,setFormOpen]=useState(false),[submitting,setSubmitting]=useState(false)
  const [form,setForm]=useState({title:'',body:'',category:'Announcement',sourceUrl:''})
- async function load(){
-  setLoading(true);setLoadError(false)
+ async function load(silent=false){
+  if(refreshingRef.current)return
+  refreshingRef.current=true
+  if(!silent)setLoading(true)
+  setLoadError(false)
   const results=await Promise.allSettled([api.get('/news/campus'),api.get('/news/mine'),api.get('/news/external')])
   const campus=results[0].status==='fulfilled'?results[0].value.data.posts||[]:[]
   const own=results[1].status==='fulfilled'?results[1].value.data.posts||[]:[]
@@ -26,9 +30,14 @@ export default function News(){
   setItems([...campusItems,...externalItems].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)))
   setMine(own)
   setLoadError(results.some(x=>x.status==='rejected')||(results[2].status==='fulfilled'&&Boolean(results[2].value.data.partialFailure)))
+  refreshingRef.current=false
   setLoading(false)
  }
- useEffect(()=>{load()},[faculty])
+ useEffect(()=>{
+  load()
+  const refreshTimer=setInterval(()=>load(true),10000)
+  return ()=>clearInterval(refreshTimer)
+ },[faculty])
  async function submitNews(e){
   e.preventDefault();setSubmitting(true)
   try{
