@@ -11,6 +11,7 @@ import CampusNews from '../models/CampusNews.js'
 import AdminLog from '../models/AdminLog.js'
 import CommunityTrip from '../models/CommunityTrip.js'
 import TransportBooking from '../models/TransportBooking.js'
+import CommunityPost from '../models/CommunityPost.js'
 
 async function log(adminId, action, targetType, targetId = null, metadata = {}) {
   await AdminLog.create({ adminId, action, targetType, targetId, metadata })
@@ -67,16 +68,19 @@ export const setBan = asyncHandler(async (req, res) => {
 })
 
 export const pendingApprovals = asyncHandler(async (req, res) => {
-  const [gallery, placements, events, travel, study, campusNews, communityTrips, transportBookings] = await Promise.all([
+  const [gallery, placements, events, travel, study, campusNews, communityTrips, transportBookings, communityGallery] = await Promise.all([
     GalleryPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     PlacementPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     EventPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     TravelPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     StudyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    CampusNews.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile')
+    CampusNews.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
+    CommunityTrip.find({ approvalStatus: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
+    TransportBooking.find({ approvalStatus: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('userId', 'email profile'),
+    CommunityPost.find({ section: 'Gallery', status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile')
   ])
 
-  res.json({ success: true, gallery, placements, events, travel, study, campusNews, communityTrips, transportBookings })
+  res.json({ success: true, gallery, placements, events, travel, study, campusNews, communityTrips, transportBookings, communityGallery })
 })
 
 export const approveGallery = asyncHandler(async (req, res) => {
@@ -190,6 +194,18 @@ export const approveCampusNews=asyncHandler(async(req,res)=>{
  await log(req.user._id,status==='Approved'?'APPROVE_CAMPUS_NEWS':'REJECT_CAMPUS_NEWS','CampusNews',post._id,{rejectionReason:post.rejectionReason})
  res.json({success:true,post})
 })
+export const approveCommunityGallery = asyncHandler(async (req, res) => {
+  const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) throw new ApiError(400, 'Status must be Approved or Rejected')
+  const post = await CommunityPost.findOne({ _id: req.params.id, section: 'Gallery' })
+  if (!post) throw new ApiError(404, 'Gallery post not found')
+  post.status = status
+  post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
+  await post.save()
+  await log(req.user._id, status === 'Approved' ? 'APPROVE_COMMUNITY_GALLERY' : 'REJECT_COMMUNITY_GALLERY', 'CommunityPost', post._id, { rejectionReason: post.rejectionReason })
+  res.json({ success: true, post })
+})
+
 export const approveCommunityTrip = asyncHandler(async (req, res) => {
   const { status, rejectionReason } = req.body
   if (!['Approved', 'Rejected'].includes(status)) throw new ApiError(400, 'Status must be Approved or Rejected')
