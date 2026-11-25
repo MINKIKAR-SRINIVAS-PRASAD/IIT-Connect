@@ -243,7 +243,7 @@ export default function Profile() {
             {user?.profile?.website && <a href={user.profile.website} target="_blank" rel="noreferrer" className="break-all font-semibold text-indigo-300 hover:underline">↗ {user.profile.website.replace('https://','').replace('http://','')}</a>}
           </div>
           <div className="mt-5 grid grid-cols-[1fr_1fr_44px] gap-2 sm:max-w-lg"><button type="button" onClick={()=>setEditing(true)} className="rounded-xl bg-[#30363b] px-4 py-2.5 text-sm font-semibold hover:bg-[#3b4248]">Edit profile</button><button type="button" onClick={shareProfile} className="rounded-xl bg-[#30363b] px-4 py-2.5 text-sm font-semibold hover:bg-[#3b4248]">Share profile</button><button type="button" onClick={()=>navigate('/app/search')} aria-label="Find people" className="flex items-center justify-center rounded-xl bg-[#30363b] text-lg hover:bg-[#3b4248]">♧</button></div>
-          <div className="mt-4 flex flex-wrap items-center gap-2"><div className="rounded-xl border border-amber-400/25 bg-amber-400/[.06] px-4 py-2"><div className="text-lg font-bold text-amber-200">🔥 {Number(achievement?.points || 0).toLocaleString()}</div><div className="text-xs text-slate-400">Contribution streak points</div></div><div className="text-xs text-slate-500">Silver 1K · Gold 5K · Platinum 10K</div></div>
+
         </div>
       </div>
     </section>
@@ -253,8 +253,9 @@ export default function Profile() {
         {label:'Public posts',icon:'🌐',filter:'Public',count:publicPosts.length},
         {label:'Gallery',icon:'📷',filter:'Gallery',count:null},
         {label:'Events',icon:'🎟️',filter:'Events',count:null},
+        {label:'Streak',icon:'🔥',filter:'All',count:Number(achievement?.points || 0),isStreak:true},
         {label:'More',icon:'•••',filter:'All',count:null}
-      ].map(item=><button type="button" key={item.label} onClick={()=>setPostFilter(item.filter)} className="flex min-w-[68px] flex-col items-center gap-2 text-center"><span className="flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-[#1b221d] text-xl sm:h-[74px] sm:w-[74px]">{item.icon}</span><span className="text-[11px] text-slate-300">{item.label}</span></button>)}
+      ].map(item=><button type="button" key={item.label} onClick={()=>setPostFilter(item.filter)} className="flex min-w-[68px] flex-col items-center gap-2 text-center"><span className="flex h-16 w-16 flex-col items-center justify-center rounded-full border border-white/15 bg-[#1b221d] text-xl sm:h-[74px] sm:w-[74px]">{item.icon}{item.isStreak&&<span className="mt-0.5 text-[10px] font-bold leading-none text-amber-200">{item.count.toLocaleString()}</span>}</span><span className="text-[11px] text-slate-300">{item.label}</span></button>)}
     </div></section>
     <section className="border-t border-white/[.08]">
       <div className="flex items-center justify-center gap-10 border-b border-white/[.08] py-4 text-xs font-semibold uppercase tracking-[.18em] text-slate-400"><button type="button" onClick={()=>setPostFilter('All')} className={postFilter==='All'?'border-b-2 border-white pb-4 -mb-4 text-white':'hover:text-white'}>▦ Posts</button><button type="button" onClick={()=>setPostFilter('Public')} className={postFilter==='Public'?'border-b-2 border-white pb-4 -mb-4 text-white':'hover:text-white'}>Public</button><button type="button" onClick={()=>setPostFilter('Private')} className={postFilter==='Private'?'border-b-2 border-white pb-4 -mb-4 text-white':'hover:text-white'}>Private</button></div>
