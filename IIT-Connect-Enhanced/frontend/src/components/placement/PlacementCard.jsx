@@ -5,8 +5,20 @@ import Modal from '../common/Modal'
 import Input from '../common/Input'
 import { api } from '../../utils/api'
 import { formatDate } from '../../utils/formatters'
+import { useAuth } from '../../hooks/useAuth'
 
-export default function PlacementCard({ post }) {
+export default function PlacementCard({ post, onDeleted }) {
+  const { user } = useAuth()
+  const isOwner = String(post.authorId?._id || post.authorId) === String(user?._id || user?.id)
+  const canDelete = isOwner || user?.role === 'admin'
+  const [deleting, setDeleting] = useState(false)
+  async function deletePost() {
+    if (!window.confirm('Delete this placement post for everyone?')) return
+    setDeleting(true)
+    try { await api.delete('/placements/' + post._id); toast.success('Placement post deleted'); onDeleted?.() }
+    catch (e) { toast.error(e?.response?.data?.message || 'Could not delete post') }
+    finally { setDeleting(false) }
+  }
   const [likes, setLikes] = useState(0)
   const [open, setOpen] = useState(false)
   const [comments, setComments] = useState([])
@@ -54,6 +66,7 @@ export default function PlacementCard({ post }) {
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="ghost" onClick={toggleLike}>Like • {likes}</Button>
         <Button variant="ghost" onClick={() => { setOpen(true); loadComments().catch(() => {}) }}>Comments</Button>
+        {canDelete && <button disabled={deleting} onClick={deletePost} className="rounded-lg border border-rose-500/30 px-3 py-2 text-xs text-rose-300 disabled:opacity-50">{deleting?'Deleting…':isOwner?'Delete post':'Admin · Delete post'}</button>}
       </div>
 
       <Modal open={open} title="Placement Details" onClose={() => setOpen(false)}>
