@@ -11,6 +11,7 @@ import { api } from '../../utils/api'
 import { formatDateTime, formatDate } from '../../utils/formatters'
 import Loader from '../../components/common/Loader.jsx'
 import { useAuth } from '../../hooks/useAuth'
+import MobilePostComposer from '../../components/posts/MobilePostComposer.jsx'
 
 const reveal = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: .5, ease: [0.22,1,.36,1] } } }
 const quickLinks = [
@@ -26,6 +27,7 @@ export default function HomeFeed() {
   const [refreshing, setRefreshing] = useState(false)
   const [events, setEvents] = useState([])
   const [gallery, setGallery] = useState([])
+  const [composerOpen, setComposerOpen] = useState(false)
 
   async function loadData(isRefresh = false) {
     if (isRefresh) setRefreshing(true)
@@ -44,6 +46,14 @@ export default function HomeFeed() {
   }
 
   useEffect(() => { loadData() }, [])
+  // Open the composer only for a deliberate left-edge horizontal swipe on Home.
+  useEffect(() => {
+    let start=null
+    const begin=e=>{const t=e.touches?.[0];start=t&&t.clientX<=22?{x:t.clientX,y:t.clientY}:null}
+    const finish=e=>{const t=e.changedTouches?.[0];if(start&&t&&t.clientX-start.x>=85&&Math.abs(t.clientY-start.y)<70)setComposerOpen(true);start=null}
+    window.addEventListener('touchstart',begin,{passive:true});window.addEventListener('touchend',finish,{passive:true})
+    return()=>{window.removeEventListener('touchstart',begin);window.removeEventListener('touchend',finish)}
+  },[])
 
   const firstName = user?.profile?.name?.trim()?.split(/\s+/)[0] || 'there'
   const institute = user?.profile?.iit || 'your IIT'
@@ -52,6 +62,8 @@ export default function HomeFeed() {
   if (loading) return <div className="flex min-h-[55vh] items-center justify-center"><Loader/></div>
 
   return <div className="space-y-9 pb-5">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-50 md:hidden"><button type="button" onClick={()=>setComposerOpen(true)} aria-label="Create a post" className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gradient-to-br from-indigo-300 to-cyan-200 text-[#101522] shadow-xl"><Camera size={23}/></button></div>
+    <MobilePostComposer open={composerOpen} onClose={()=>setComposerOpen(false)} user={user} onCreated={()=>loadData(true)}/>
     <motion.section initial="hidden" animate="show" variants={reveal} className="home-hero relative isolate overflow-hidden rounded-[2rem] border border-indigo-200/10 px-6 py-8 md:px-10 md:py-11">
       <div className="home-hero-grid pointer-events-none absolute inset-0"/>
       <div className="home-hero-glow pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full"/>
