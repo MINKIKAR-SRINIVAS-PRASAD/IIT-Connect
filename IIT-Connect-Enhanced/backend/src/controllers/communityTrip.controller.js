@@ -42,7 +42,7 @@ export const createCommunityTrip = asyncHandler(async (req, res) => {
 export const requestToJoinTrip = asyncHandler(async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.tripId)) throw new ApiError(400, 'Invalid trip id')
   const trip = await CommunityTrip.findOne({ _id: req.params.tripId, status: 'Published' })
-  if (!trip) throw new ApiError(404, 'Trip not found or cancelled')
+  if (!trip || trip.approvalStatus !== 'Approved') throw new ApiError(404, 'Trip not found, not approved, or cancelled')
   if (String(trip.authorId) === String(req.user._id)) throw new ApiError(400, 'You are the trip organiser')
   if (trip.memberIds.some(id => String(id) === String(req.user._id))) throw new ApiError(409, 'You are already a member')
   if (trip.currentMembers >= trip.maxMembers) throw new ApiError(409, 'This trip is full')
