@@ -18,6 +18,8 @@ import galleryRoutes from './routes/gallery.routes.js'
 import placementRoutes from './routes/placement.routes.js'
 import eventRoutes from './routes/event.routes.js'
 import travelRoutes from './routes/travel.routes.js'
+import communityTripRoutes from './routes/communityTrip.routes.js'
+import transportBookingRoutes from './routes/transportBooking.routes.js'
 import studyRoutes from './routes/study.routes.js'
 import commentRoutes from './routes/comment.routes.js'
 import likeRoutes from './routes/like.routes.js'
@@ -64,6 +66,8 @@ async function bootstrap() {
   app.use('/api/placements', placementRoutes)
   app.use('/api/events', eventRoutes)
   app.use('/api/travel', travelRoutes)
+  app.use('/api/trips', communityTripRoutes)
+  app.use('/api/transport-bookings', transportBookingRoutes)
   app.use('/api/study', studyRoutes)
   app.use('/api/comments', commentRoutes)
   app.use('/api/likes', likeRoutes)
