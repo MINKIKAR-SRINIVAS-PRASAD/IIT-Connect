@@ -5,8 +5,13 @@ import { cloudinary } from '../config/cloudinary.js'
 
 export function deleteOwnedContent({ Model, contentType, titleFor, imageIdField = null }) {
   return asyncHandler(async (req, res) => {
-    const item = await Model.findOne({ _id: req.params.id, authorId: req.user._id })
-    if (!item) throw new ApiError(404, 'Submission not found or you do not own it')
+    const item = await Model.findById(req.params.id)
+    if (!item) throw new ApiError(404, 'Post not found')
+    const isOwner = String(item.authorId) === String(req.user._id)
+    const isAdmin = req.user.role === 'admin'
+    if (!isOwner && !isAdmin) throw new ApiError(403, 'You can delete only your own post')
+    // Admin moderation applies to public content; private connection-only posts remain protected.
+    if (isAdmin && !isOwner && item.visibility === 'private') throw new ApiError(403, 'Admins cannot delete private connection-only posts')
     const snapshot = item.toObject()
     const notification = await DeletionNotification.create({
       actorId: req.user._id, actorName: req.user.profile?.name || '',
