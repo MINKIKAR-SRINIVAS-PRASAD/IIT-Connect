@@ -9,45 +9,28 @@ import ConnectionRequest from '../models/ConnectionRequest.js'
 
 // 1. List students and users
 export const listUsers = asyncHandler(async (req, res) => {
-  const q = String(req.query.q || '').trim()
+  const q = String(req.query.q || '').trim().slice(0, 80)
+  const filter = {
+    isBanned: { $ne: true },
+    role: 'student',
+    ...(q ? { $or: [
+      { 'profile.name': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
+      { 'profile.iit': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
+      { 'profile.branch': { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } }
+    ] } : {})
+  }
 
-  const filter = q
-    ? {
-        $or: [
-          { email: { $regex: q, $options: 'i' } },
-          { 'profile.name': { $regex: q, $options: 'i' } },
-          { 'profile.rollNumber': { $regex: q, $options: 'i' } },
-          { 'profile.iit': { $regex: q, $options: 'i' } }
-        ]
-      }
-    : {}
-
-  const users = await User.find({
-    ...filter,
-    _id: { $ne: req.user._id },
-    isBanned: { $ne: true }
-  })
-    .select('email role profile isBanned lastSeenAt')
+  // Student discovery is cross-institute, but only safe public profile fields
+  // are returned. Email is never a search/display field in this endpoint.
+  const users = await User.find(filter)
+    .select('role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl')
     .limit(25)
     .sort({ createdAt: -1 })
     .lean()
 
-  const formattedUsers = users.map(user => ({
-    ...user,
-    name:
-      user.profile?.name?.trim() ||
-      user.name ||
-      user.email?.split('@')[0] ||
-      'Student'
-  }))
-
-  res.json({
-    success: true,
-    users: formattedUsers
-  })
+  res.json({ success: true, users })
 })
 
-// 2. Create or get direct message
 export const getOrCreateDM = asyncHandler(async (req, res) => {
   const { otherUserId } = req.body
 
@@ -264,9 +247,9 @@ export const messages = asyncHandler(async (req, res) => {
 export const listConnectionRequests = asyncHandler(async (req, res) => {
   const uid = req.user._id
   const [incoming, outgoing, connections] = await Promise.all([
-    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'email role profile').sort({ createdAt: -1 }).lean(),
-    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'email role profile').sort({ createdAt: -1 }).lean(),
-    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'email role profile').lean()
+    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl').lean()
   ])
   res.json({ success: true, incoming, outgoing, connections: connections.map(row => ({
     _id: row._id,
@@ -323,6 +306,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
   } else if (convo.type === 'group' && !member) throw new ApiError(403, 'Join this group to message')
   const message = await Message.create({ conversationId, senderId: req.user._id, text: cleanText.slice(0, 2000), seenBy: [req.user._id] })
   convo.lastMessageAt = new Date(); convo.lastMessageText = message.text; await convo.save()
-  const populated = await Message.findById(message._id).populate('senderId', 'email role profile').lean()
+  const populated = await Message.findById(message._id).populate('senderId', 'role profile.name profile.iit profile.institute profile.avatar profile.avatarUrl').lean()
   res.status(201).json({ success: true, message: populated })
 })

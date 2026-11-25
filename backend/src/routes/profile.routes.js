@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth.middleware.js'
 import { validate } from '../middleware/validate.middleware.js'
 import { upload } from '../middleware/upload.middleware.js'
 import { updateProfile } from '../controllers/profile.controller.js'
+import { achievementSummary, issueAchievementCertificate, verifyAchievementCertificate } from '../controllers/achievement.controller.js'
 
 const router = Router()
 
@@ -48,5 +49,9 @@ router.put(
   validate,
   updateProfile
 )
+
+router.get('/achievements', requireAuth, achievementSummary)
+router.post('/achievement-certificate', requireAuth, issueAchievementCertificate)
+router.get('/achievement-certificate/verify/:certificateId', verifyAchievementCertificate)
 
 export default router

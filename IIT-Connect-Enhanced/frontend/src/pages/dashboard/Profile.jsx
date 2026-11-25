@@ -25,6 +25,8 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordBusy, setPasswordBusy] = useState(false)
+  const [achievement, setAchievement] = useState(null)
+  const [certificateBusy, setCertificateBusy] = useState(false)
 
   const instituteByDomain = {
     'iitgn.ac.in': 'IIT Gandhinagar', 'iitbbs.ac.in': 'IIT Bhubaneswar', 'iitbhubaneswar.ac.in': 'IIT Bhubaneswar',
@@ -61,6 +63,38 @@ export default function Profile() {
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
   }, [user?.id, user?.email, user?.profile?.iit])
+
+  useEffect(() => {
+    if (!user?.id && !user?._id) return
+    api.get('/profile/achievements').then(({ data }) => setAchievement(data)).catch(() => {})
+  }, [user?.id, user?._id])
+
+  async function downloadCertificate() {
+    setCertificateBusy(true)
+    try {
+      const { data } = await api.post('/profile/achievement-certificate')
+      const cert = data.certificate
+      const esc = (value) => String(value ?? '').replace(/[&<>\"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[ch]))
+      const verify = window.location.origin + '/api/profile/achievement-certificate/verify/' + encodeURIComponent(cert.certificateId)
+      const html = [
+        '<!doctype html><html><head><meta charset="utf-8"><title>IITStudentsOS Platinum Certificate</title>',
+        '<style>body{font-family:Georgia,serif;background:#f2f2f2;padding:30px;color:#151515}.frame{background:#fff;border:12px double #b59a52;padding:48px;text-align:center;max-width:900px;margin:auto}.brand{letter-spacing:5px;color:#80651d;font:700 18px Arial}.title{font-size:36px;margin:25px}.student{font-size:32px;border-bottom:1px solid #aaa;padding:12px}.copy{font:18px Arial;line-height:1.8;margin:28px}.seal{margin:28px auto;border:3px solid #b59a52;border-radius:50%;width:105px;height:105px;display:flex;align-items:center;justify-content:center;font:bold 15px Arial;color:#80651d}.small{font:12px Arial;color:#555;overflow-wrap:anywhere}@media print{body{background:white;padding:0}.frame{max-width:none;min-height:85vh}}</style></head><body><main class="frame">',
+        '<div class="brand">IITStudentsOS</div><h1 class="title">Certificate of Contribution</h1><p>This certificate is presented to</p><div class="student">' + esc(cert.studentName) + '</div>',
+        '<p class="copy">In recognition of sustained, approved contributions to the IITStudentsOS student community, achieving the <b>PLATINUM CONTRIBUTOR</b> milestone with <b>' + Number(cert.contributionPoints).toLocaleString() + ' contribution points</b>.</p>',
+        '<div class="seal">PLATINUM<br>10K+</div><p>' + esc(cert.institute) + ' · ' + esc(cert.branch) + ' · ' + esc(cert.batch) + '</p><p>Issued: ' + esc(new Date(cert.issuedAt).toLocaleDateString()) + '</p>',
+        '<p class="small">Certificate ID: ' + esc(cert.certificateId) + '</p><p class="small">Verify: ' + esc(verify) + '</p><p class="small">Platform contribution recognition issued by IITStudentsOS; not an official institute-issued academic certificate.</p></main></body></html>'
+      ].join('')
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = 'IITStudentsOS-' + cert.certificateId + '.html'
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(link.href), 1200)
+      setAchievement((old) => old ? { ...old, certificateId: cert.certificateId } : old)
+      toast.success('Certificate generated. Open the downloaded file and print or save as PDF.')
+    } catch (error) { toast.error(error?.response?.data?.message || 'Unable to issue certificate') }
+    finally { setCertificateBusy(false) }
+  }
 
   async function changePassword(e) {
     e?.preventDefault()
@@ -197,11 +231,20 @@ export default function Profile() {
         <h2 className="text-lg font-semibold">Change password</h2>
         <p className="mt-1 text-sm text-slate-400">Use your current password to set a new one.</p>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <Input label="Current password" type="password" autoComplete="current-password" value={currentPassword} required onChange={e=>setCurrentPassword(e.target.value)} />
-          <Input label="New password (8+ characters)" type="password" autoComplete="new-password" value={newPassword} minLength={8} required onChange={e=>setNewPassword(e.target.value)} />
-          <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirmPassword} minLength={8} required onChange={e=>setConfirmPassword(e.target.value)} />
+          <Input label="Current password" type="password" autoComplete="current-password" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} />
+          <Input label="New password (8+ characters)" type="password" autoComplete="new-password" value={newPassword} minLength={8} onChange={e=>setNewPassword(e.target.value)} />
+          <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirmPassword} minLength={8} onChange={e=>setConfirmPassword(e.target.value)} />
           <div className="md:col-span-3"><Button type="button" disabled={passwordBusy} onClick={changePassword}>{passwordBusy ? 'Updating password…' : 'Change password'}</Button></div>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/20 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs uppercase tracking-[0.2em] text-amber-300">Contribution achievements</p><h2 className="mt-1 text-xl font-bold text-white">Post Streak</h2><p className="mt-1 text-sm text-slate-400">Only approved posts count. Chat messages and DMs earn no points.</p></div><span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-200">{achievement?.level || 'Starter'}</span></div>
+        <div className="mt-5 flex items-end justify-between gap-4"><div><p className="text-3xl font-black text-white">{Number(achievement?.points || 0).toLocaleString()}</p><p className="text-xs text-slate-400">contribution points</p></div><p className="text-sm text-slate-400">{achievement?.nextMilestone ? `${Number(achievement.pointsToNext).toLocaleString()} to next badge` : 'All badge milestones reached'}</p></div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-200" style={{ width: achievement?.nextMilestone ? `${Math.min(100, (achievement.points / achievement.nextMilestone) * 100)}%` : '100%' }} /></div>
+        <div className="mt-4 grid gap-2 text-sm text-slate-300 sm:grid-cols-3"><span>🥈 Silver · 1,000</span><span>🥇 Gold · 5,000</span><span>💎 Platinum · 10,000</span></div>
+        {achievement?.rewards?.length > 0 && <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-slate-400">{achievement.rewards.map((reward) => <li key={reward}>{reward}</li>)}</ul>}
+        {isStudent && achievement?.certificateAvailable && <button type="button" onClick={downloadCertificate} disabled={certificateBusy} className="mt-5 rounded-xl bg-amber-400 px-4 py-3 font-bold text-slate-950 disabled:opacity-60">{certificateBusy ? 'Preparing certificate…' : achievement.certificateId ? 'Download Platinum certificate' : 'Generate Platinum certificate'}</button>}
       </section>
 
       <NotificationSettings />

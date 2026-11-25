@@ -4,11 +4,10 @@ import { requireAuth } from '../middleware/auth.middleware.js'
 import { validate } from '../middleware/validate.middleware.js'
 import { upload } from '../middleware/upload.middleware.js'
 import { updateProfile } from '../controllers/profile.controller.js'
+import { achievementSummary, issueAchievementCertificate, verifyAchievementCertificate } from '../controllers/achievement.controller.js'
 import { getPublicStudentProfile } from '../controllers/publicProfile.controller.js'
 
 const router = Router()
-router.get('/:userId', requireAuth, getPublicStudentProfile)
-
 router.put(
   '/',
   requireAuth,
@@ -21,5 +20,12 @@ router.put(
   validate,
   updateProfile
 )
+
+router.get('/achievements', requireAuth, achievementSummary)
+router.post('/achievement-certificate', requireAuth, issueAchievementCertificate)
+router.get('/achievement-certificate/verify/:certificateId', verifyAchievementCertificate)
+
+// Keep the dynamic public-profile route last so it cannot shadow static routes.
+router.get('/:userId', requireAuth, getPublicStudentProfile)
 
 export default router

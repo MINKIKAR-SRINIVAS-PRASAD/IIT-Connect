@@ -6,21 +6,25 @@ import User from '../models/User.js'
 import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const listUsers = asyncHandler(async (req, res) => {
-  const q = (req.query.q || '').toString().trim()
+  const q = String(req.query.q || '').trim().slice(0, 80)
+  const escapedQ = q.replace(/[.*+?^$|(){}[\]\\]/g, '\\$&')
   const filter = {
     isBanned: { $ne: true },
-    role: { $ne: 'admin' },
+    role: 'student',
     ...(q ? { $or: [
-          { email: { $regex: q, $options: 'i' } },
-          { 'profile.name': { $regex: q, $options: 'i' } },
-          { 'profile.iit': { $regex: q, $options: 'i' } }
-        ] } : {})
+      { 'profile.name': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.iit': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.institute': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.branch': { $regex: escapedQ, $options: 'i' } },
+      { 'profile.rollNumber': { $regex: escapedQ, $options: 'i' } }
+    ] } : {})
   }
 
   const users = await User.find(filter)
-    .select('email role profile isBanned lastSeenAt')
-    .limit(25)
+    .select('role profile.name profile.iit profile.institute profile.branch profile.batch profile.rollNumber profile.photoUrl')
+    .limit(30)
     .sort({ createdAt: -1 })
+    .lean()
 
   res.json({ success: true, users })
 })
@@ -126,9 +130,9 @@ export const messages = asyncHandler(async (req, res) => {
 export const listConnectionRequests = asyncHandler(async (req, res) => {
   const uid = req.user._id
   const [incoming, outgoing, connections] = await Promise.all([
-    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'email role profile').sort({ createdAt: -1 }).lean(),
-    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'email role profile').sort({ createdAt: -1 }).lean(),
-    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'email role profile').lean()
+    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'role profile.name profile.iit profile.institute profile.branch profile.batch profile.avatar profile.avatarUrl').lean()
   ])
   res.json({ success: true, incoming, outgoing, connections: connections.map(row => ({
     _id: row._id,
@@ -185,6 +189,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
   } else if (convo.type === 'group' && !member) throw new ApiError(403, 'Join this group to message')
   const message = await Message.create({ conversationId, senderId: req.user._id, text: cleanText.slice(0, 2000), seenBy: [req.user._id] })
   convo.lastMessageAt = new Date(); convo.lastMessageText = message.text; await convo.save()
-  const populated = await Message.findById(message._id).populate('senderId', 'email role profile').lean()
+  const populated = await Message.findById(message._id).populate('senderId', 'role profile.name profile.iit profile.institute profile.avatar profile.avatarUrl').lean()
   res.status(201).json({ success: true, message: populated })
 })

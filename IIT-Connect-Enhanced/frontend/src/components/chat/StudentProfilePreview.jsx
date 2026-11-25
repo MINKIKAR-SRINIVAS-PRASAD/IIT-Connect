@@ -5,19 +5,23 @@ const categories = ['All', 'Gallery', 'Events', 'Campus News', 'Placements', 'St
 
 export default function StudentProfilePreview({ userId, onClose, onMessage }) {
   const [data, setData] = useState(null)
+  const [activeProfileId, setActiveProfileId] = useState(userId)
   const [category, setCategory] = useState('All')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  useEffect(() => { setActiveProfileId(userId) }, [userId])
   useEffect(() => {
     let alive = true
     setLoading(true)
-    api.get(`/profile/${userId}`).then(({ data: response }) => {
+    setError('')
+    setData(null)
+    api.get(`/profile/${activeProfileId}`).then(({ data: response }) => {
       if (alive) setData(response)
     }).catch(err => {
       if (alive) setError(err?.response?.data?.message || 'Could not load this profile')
     }).finally(() => alive && setLoading(false))
     return () => { alive = false }
-  }, [userId])
+  }, [activeProfileId])
   const profile = data?.profile
   const posts = data?.posts || []
   const visible = category === 'All' ? posts : posts.filter(post => post.section === category)
@@ -34,14 +38,14 @@ export default function StudentProfilePreview({ userId, onClose, onMessage }) {
             {profile.photoUrl ? <img src={profile.photoUrl} alt={profile.name} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center text-4xl">{(profile.name || 'S')[0]}</div>}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-3"><h2 className="text-2xl font-semibold">{profile.name}</h2><button onClick={onMessage} className="rounded-xl bg-[#a8c69a] px-4 py-2 text-sm font-semibold text-[#142014] hover:bg-[#bdd5ae]">Message</button></div>
+            <div className="flex flex-wrap items-center gap-3"><h2 className="text-2xl font-semibold">{profile.name}</h2><button onClick={() => onMessage?.(activeProfileId)} className="rounded-xl bg-[#a8c69a] px-4 py-2 text-sm font-semibold text-[#142014] hover:bg-[#bdd5ae]">Message</button></div>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm"><span><b>{posts.length}</b> posts</span><span><b>{profile.connections?.length || 0}</b> connected people</span></div>
             <div className="mt-4 space-y-1 text-sm text-slate-300"><p className="font-medium text-white">{profile.institute || 'Institute not added'}</p><p>{[profile.branch, profile.batch ? `Batch ${profile.batch}` : ''].filter(Boolean).join(' · ')}</p>{profile.rollNumber && <p>Roll no. {profile.rollNumber}</p>}{profile.bio && <p className="mt-2 whitespace-pre-wrap">{profile.bio}</p>}</div>
           </div>
         </div>
         <div className="border-b border-white/10 px-4 py-3"><div className="flex gap-2 overflow-x-auto">{categories.map(item=><button key={item} onClick={()=>setCategory(item)} className={category===item?'shrink-0 rounded-full bg-[#a8c69a] px-4 py-2 text-xs font-semibold text-[#142014]':'shrink-0 rounded-full border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5'}>{item}</button>)}</div></div>
         <div className="p-5 sm:p-7">
-          {category === 'All' && profile.connections?.length > 0 && <div className="mb-6"><h3 className="mb-3 text-sm font-semibold">CONNECTED PEOPLE</h3><div className="flex flex-wrap gap-3">{profile.connections.map(person=><div key={person.id} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2"><div className="h-9 w-9 overflow-hidden rounded-full bg-slate-700">{person.photoUrl&&<img src={person.photoUrl} alt="" className="h-full w-full object-cover"/>}</div><div><p className="text-xs font-medium">{person.name}</p><p className="text-[10px] text-slate-400">{[person.institute,person.branch].filter(Boolean).join(' · ')}</p></div></div>)}</div></div>}
+          {category === 'All' && profile.connections?.length > 0 && <div className="mb-6"><h3 className="mb-3 text-sm font-semibold">CONNECTED PEOPLE</h3><div className="flex flex-wrap gap-3">{profile.connections.map(person=><button type="button" key={person.id} onClick={()=>setActiveProfileId(person.id)} title="Open connected student profile" className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-left hover:bg-white/10"><div className="h-9 w-9 overflow-hidden rounded-full bg-slate-700">{person.photoUrl&&<img src={person.photoUrl} alt="" className="h-full w-full object-cover"/>}</div><div><p className="text-xs font-medium">{person.name}</p><p className="text-[10px] text-slate-400">{[person.institute,person.branch].filter(Boolean).join(' · ')}</p></div></button>)}</div></div>}
           {!visible.length ? <div className="py-12 text-center text-sm text-slate-500">No {category==='All'?'public posts in the profile yet':category+' posts'}.</div> : <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{visible.map((post,index)=><article key={post._id || index} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[.035]">
             {post.imageUrl && <img src={post.imageUrl} alt={post.caption || 'Post image'} className="max-h-72 w-full object-cover"/>}{post.posterUrl && <img src={post.posterUrl} alt={post.title || 'Event poster'} className="max-h-72 w-full object-cover"/>}
             <div className="p-4"><div className="mb-2 flex items-center justify-between gap-2"><span className="rounded-full bg-[#a8c69a]/15 px-2.5 py-1 text-[10px] font-semibold text-[#b9d3aa]">{post.section}</span><time className="text-[10px] text-slate-500">{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : ''}</time></div><h4 className="font-semibold">{post.title || post.companyName || post.destination || post.subject || post.caption || 'Shared post'}</h4><p className="mt-2 whitespace-pre-wrap break-words text-sm text-slate-300">{post.text || post.description || post.body || ''}</p>{post.venue && <p className="mt-2 text-xs text-slate-400">📍 {post.venue}</p>}{post.datetime && <p className="text-xs text-slate-400">{new Date(post.datetime).toLocaleString()}</p>}{post.companyName && <p className="mt-1 text-xs text-slate-400">{post.role} {post.ctc&&'· '+post.ctc}</p>}</div>

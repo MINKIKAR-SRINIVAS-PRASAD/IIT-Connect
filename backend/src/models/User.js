@@ -6,6 +6,9 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['student', 'faculty', 'admin'], default: 'student' },
     isBanned: { type: Boolean, default: false },
+  postStreakPoints: { type: Number, default: 0, min: 0 },
+  achievementCertificateId: { type: String, default: undefined, unique: true, sparse: true },
+  achievementCertificateIssuedAt: { type: Date, default: null },
 
     profile: {
       name: { type: String, default: '' },

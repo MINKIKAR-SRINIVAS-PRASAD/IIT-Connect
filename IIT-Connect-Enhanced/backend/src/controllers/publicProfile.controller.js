@@ -10,7 +10,7 @@ import TravelPost from '../models/TravelPost.js'
 import ConnectionRequest from '../models/ConnectionRequest.js'
 
 export const getPublicStudentProfile = asyncHandler(async (req, res) => {
-  const user = await User.findOne({ _id: req.params.userId, role: 'student', isBanned: { $ne: true } }).select('_id role profile createdAt')
+  const user = await User.findOne({ _id: req.params.userId, role: 'student', isBanned: { $ne: true } }).select('_id role profile createdAt postStreakPoints')
   if (!user) throw new ApiError(404, 'Student profile not found')
   const authorId = user._id
   const approved = { authorId, status: 'Approved' }
@@ -37,6 +37,8 @@ export const getPublicStudentProfile = asyncHandler(async (req, res) => {
     institute: user.profile?.iit || '', branch: user.profile?.branch || '',
     batch: user.profile?.batch || '', bio: user.profile?.bio || '',
     joinedAt: user.createdAt,
+    postStreakPoints: Number(user.postStreakPoints || 0),
+    achievementBadge: Number(user.postStreakPoints || 0) >= 10000 ? 'Platinum' : Number(user.postStreakPoints || 0) >= 5000 ? 'Gold' : Number(user.postStreakPoints || 0) >= 1000 ? 'Silver' : '',
     connections: connections.map(row => { const person = String(row.requester._id) === String(authorId) ? row.recipient : row.requester; return { id: String(person._id), name: person.profile?.name || 'Student', photoUrl: person.profile?.photoUrl || '', institute: person.profile?.iit || '', branch: person.profile?.branch || '', batch: person.profile?.batch || '' } })
   }, posts: sections })
 })
