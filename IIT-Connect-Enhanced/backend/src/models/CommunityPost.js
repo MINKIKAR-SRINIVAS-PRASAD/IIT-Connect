@@ -5,7 +5,9 @@ const postSchema = new mongoose.Schema({
  caption:{type:String,required:true,maxlength:2000},
  imageUrl:{type:String,required:true},
  imagePublicId:{type:String,required:true},
- visibility:{type:String,enum:['public','private'],default:'public',index:true}
+ visibility:{type:String,enum:['public','private'],default:'public',index:true},
+ status:{type:String,enum:['Pending','Approved','Rejected'],default:'Approved',index:true},
+ rejectionReason:{type:String,default:''}
 },{timestamps:true})
-postSchema.index({visibility:1,section:1,createdAt:-1})
+postSchema.index({visibility:1,section:1,status:1,createdAt:-1})
 export default mongoose.model('CommunityPost',postSchema)
