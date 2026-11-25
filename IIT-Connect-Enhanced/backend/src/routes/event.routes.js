@@ -7,10 +7,9 @@ import { createEvent, listApprovedEvents, myEvents } from '../controllers/event.
 
 const router = Router()
 
-router.use(requireAuth, requireProfileComplete)
-
+// Approved campus events are shared across student and faculty workspaces.
 router.get('/', listApprovedEvents)
-router.get('/mine', myEvents)
-router.post('/', upload.single('poster'), validateImageUpload, createEvent)
+router.get('/mine', requireAuth, myEvents)
+router.post('/', requireAuth, requireProfileComplete, upload.single('poster'), validateImageUpload, createEvent)
 
 export default router

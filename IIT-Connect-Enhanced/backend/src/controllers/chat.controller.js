@@ -3,15 +3,17 @@ import { ApiError } from '../utils/apiError.js'
 import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 import ConversationPreference from '../models/ConversationPreference.js'
-import { removeUserFromConversation } from '../socket/index.js'
+import { removeUserFromConversation, broadcastMessageToConversation, isUserViewingConversation } from '../socket/index.js'
+import { sendPushToUser } from '../services/pushNotifications.js'
 
 function isConversationMember(conversation, userId) {
   return Boolean(conversation?.participants?.some((participant) => participant.toString() === userId.toString()))
 }
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-const participantFields = 'profile.name profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
+const participantFields = 'profile.name profile.rollNumber profile.iit profile.branch profile.batch profile.photoUrl lastSeenAt role'
 
 async function withParticipants(conversation) {
   return Conversation.populate(conversation, {
@@ -20,28 +22,93 @@ async function withParticipants(conversation) {
   })
 }
 
+export const listConnectionRequests = asyncHandler(async (req, res) => {
+  const uid = req.user._id
+  const [incoming, outgoing, connections] = await Promise.all([
+    ConnectionRequest.find({ recipient: uid, status: 'pending' }).populate('requester', 'email role profile').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ requester: uid, status: 'pending' }).populate('recipient', 'email role profile').sort({ createdAt: -1 }).lean(),
+    ConnectionRequest.find({ $or: [{ requester: uid }, { recipient: uid }], status: 'accepted' }).populate('requester recipient', 'email role profile').lean()
+  ])
+  res.json({ success: true, incoming, outgoing, connections: connections.map(row => ({
+    _id: row._id,
+    user: String(row.requester?._id) === String(uid) ? row.recipient : row.requester,
+    acceptedAt: row.respondedAt
+  })) })
+})
+
+export const sendConnectionRequest = asyncHandler(async (req, res) => {
+  const targetId = req.params.userId
+  if (!targetId || String(targetId) === String(req.user._id)) throw new ApiError(400, 'Choose another student')
+  const target = await User.findById(targetId).select('_id isBanned role')
+  if (!target || target.isBanned || target.role === 'admin') throw new ApiError(404, 'Student not found')
+  const uid = req.user._id
+  const reciprocal = await ConnectionRequest.findOne({ requester: target._id, recipient: uid, status: 'pending' })
+  if (reciprocal) {
+    reciprocal.status = 'accepted'; reciprocal.respondedAt = new Date(); await reciprocal.save()
+    return res.json({ success: true, status: 'accepted', request: reciprocal })
+  }
+  let request = await ConnectionRequest.findOne({ requester: uid, recipient: target._id })
+  if (request?.status === 'accepted') return res.json({ success: true, status: 'accepted', request })
+  if (request?.status === 'pending') return res.json({ success: true, status: 'pending', request })
+  if (request) { request.status = 'pending'; request.respondedAt = null; await request.save() }
+  else request = await ConnectionRequest.create({ requester: uid, recipient: target._id, status: 'pending' })
+  res.status(201).json({ success: true, status: 'pending', request })
+})
+
+export const respondToConnectionRequest = asyncHandler(async (req, res) => {
+  const { action } = req.body
+  if (!['accept', 'reject'].includes(action)) throw new ApiError(400, 'Choose accept or reject')
+  const request = await ConnectionRequest.findOne({ _id: req.params.requestId, recipient: req.user._id, status: 'pending' })
+  if (!request) throw new ApiError(404, 'Pending request not found')
+  request.status = action === 'accept' ? 'accepted' : 'rejected'
+  request.respondedAt = new Date()
+  await request.save()
+  res.json({ success: true, status: request.status, request })
+})
+
+
 export const listUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q || '').toString().trim().slice(0, 80)
   const filter = {
     _id: { $ne: req.user._id },
-    role: { $ne: 'admin' },
-    isBanned: false
+    // Include legacy student accounts with missing/older role values,
+    // while keeping staff/admin accounts out of the student directory.
+    role: { $nin: ['admin', 'faculty'] },
+    isBanned: { $ne: true }
   }
 
   if (q) {
     const safeQuery = escapeRegex(q)
+    // Search current and legacy profile layouts; older imported accounts
+    // stored profile fields at the document root or used alternate name keys.
     filter.$or = [
       { email: { $regex: safeQuery, $options: 'i' } },
+      { name: { $regex: safeQuery, $options: 'i' } },
+      { fullName: { $regex: safeQuery, $options: 'i' } },
+      { rollNumber: { $regex: safeQuery, $options: 'i' } },
+      { institute: { $regex: safeQuery, $options: 'i' } },
+      { iit: { $regex: safeQuery, $options: 'i' } },
+      { department: { $regex: safeQuery, $options: 'i' } },
       { 'profile.name': { $regex: safeQuery, $options: 'i' } },
-      { 'profile.iit': { $regex: safeQuery, $options: 'i' } }
+      { 'profile.fullName': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.displayName': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.username': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.rollNumber': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.iit': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.institute': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.branch': { $regex: safeQuery, $options: 'i' } },
+      { 'profile.department': { $regex: safeQuery, $options: 'i' } }
     ]
   }
 
   const users = await User.find(filter)
-    .select('profile.name profile.iit profile.branch profile.photoUrl lastSeenAt')
-    .limit(25)
+    .select('name fullName rollNumber institute iit department profile.name profile.fullName profile.displayName profile.username profile.rollNumber profile.iit profile.institute profile.branch profile.department profile.photoUrl lastSeenAt')
+    .limit(q ? 0 : 25)
     .sort({ createdAt: -1 })
 
+  // Directory results change as students register/update profiles; never serve cached empty results.
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  res.set('Pragma', 'no-cache')
   res.json({ success: true, users })
 })
 
@@ -50,7 +117,7 @@ export const getOrCreateDM = asyncHandler(async (req, res) => {
   if (!otherUserId) throw new ApiError(400, 'otherUserId is required')
 
   const other = await User.findById(otherUserId)
-  if (!other || other.isBanned) throw new ApiError(404, 'User not found')
+  if (!other || other.isBanned || other.role !== 'student' || req.user.role !== 'student') throw new ApiError(404, 'Student community user not found')
 
   const me = req.user._id
   if (other._id.equals(me)) throw new ApiError(400, 'You cannot start a conversation with yourself')
@@ -188,6 +255,69 @@ export const leaveConversation = asyncHandler(async (req, res) => {
   await ConversationPreference.deleteOne({ userId: req.user._id, conversationId })
   removeUserFromConversation(req.user._id.toString(), conversationId)
   res.json({ success: true, message: 'You left the group' })
+})
+
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { conversationId, text } = req.body || {}
+  if (typeof conversationId !== 'string' || !conversationId) throw new ApiError(400, 'conversationId is required')
+  if (typeof text !== 'string') throw new ApiError(400, 'Message text is invalid')
+  const cleanText = text.trim()
+  if (!cleanText || cleanText.length > 2000) throw new ApiError(400, 'Message must contain 1–2000 characters')
+
+  const conversation = await Conversation.findById(conversationId)
+  if (!conversation) throw new ApiError(404, 'Conversation not found')
+  if (!isConversationMember(conversation, req.user._id)) throw new ApiError(403, 'Not a member of this conversation')
+
+  const message = await Message.create({
+    conversationId: conversation._id,
+    senderId: req.user._id,
+    text: cleanText,
+    seenBy: [req.user._id]
+  })
+  conversation.lastMessageAt = message.createdAt || new Date()
+  conversation.lastMessageText = cleanText
+  await conversation.save()
+
+  const payload = {
+    _id: message._id.toString(),
+    conversationId: conversation._id.toString(),
+    senderId: req.user._id.toString(),
+    sender: {
+      _id: req.user._id.toString(),
+      name: req.user.profile?.name || (req.user.role === 'admin' ? 'Admin' : 'Student'),
+      photoUrl: req.user.profile?.photoUrl || '',
+      iit: req.user.profile?.iit || '',
+      role: req.user.role
+    },
+    text: cleanText,
+    createdAt: message.createdAt,
+    seenBy: [req.user._id.toString()]
+  }
+
+  // HTTP confirms persistence; Socket.IO only distributes the saved event to active members.
+  broadcastMessageToConversation(conversation._id.toString(), payload)
+  // Notify only recipients who are not actively viewing this conversation.
+  const recipientIds = conversation.participants
+    .map((participant) => participant.toString())
+    .filter((participantId) => participantId !== req.user._id.toString())
+  const recipientPreferences = await ConversationPreference.find({
+    userId: { $in: recipientIds },
+    conversationId: conversation._id,
+    muted: true
+  }).select('userId').lean()
+  const mutedUsers = new Set(recipientPreferences.map((item) => item.userId.toString()))
+  const senderName = req.user.profile?.name || (req.user.role === 'admin' ? 'Admin' : 'A student')
+  await Promise.all(recipientIds.map(async (recipientId) => {
+    if (mutedUsers.has(recipientId) || isUserViewingConversation(recipientId, conversation._id.toString())) return
+    await sendPushToUser(recipientId, {
+      title: senderName,
+      body: conversation.type === 'dm' ? 'Sent you a message' : `New message in ${conversation.title || 'your group'}`,
+      tag: `chat-${conversation._id.toString()}`,
+      url: '/app/chat'
+    })
+  }))
+
+  res.status(201).json({ success: true, message: payload })
 })
 
 export const messages = asyncHandler(async (req, res) => {

@@ -17,9 +17,8 @@ export default function GalleryUpload({ onCreated }) {
       const fd = new FormData()
       fd.append('caption', caption)
       fd.append('image', file)
-      const { data } = await api.post('/gallery', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      // Let the browser set multipart/form-data with its generated boundary.
+      const { data } = await api.post('/gallery', fd)
       toast.success('Uploaded (Pending approval)')
       setCaption('')
       setFile(null)

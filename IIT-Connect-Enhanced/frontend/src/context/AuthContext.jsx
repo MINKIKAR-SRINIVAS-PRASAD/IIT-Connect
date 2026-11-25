@@ -20,34 +20,35 @@ export function AuthProvider({ children }) {
     }
   }
 
-  useEffect(() => {
-    fetchMe()
-  }, [])
+  useEffect(() => { fetchMe() }, [])
 
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      setUser,
-      refresh: fetchMe,
-      async login(email, password) {
-        const { data } = await api.post('/auth/login', { email, password })
-        setUser(data.user)
-        toast.success('Welcome back')
-      },
-      async register(email, password) {
-        const { data } = await api.post('/auth/register', { email, password })
-        setUser(data.user)
-        toast.success('Account created')
-      },
-      async logout() {
-        await api.post('/auth/logout')
-        setUser(null)
-        toast.success('Logged out')
-      }
-    }),
-    [user, loading]
-  )
+  const value = useMemo(() => ({
+    user,
+    loading,
+    setUser,
+    refresh: fetchMe,
+    async login(email, password) {
+      const { data } = await api.post('/auth/login', { email, password })
+      setUser(data.user)
+      toast.success('Welcome back')
+      return data.user
+    },
+    async sendRegistrationOtp(email, password, accountType = 'student', facultyProfile = {}) {
+      const { data } = await api.post('/auth/send-otp', { email, password, accountType, facultyProfile })
+      return data
+    },
+    async verifyRegistrationOtp(email, otp) {
+      const { data } = await api.post('/auth/verify-otp', { email, otp })
+      setUser(data.user)
+      toast.success('Email verified. Account created!')
+      return data
+    },
+    async logout() {
+      await api.post('/auth/logout')
+      setUser(null)
+      toast.success('Logged out')
+    }
+  }), [user, loading])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

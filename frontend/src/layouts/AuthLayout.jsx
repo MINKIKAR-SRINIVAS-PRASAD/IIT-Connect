@@ -6,7 +6,7 @@ export default function AuthLayout() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-semibold">IIT Connect</Link>
+          <Link to="/" className="text-xl font-semibold">IITStudentsOS</Link>
           <Link to="/" className="text-sm text-slate-300 hover:text-white">Back</Link>
         </div>
         <div className="mt-10 grid lg:grid-cols-2 gap-8 items-start">

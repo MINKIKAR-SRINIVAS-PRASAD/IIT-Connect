@@ -19,7 +19,7 @@ function StudentDetails({ author }) {
   if (!author) {
     return <div className="text-sm text-amber-300">Submitter account details are unavailable.</div>
   }
-  const profile = author.profile || {}
+  const profile = author.profile || author.facultyProfile || {}
   return (
     <section className="mt-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
       <div className="mb-3 flex items-center gap-3">
@@ -67,7 +67,7 @@ function ApprovalCard({ item, type, onAction }) {
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
       : type === 'Event'
         ? item.title
-        : type === 'Travel'
+        : type === 'Trip'
           ? [item.destination, item.location].filter(Boolean).join(' · ')
           : item.title
 
@@ -79,12 +79,12 @@ function ApprovalCard({ item, type, onAction }) {
       </div>
       <h3 className="mt-2 text-lg font-semibold text-white">{title || `${type} submission`}</h3>
 
-      {type === 'Gallery' && item.imageUrl ? (
+      {(type === 'Gallery' || type === 'Faculty Gallery') && item.imageUrl ? (
         <img src={item.imageUrl} alt="Submitted gallery post" className="mt-4 max-h-72 w-full rounded-xl border border-slate-800 object-contain" />
       ) : null}
 
       <div className="mt-4 grid gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:grid-cols-2 lg:grid-cols-3">
-        {type === 'Gallery' && <>
+        {(type === 'Gallery' || type === 'Faculty Gallery') && <>
           <Detail label="Caption">{item.caption}</Detail>
           <Detail label="Institute on post">{item.iit}</Detail>
           <Detail label="Submitted">{item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</Detail>
@@ -106,7 +106,7 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Description">{item.description}</Detail>
           {item.posterUrl ? <div className="sm:col-span-2"><img src={item.posterUrl} alt="Event poster" className="max-h-64 rounded-lg object-contain" /></div> : null}
         </>}
-        {type === 'Travel' && <>
+        {type === 'Trip' && <>
           <Detail label="Destination">{item.destination}</Detail>
           <Detail label="Location / State">{item.location}</Detail>
           <Detail label="Category">{item.category}</Detail>
@@ -116,9 +116,27 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Travel mode">{item.travelMode}</Detail>
           <Detail label="From">{item.from}</Detail>
           <Detail label="To">{item.to}</Detail>
-          <Detail label="Seat details (admin only)">{item.seatDetails}</Detail>
           <Detail label="Contact preference">{item.contactPreference}</Detail>
-          <div className="sm:col-span-2 lg:col-span-3"><Detail label="Travel plan description / notes">{item.description || item.notes}</Detail></div>
+          {item.booking && <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-cyan-400/20 bg-cyan-400/[.04] p-4">
+            <div className="mb-3 text-xs font-bold uppercase tracking-wider text-cyan-200">Private booking details · Admin only</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(item.booking).map(([key,value]) => value ? <Detail key={key} label={key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}>{value}</Detail> : null)}
+            </div>
+          </div>}
+          <Detail label="Legacy seat details">{item.seatDetails}</Detail>
+          <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
+        </>}
+        {type.startsWith('Faculty ') && <>
+          <Detail label="Faculty institute">{item.institute || item.facultyProfile?.institute}</Detail>
+          <Detail label="Department">{item.department || item.facultyProfile?.department}</Detail>
+          <Detail label="Title">{item.title}</Detail>
+          <Detail label="Description / abstract">{item.description || item.abstract || item.details}</Detail>
+          <Detail label="Subject">{item.subject}</Detail>
+          <Detail label="Venue / origin">{item.venue || item.from}</Detail>
+          <Detail label="Destination">{item.to}</Detail>
+          <Detail label="Date">{item.startAt || item.travelDate ? new Date(item.startAt || item.travelDate).toLocaleString() : ''}</Detail>
+          <Detail label="Link">{item.registrationUrl || item.resourceUrl || item.doiOrUrl}</Detail>
+          <Detail label="Image URL">{item.imageUrl}</Detail>
         </>}
         {type === 'Study' && <>
           <Detail label="Resource title">{item.title}</Detail>
@@ -153,6 +171,11 @@ export default function Approvals() {
   const [events, setEvents] = useState([])
   const [travel, setTravel] = useState([])
   const [study, setStudy] = useState([])
+  const [facultyEvents, setFacultyEvents] = useState([])
+  const [facultyGallery, setFacultyGallery] = useState([])
+  const [facultyStudy, setFacultyStudy] = useState([])
+  const [facultyTravel, setFacultyTravel] = useState([])
+  const [facultyPublications, setFacultyPublications] = useState([])
 
   async function load() {
     setLoading(true)
@@ -163,6 +186,11 @@ export default function Approvals() {
       setEvents(data.events || [])
       setTravel(data.travel || [])
       setStudy(data.study || [])
+      setFacultyEvents(data.facultyEvents || [])
+      setFacultyGallery(data.facultyGallery || [])
+      setFacultyStudy(data.facultyStudy || [])
+      setFacultyTravel(data.facultyTravel || [])
+      setFacultyPublications(data.facultyPublications || [])
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load approvals')
     } finally {
@@ -175,8 +203,13 @@ export default function Approvals() {
       Gallery: `/admin/approvals/gallery/${id}`,
       Placement: `/admin/approvals/placements/${id}`,
       Event: `/admin/approvals/events/${id}`,
-      Travel: `/admin/approvals/travel/${id}`,
-      Study: `/admin/approvals/study/${id}`
+      Trip: `/admin/approvals/travel/${id}`,
+      Study: `/admin/approvals/study/${id}`,
+      'Faculty Event': `/admin/approvals/faculty/events/${id}`,
+      'Faculty Gallery': `/admin/approvals/faculty/gallery/${id}`,
+      'Faculty Study': `/admin/approvals/faculty/study/${id}`,
+      'Faculty Travel': `/admin/approvals/faculty/travel/${id}`,
+      'Faculty Publication': `/admin/approvals/faculty/publications/${id}`
     }[kind]
     try {
       await api.put(endpoint, { status, rejectionReason })
@@ -195,15 +228,20 @@ export default function Approvals() {
     { type: 'Gallery', items: gallery },
     { type: 'Placement', items: placements },
     { type: 'Events', items: events, cardType: 'Event' },
-    { type: 'Travel', items: travel },
-    { type: 'Study Resources', items: study, cardType: 'Study' }
+    { type: 'Trip', items: travel },
+    { type: 'Study Resources', items: study, cardType: 'Study' },
+    { type: 'Faculty Events', items: facultyEvents, cardType: 'Faculty Event', authorField: 'author' },
+    { type: 'Faculty Gallery', items: facultyGallery, cardType: 'Faculty Gallery', authorField: 'author' },
+    { type: 'Faculty Study', items: facultyStudy, cardType: 'Faculty Study', authorField: 'author' },
+    { type: 'Faculty Travel', items: facultyTravel, cardType: 'Faculty Travel', authorField: 'author' },
+    { type: 'Faculty Publications', items: facultyPublications, cardType: 'Faculty Publication', authorField: 'author' }
   ]
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Content approvals</h1>
-        <p className="mt-1 text-sm text-slate-400">Review the submitted content and verify the student's IIT email and profile before taking action.</p>
+        <p className="mt-1 text-sm text-slate-400">Review submitted content and verify the student's institute email and profile. Trip booking identifiers are visible to admins only.</p>
       </div>
       {sections.map((section) => (
         <section key={section.type}>
@@ -215,7 +253,7 @@ export default function Approvals() {
             <div className="grid gap-4 xl:grid-cols-2">
               {section.items.map((item) => {
                 const type = section.cardType || section.type
-                return <ApprovalCard key={item._id} item={item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
+                return <ApprovalCard key={item._id} item={section.authorField?{...item,authorId:item[section.authorField]}:item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
               })}
             </div>
           ) : <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400">No pending {section.type.toLowerCase()} requests.</div>}

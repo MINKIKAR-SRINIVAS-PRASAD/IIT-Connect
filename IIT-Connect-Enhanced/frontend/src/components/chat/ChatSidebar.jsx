@@ -3,6 +3,7 @@ import Input from '../common/Input'
 import Button from '../common/Button'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
+import StudentProfilePreview from './StudentProfilePreview.jsx'
 
 function getId(value) {
   if (!value) return ''
@@ -11,7 +12,7 @@ function getId(value) {
 
 function conversationLabel(conversation, currentUserId) {
   if (conversation.type === 'group') return conversation.title || 'Institute group'
-  if (conversation.type === 'community') return conversation.title || 'IIT Connect Community'
+  if (conversation.type === 'community') return conversation.title || 'IITStudentsOS Community'
   const other = (conversation.participants || []).find((person) => getId(person) !== currentUserId)
   return other?.profile?.name || 'Direct message'
 }
@@ -27,7 +28,9 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   const [users, setUsers] = useState([])
   const [convos, setConvos] = useState([])
   const [showArchived, setShowArchived] = useState(false)
+  const [profileUserId, setProfileUserId] = useState('')
   const currentUserId = getId(user?.id || user?._id)
+  const matchingUsers = users.filter((person) => getId(person) !== currentUserId)
 
   async function loadConvos() {
     const { data } = await api.get('/chat/conversations', { params: { includeArchived: 'true' } })
@@ -35,7 +38,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   }
 
   async function searchUsers() {
-    const { data } = await api.get('/chat/users', { params: { q } })
+    const { data } = await api.get('/chat/users', { params: { q, _searchRefresh: Date.now() }, headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } })
     setUsers(data.users || [])
   }
 
@@ -71,17 +74,18 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
   }
 
   return (
+    <>
     <aside className="w-full shrink-0 border-b border-slate-800 bg-slate-950 md:w-[340px] md:border-b-0 md:border-r">
       <div className="border-b border-slate-800 p-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-white">Messages</h2>
-            <p className="text-xs text-slate-500">Your IIT Connect inbox</p>
+            <p className="text-xs text-slate-500">Your IITStudentsOS inbox</p>
           </div>
-          <Button variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
+          <Button className="chat-ghost-button" variant="ghost" onClick={() => loadConvos().catch(() => {})}>Refresh</Button>
         </div>
         <div className="mt-3">
-          <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or institute..." />
+          <Input label="Search students" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or roll number..." />
         </div>
         {(() => {
           const hasCommunity = convos.some((conversation) => conversation.type === 'community')
@@ -91,7 +95,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
           return (
             <div className="mt-3 space-y-2">
               {!hasCommunity && (
-                <Button className="w-full" onClick={async () => {
+                <Button className="chat-action-button w-full" onClick={async () => {
                   const conversation = await onJoinCommunity()
                   if (conversation) await loadConvos()
                 }}>
@@ -99,7 +103,7 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
                 </Button>
               )}
               {!hasIitGroup && (
-                <Button variant="secondary" className="w-full" onClick={async () => {
+                <Button variant="secondary" className="chat-secondary-button w-full" onClick={async () => {
                   await onJoinGroup(user?.profile?.iit)
                   await loadConvos()
                 }}>
@@ -155,20 +159,24 @@ export default function ChatSidebar({ activeId, onSelectConversation, onStartDM,
 
         {!showArchived && <>
           <div className="px-1 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Find students</div>
-          {users.filter((person) => getId(person) !== currentUserId).map((person) => (
+          {matchingUsers.map((person) => (
             <div key={person._id} className="flex items-center gap-3 rounded-xl border border-slate-800/80 bg-slate-900/30 p-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 text-xs font-semibold text-slate-200">
                 {person.profile?.photoUrl ? <img src={person.profile.photoUrl} alt={person.profile?.name || 'Student'} className="h-full w-full object-cover" /> : (person.profile?.name || 'S').slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-slate-100">{person.profile?.name || 'Student'}</div>
+                <button type="button" onClick={() => setProfileUserId(person._id)} className="truncate text-left text-sm font-medium text-slate-100 hover:text-[#b8d5a7]" title="View student profile">{person.profile?.name || 'Student'}</button>
+                {person.profile?.rollNumber && <div className="truncate text-[11px] text-slate-500">{person.profile.rollNumber}</div>}
                 <div className="truncate text-xs text-slate-400">{[person.profile?.iit, person.profile?.branch].filter(Boolean).join(' • ') || 'IIT student'}</div>
               </div>
-              <Button size="sm" onClick={() => onStartDM(person._id)}>Message</Button>
+              <div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={() => setProfileUserId(person._id)} className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-800">Profile</button><Button size="sm" className="chat-action-button" onClick={() => onStartDM(person._id)}>Message</Button></div>
             </div>
           ))}
+          {q.trim() && matchingUsers.length === 0 && <p className="px-2 py-4 text-sm text-slate-400">No students found for “{q.trim()}”. Try a name or roll number.</p>}
         </>}
       </div>
     </aside>
+    {profileUserId && <StudentProfilePreview userId={profileUserId} onClose={() => setProfileUserId('')} onMessage={() => { const id = profileUserId; setProfileUserId(''); onStartDM(id) }} />}
+    </>
   )
 }

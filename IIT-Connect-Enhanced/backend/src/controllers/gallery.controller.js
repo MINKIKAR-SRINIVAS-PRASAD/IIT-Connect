@@ -1,6 +1,8 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import GalleryPost from '../models/GalleryPost.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
+import FacultyGallery from '../models/FacultyGallery.js'
 import { cloudinary } from '../config/cloudinary.js'
 import { createContentDeletionNotification } from '../utils/contentDeletion.js'
 
@@ -8,6 +10,7 @@ export const createGalleryPost = asyncHandler(async (req, res) => {
   if (!req.file) throw new ApiError(400, 'Image is required')
 
   const caption = req.body.caption || ''
+  const visibility = req.body.visibility === 'connections' ? 'connections' : 'public'
   const iit = req.user.profile?.iit || ''
   if (!iit) throw new ApiError(400, 'Set your IIT in profile before posting')
 
@@ -23,6 +26,7 @@ export const createGalleryPost = asyncHandler(async (req, res) => {
     caption,
     imageUrl: uploaded.secure_url,
     imagePublicId: uploaded.public_id,
+    visibility,
     status: 'Pending'
   })
 
@@ -30,11 +34,28 @@ export const createGalleryPost = asyncHandler(async (req, res) => {
 })
 
 export const listApprovedGallery = asyncHandler(async (req, res) => {
-  const posts = await GalleryPost.find({ status: 'Approved' })
-    .sort({ createdAt: -1 })
-    .limit(60)
-    .populate('authorId', 'email profile')
-
+  // Both student and faculty submissions share one approved campus gallery.
+  const viewerId = req.user?._id
+  const accepted = viewerId ? await ConnectionRequest.find({ status: 'accepted', $or: [{ requester: viewerId }, { recipient: viewerId }] }).select('requester recipient').lean() : []
+  const connectedIds = accepted.map(row => String(row.requester) === String(viewerId) ? row.recipient : row.requester)
+  const accessFilter = viewerId
+    ? { $or: [{ visibility: { $ne: 'connections' } }, { authorId: viewerId }, { authorId: { $in: connectedIds } }] }
+    : { visibility: { $ne: 'connections' } }
+  const [studentPosts, facultyPosts] = await Promise.all([
+    GalleryPost.find({ status: 'Approved', ...accessFilter }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
+    FacultyGallery.find({ status: 'Approved' }).sort({ createdAt: -1 }).limit(100).populate('author', 'email facultyProfile')
+  ])
+  const normalizedFaculty = facultyPosts.map(post => ({
+    _id: post._id, imageUrl: post.imageUrl, caption: post.caption || '',
+    iit: post.institute || post.author?.facultyProfile?.institute || 'Faculty',
+    createdAt: post.createdAt, status: post.status, sourceType: 'FacultyGallery',
+    authorId: post.author ? { _id: post.author._id, email: post.author.email, profile: {
+      name: post.author.facultyProfile?.name || post.author.facultyProfile?.fullName || post.author.email,
+      photoUrl: post.author.facultyProfile?.photoUrl
+    }} : null
+  }))
+  const posts = [...studentPosts.map(post => ({...post.toObject(),sourceType:'GalleryPost'})),...normalizedFaculty]
+    .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,120)
   res.json({ success: true, posts })
 })
 

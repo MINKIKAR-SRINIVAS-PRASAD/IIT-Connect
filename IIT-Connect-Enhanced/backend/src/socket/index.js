@@ -9,6 +9,7 @@ import { isProfileComplete } from '../utils/profileCompletion.js'
 let socketServer = null
 const onlineUsers = new Map() // userId -> Set<socketId>
 const eventLimits = new Map() // userId:event -> { startedAt, count }
+const activeConversationByUser = new Map() // userId:event -> { startedAt, count }
 
 function parseCookie(cookieHeader = '') {
   const out = {}
@@ -67,6 +68,15 @@ function allowUserEvent(userId, event, limit, windowMs = 60_000) {
   return true
 }
 
+export function isUserViewingConversation(userId, conversationId) {
+  return activeConversationByUser.get(String(userId)) === String(conversationId)
+}
+
+export function broadcastMessageToConversation(conversationId, message) {
+  if (!socketServer) return
+  socketServer.to(String(conversationId)).emit('message:new', message)
+}
+
 export function notifyAdminsOfContentDeletion(notification) {
   if (!socketServer) return
   socketServer.to('admins').emit('admin:content-deleted', notification)
@@ -81,7 +91,7 @@ export function removeUserFromConversation(userId, conversationId) {
 export function initSocket(httpServer, corsOrigin) {
   const io = new Server(httpServer, {
     cors: {
-      origin: corsOrigin,
+      origin: Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin],
       credentials: true
     }
   })
@@ -120,9 +130,23 @@ export function initSocket(httpServer, corsOrigin) {
         const conversation = await findAuthorizedConversation(conversationId, userId)
         if (!conversation) return
         socket.join(conversation._id.toString())
+        socket.emit('conversation:joined', { conversationId: conversation._id.toString() })
       } catch (error) {
         console.error('Conversation join failed:', error.message)
       }
+    })
+
+    socket.on('conversation:active', async (payload = {}) => {
+      try {
+        const conversation = await findAuthorizedConversation(payload?.conversationId, userId)
+        if (conversation) activeConversationByUser.set(userId, conversation._id.toString())
+      } catch (error) {
+        console.error('Active conversation update failed:', error.message)
+      }
+    })
+
+    socket.on('conversation:inactive', () => {
+      activeConversationByUser.delete(userId)
     })
 
     socket.on('conversation:typing', async (payload = {}) => {
@@ -143,16 +167,29 @@ export function initSocket(httpServer, corsOrigin) {
       }
     })
 
-    socket.on('message:send', async (payload = {}) => {
+    socket.on('message:send', async (payload = {}, acknowledge = () => {}) => {
+      const ack = typeof acknowledge === 'function' ? acknowledge : () => {}
       try {
-        if (!allowUserEvent(userId, 'message', 20)) return
+        if (!allowUserEvent(userId, 'message', 20)) {
+          ack({ success: false, message: 'You are sending messages too quickly. Please wait and try again.' })
+          return
+        }
         const { conversationId, text } = payload || {}
-        if (typeof text !== 'string') return
+        if (typeof text !== 'string') {
+          ack({ success: false, message: 'Message text is invalid.' })
+          return
+        }
         const cleanText = text.trim()
-        if (!cleanText || cleanText.length > 2000) return
+        if (!cleanText || cleanText.length > 2000) {
+          ack({ success: false, message: 'Message must contain 1–2000 characters.' })
+          return
+        }
 
         const conversation = await findAuthorizedConversation(conversationId, userId)
-        if (!conversation) return
+        if (!conversation) {
+          ack({ success: false, message: 'You are not a member of this conversation. Refresh and reopen it.' })
+          return
+        }
 
         const roomId = conversation._id.toString()
         const msg = await Message.create({
@@ -166,8 +203,8 @@ export function initSocket(httpServer, corsOrigin) {
         conversation.lastMessageText = msg.text
         await conversation.save()
 
-        io.to(roomId).emit('message:new', {
-          _id: msg._id,
+        const messagePayload = {
+          _id: msg._id.toString(),
           conversationId: roomId,
           senderId: userId,
           sender: {
@@ -179,10 +216,16 @@ export function initSocket(httpServer, corsOrigin) {
           },
           text: msg.text,
           createdAt: msg.createdAt,
-          seenBy: msg.seenBy
-        })
+          seenBy: [userId]
+        }
+
+        // Acknowledge and update the sender even if room membership has not synced yet.
+        ack({ success: true, message: messagePayload })
+        socket.emit('message:new', messagePayload)
+        socket.to(roomId).emit('message:new', messagePayload)
       } catch (error) {
         console.error('Message send failed:', error.message)
+        ack({ success: false, message: 'Message could not be saved. Please try again.' })
       }
     })
 
@@ -214,6 +257,7 @@ export function initSocket(httpServer, corsOrigin) {
         activeSockets.delete(socket.id)
         if (activeSockets.size === 0) {
           onlineUsers.delete(userId)
+          activeConversationByUser.delete(userId)
           for (const key of eventLimits.keys()) {
             if (key.startsWith(`${userId}:`)) eventLimits.delete(key)
           }

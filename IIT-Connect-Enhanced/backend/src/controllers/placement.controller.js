@@ -4,16 +4,34 @@ import PlacementPost from '../models/PlacementPost.js'
 
 export const createPlacementPost = asyncHandler(async (req, res) => {
   const { companyName, role, ctc, interviewQuestions, rounds, tips } = req.body
-  if (!companyName || !role) throw new ApiError(400, 'companyName and role are required')
+
+  const requiredText = [
+    ['Company', companyName],
+    ['Role', role],
+    ['CTC', ctc],
+    ['Tips', tips]
+  ]
+  const missing = requiredText.find(([, value]) => typeof value !== 'string' || !value.trim())
+  if (missing) throw new ApiError(400, `${missing[0]} is required`)
+
+  const validQuestions = Array.isArray(interviewQuestions)
+    ? interviewQuestions.filter((item) => typeof item === 'string' && item.trim())
+    : []
+  const validRounds = Array.isArray(rounds)
+    ? rounds.filter((item) => typeof item === 'string' && item.trim())
+    : []
+
+  if (!validQuestions.length) throw new ApiError(400, 'At least one interview question is required')
+  if (!validRounds.length) throw new ApiError(400, 'At least one round detail is required')
 
   const post = await PlacementPost.create({
     authorId: req.user._id,
-    companyName,
-    role,
-    ctc: ctc || '',
-    interviewQuestions: Array.isArray(interviewQuestions) ? interviewQuestions : [],
-    rounds: Array.isArray(rounds) ? rounds : [],
-    tips: tips || '',
+    companyName: companyName.trim(),
+    role: role.trim(),
+    ctc: ctc.trim(),
+    interviewQuestions: validQuestions.map((item) => item.trim()),
+    rounds: validRounds.map((item) => item.trim()),
+    tips: tips.trim(),
     status: 'Pending'
   })
 

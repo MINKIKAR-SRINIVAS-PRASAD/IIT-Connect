@@ -58,7 +58,7 @@ export default function Hero() {
             className="mt-8 text-6xl md:text-7xl lg:text-8xl font-extrabold leading-tight"
           >
             <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-              IIT Connect
+              IITStudentsOS
             </span>
           </motion.h1>
 

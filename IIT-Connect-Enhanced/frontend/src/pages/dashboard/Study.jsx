@@ -7,7 +7,7 @@ const labelClass = 'mb-1.5 block text-sm font-medium text-slate-300'
 const emptyForm = { title: '', subject: '', description: '', branch: '', semester: '', iit: '', resourceType: 'Notes', tags: '', links: '' }
 
 function ResourceCard({ post, onOpen }) {
-  const author = post.authorId?.profile?.name || 'IIT Connect student'
+  const author = post.authorId?.profile?.name || 'IITStudentsOS student'
   return (
     <button type="button" onClick={() => onOpen(post)} className="group w-full rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-left transition duration-200 hover:-translate-y-1 hover:border-indigo-500/70 hover:bg-slate-900 hover:shadow-xl hover:shadow-indigo-950/30 focus:outline-none focus:ring-2 focus:ring-indigo-500">
       <div className="flex items-start justify-between gap-3">
@@ -41,7 +41,7 @@ function ResourceDetails({ post, onClose, isOwner, onDelete }) {
           <div><div className="text-xs uppercase text-slate-500">Institute scope</div><div className="mt-1 text-sm text-white">{post.iit || 'All IITs'}</div></div>
           <div><div className="text-xs uppercase text-slate-500">Branch</div><div className="mt-1 text-sm text-white">{post.branch || 'All branches'}</div></div>
           <div><div className="text-xs uppercase text-slate-500">Semester</div><div className="mt-1 text-sm text-white">{post.semester || 'Not specified'}</div></div>
-          <div><div className="text-xs uppercase text-slate-500">Shared by</div><div className="mt-1 text-sm text-white">{post.authorId?.profile?.name || 'IIT Connect student'}</div></div>
+          <div><div className="text-xs uppercase text-slate-500">Shared by</div><div className="mt-1 text-sm text-white">{post.authorId?.profile?.name || 'IITStudentsOS student'}</div></div>
           <div><div className="text-xs uppercase text-slate-500">Date shared</div><div className="mt-1 text-sm text-white">{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : '—'}</div></div>
         </div>
         <div className="mt-5"><h3 className="text-sm font-semibold text-white">About this material</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-300">{post.description || 'No description provided.'}</p></div>

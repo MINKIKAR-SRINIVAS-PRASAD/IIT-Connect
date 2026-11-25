@@ -17,8 +17,8 @@ export function requireTrustedOrigin(req, res, next) {
 
   try {
     const requestOrigin = new URL(origin).origin
-    const allowedOrigin = new URL(env.CLIENT_ORIGIN).origin
-    if (requestOrigin !== allowedOrigin) {
+    const allowedOrigins = env.CLIENT_ORIGINS.map((value) => new URL(value).origin)
+    if (!allowedOrigins.includes(requestOrigin)) {
       return res.status(403).json({ success: false, message: 'Untrusted request origin' })
     }
   } catch {

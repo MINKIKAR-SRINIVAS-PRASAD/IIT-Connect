@@ -3,23 +3,45 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import Button from '../../components/common/Button'
 import Input from '../../components/common/Input'
-import { IIT_LIST } from '../../utils/constants'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
+import NotificationSettings from '../../components/notifications/NotificationSettings.jsx'
 
 export default function Profile() {
   const { user, refresh } = useAuth()
   const navigate = useNavigate()
-  const isStudent = user?.role !== 'admin'
+  const isStudent = user?.role === 'student'
 
   const [name, setName] = useState('')
-  const [iit, setIit] = useState(IIT_LIST[0])
+  const [rollNumber, setRollNumber] = useState('')
+  const [iit, setIit] = useState('')
   const [branch, setBranch] = useState('')
   const [batch, setBatch] = useState('')
   const [bio, setBio] = useState('')
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [busy, setBusy] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordBusy, setPasswordBusy] = useState(false)
+
+  const instituteByDomain = {
+    'iitgn.ac.in': 'IIT Gandhinagar', 'iitbbs.ac.in': 'IIT Bhubaneswar', 'iitbhubaneswar.ac.in': 'IIT Bhubaneswar',
+    'iitm.ac.in': 'IIT Madras', 'iitg.ernet.in': 'IIT Guwahati', 'iitg.ac.in': 'IIT Guwahati',
+    'iiti.ac.in': 'IIT Indore', 'iitk.ac.in': 'IIT Kanpur', 'iitj.ac.in': 'IIT Jodhpur',
+    'iitkgp.ac.in': 'IIT Kharagpur', 'iith.ac.in': 'IIT Hyderabad', 'iitb.ac.in': 'IIT Bombay',
+    'iitp.ac.in': 'IIT Patna', 'iitd.ac.in': 'IIT Delhi', 'iitrpr.ac.in': 'IIT Ropar',
+    'iitmandi.ac.in': 'IIT Mandi', 'iitr.ac.in': 'IIT Roorkee', 'iitbhu.ac.in': 'IIT (BHU) Varanasi',
+    'iitjammu.ac.in': 'IIT Jammu', 'iitpkd.ac.in': 'IIT Palakkad', 'iittp.ac.in': 'IIT Tirupati',
+    'iitgoa.ac.in': 'IIT Goa', 'iitbhilai.ac.in': 'IIT Bhilai', 'iitdh.ac.in': 'IIT Dharwad',
+    'iitism.ac.in': 'IIT (ISM) Dhanbad'
+  }
+  const emailDomain = String(user?.email || '').toLowerCase().split('@').pop()
+  const verifiedInstitute = isStudent
+    ? Object.entries(instituteByDomain).find(([domain]) => emailDomain === domain || emailDomain.endsWith('.' + domain))?.[1] || ''
+    : ''
+  const instituteValue = verifiedInstitute || iit
 
   useEffect(() => {
     if (!photo) {
@@ -33,11 +55,29 @@ export default function Profile() {
 
   useEffect(() => {
     setName(user?.profile?.name || '')
-    setIit(user?.profile?.iit || IIT_LIST[0])
+    setRollNumber(user?.profile?.rollNumber || '')
+    setIit(user?.profile?.iit || '')
     setBranch(user?.profile?.branch || '')
     setBatch(user?.profile?.batch || '')
     setBio(user?.profile?.bio || '')
-  }, [user?.id])
+  }, [user?.id, user?.email, user?.profile?.iit])
+
+  async function changePassword(e) {
+    e?.preventDefault()
+    if (!currentPassword) return toast.error('Enter your current password')
+    if (newPassword.length < 8) return toast.error('New password must be at least 8 characters')
+    if (newPassword !== confirmPassword) return toast.error('New passwords do not match')
+    setPasswordBusy(true)
+    try {
+      await api.post('/auth/change-password', { currentPassword, newPassword })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      toast.success('Password changed successfully')
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Could not change password')
+    } finally { setPasswordBusy(false) }
+  }
 
   const hasPhoto = Boolean(user?.profile?.photoUrl || photo)
 
@@ -45,7 +85,7 @@ export default function Profile() {
     e.preventDefault()
 
     if (isStudent && (!name.trim() || !iit.trim() || !branch.trim() || !batch.trim() || !hasPhoto)) {
-      toast.error('Name, IIT, branch, batch and profile photo are required')
+      toast.error('Name, college/institute, branch, batch and profile photo are required')
       return
     }
 
@@ -53,13 +93,14 @@ export default function Profile() {
     try {
       const fd = new FormData()
       fd.append('name', name.trim())
+      fd.append('rollNumber', rollNumber.trim().toUpperCase())
       fd.append('iit', iit)
       fd.append('branch', branch.trim())
       fd.append('batch', batch.trim())
       fd.append('bio', bio.trim())
       if (photo) fd.append('photo', photo)
 
-      await api.put('/profile', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put('/profile', fd)
       await refresh()
       setPhoto(null)
       toast.success('Profile updated successfully')
@@ -79,7 +120,7 @@ export default function Profile() {
           <div className="mb-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4">
             <div className="font-semibold text-indigo-200">Complete your student profile</div>
             <p className="mt-1 text-sm text-slate-300">
-              Add your name, institute, branch, batch and a profile photo to unlock the IIT Connect dashboard.
+              Add your name, institute, branch, batch and a profile photo to unlock the IITStudentsOS dashboard.
             </p>
             <p className="mt-2 text-xs text-slate-400">
               Your profile photo is mandatory. Bio is optional.
@@ -105,19 +146,20 @@ export default function Profile() {
 
         <div className="mt-5 grid md:grid-cols-2 gap-3">
           <Input label="Name *" value={name} required={isStudent} maxLength={80} onChange={(e) => setName(e.target.value)} />
-          <label className="block">
-            <div className="text-sm text-slate-300 mb-1">IIT *</div>
-            <select
+          <Input label="Roll number" value={rollNumber} maxLength={40} onChange={(e) => setRollNumber(e.target.value.toUpperCase())} placeholder="xxxxxx" />
+          <div className="block">
+            <Input
+              label={isStudent ? "College / institute (verified)" : "College / institute *"}
+              value={isStudent ? instituteValue : iit}
               required={isStudent}
-              className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2"
-              value={iit}
-              onChange={(e) => setIit(e.target.value)}
-            >
-              {IIT_LIST.map((x) => (
-                <option key={x} value={x}>{x}</option>
-              ))}
-            </select>
-          </label>
+              maxLength={120}
+              readOnly={isStudent}
+              onChange={isStudent ? undefined : (e) => setIit(e.target.value)}
+              placeholder={isStudent ? "Detected from your verified institute email" : "Enter your college or institute"}
+              className={isStudent ? "cursor-not-allowed opacity-80" : ""}
+            />
+            {isStudent && <p className="mt-1 text-xs text-slate-400">Verified from your institute email and locked for students.</p>}
+          </div>
           <Input label="Branch *" value={branch} required={isStudent} maxLength={80} onChange={(e) => setBranch(e.target.value)} />
           <Input label="Batch *" value={batch} required={isStudent} maxLength={20} onChange={(e) => setBatch(e.target.value)} placeholder="2024-2028" />
         </div>
@@ -151,9 +193,22 @@ export default function Profile() {
         </div>
       </div>
 
+      <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
+        <h2 className="text-lg font-semibold">Change password</h2>
+        <p className="mt-1 text-sm text-slate-400">Use your current password to set a new one.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <Input label="Current password" type="password" autoComplete="current-password" value={currentPassword} required onChange={e=>setCurrentPassword(e.target.value)} />
+          <Input label="New password (8+ characters)" type="password" autoComplete="new-password" value={newPassword} minLength={8} required onChange={e=>setNewPassword(e.target.value)} />
+          <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirmPassword} minLength={8} required onChange={e=>setConfirmPassword(e.target.value)} />
+          <div className="md:col-span-3"><Button type="button" disabled={passwordBusy} onClick={changePassword}>{passwordBusy ? 'Updating password…' : 'Change password'}</Button></div>
+        </div>
+      </section>
+
+      <NotificationSettings />
+
       <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
         <div className="text-sm text-slate-300">
-          Note: If any issue contact mail: srinivasminki@gmail.com
+          Note: If any issue contact mail: iitconnectindia@gmail.com
         </div>
       </div>
     </form>

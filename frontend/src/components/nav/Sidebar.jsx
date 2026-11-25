@@ -22,7 +22,7 @@ export default function Sidebar() {
     <aside className="hidden md:block w-72 border-r border-slate-900 min-h-screen bg-slate-950">
       <div className="p-4">
         <div className="text-lg font-semibold text-white">
-          IIT Connect
+          IITStudentsOS
         </div>
 
         <div className="mt-1 text-xs text-slate-400 truncate">

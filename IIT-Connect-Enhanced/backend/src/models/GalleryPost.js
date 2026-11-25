@@ -7,6 +7,8 @@ const galleryPostSchema = new mongoose.Schema(
     caption: { type: String, default: '' },
     imageUrl: { type: String, required: true },
     imagePublicId: { type: String, required: true },
+    // Private media is only returned to the author and accepted connections.
+    visibility: { type: String, enum: ['public', 'connections'], default: 'public', index: true },
     status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Deleted'], default: 'Pending', index: true },
     rejectionReason: { type: String, default: '' },
     deletedAt: { type: Date, default: null },
