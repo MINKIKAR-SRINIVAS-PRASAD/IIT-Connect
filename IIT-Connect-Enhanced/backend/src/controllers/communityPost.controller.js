@@ -16,13 +16,13 @@ export const createPost=asyncHandler(async(req,res)=>{
  if(!['public','private'].includes(visibility)) throw new ApiError(400,'Choose public or private visibility')
  const base64=`data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
  const uploaded=await cloudinary.uploader.upload(base64,{folder:'iit-connect/community-posts',resource_type:'image'})
- const post=await CommunityPost.create({authorId:req.user._id,section,caption,imageUrl:uploaded.secure_url,imagePublicId:uploaded.public_id,visibility})
+ const post=await CommunityPost.create({authorId:req.user._id,section,caption,imageUrl:uploaded.secure_url,imagePublicId:uploaded.public_id,visibility,status:section==='Gallery'?'Pending':'Approved'}
  res.status(201).json({success:true,post})
 })
 export const listVisiblePosts=asyncHandler(async(req,res)=>{
  const accepted=await ConnectionRequest.find({status:'accepted',$or:[{requester:req.user._id},{recipient:req.user._id}] }).select('requester recipient').lean()
  const connectedIds=accepted.map(c=>String(c.requester)===String(req.user._id)?c.recipient:c.requester)
- const posts=await CommunityPost.find({$or:[{visibility:'public'},{visibility:'private',authorId:{$in:[req.user._id,...connectedIds]}}]})
+ const posts=await CommunityPost.find({$and:[{$or:[{visibility:'public'},{visibility:'private',authorId:{$in:[req.user._id,...connectedIds]}}]},{$or:[{status:'Approved'},{authorId:req.user._id,status:'Pending'}]}]})
   .sort({createdAt:-1}).limit(100).populate('authorId','profile.name profile.iit profile.photoUrl')
  res.json({success:true,posts})
 })
