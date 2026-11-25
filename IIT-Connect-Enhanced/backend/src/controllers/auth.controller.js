@@ -166,7 +166,7 @@ async function sendEmail({ to, subject, text, html }) {
   if (!tokenResponse.ok || !tokenData.access_token) {
     throw new Error(`Gmail OAuth token failed (${tokenResponse.status}): ${JSON.stringify(tokenData).slice(0, 300)}`);
   }
-  const safe = value => String(value || '').replace(/[\\r\\n]/g, ' ').trim();
+  const safe = value => String(value || '').replace(/[\r\n]/g, ' ').trim();
   const boundary = `iitstudentsos_${crypto.randomBytes(12).toString('hex')}`;
   const mime = [
     `From: IITStudentsOS <${safe(GMAIL_SENDER_EMAIL)}>`,
