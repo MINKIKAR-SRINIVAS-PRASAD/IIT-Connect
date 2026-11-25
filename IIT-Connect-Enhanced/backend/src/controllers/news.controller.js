@@ -1,6 +1,7 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import CampusNews from '../models/CampusNews.js'
+import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 const categories=['Announcement','Achievement','Research','Campus life','Other']
 export const createCampusNews=asyncHandler(async(req,res)=>{
  const title=String(req.body.title||'').trim(),body=String(req.body.body||'').trim(),category=categories.includes(req.body.category)?req.body.category:'Other',sourceUrl=String(req.body.sourceUrl||'').trim()
@@ -19,3 +20,5 @@ export const listMyCampusNews=asyncHandler(async(req,res)=>{
  const posts=await CampusNews.find({authorId:req.user._id}).sort({createdAt:-1})
  res.json({success:true,posts})
 })
+
+export const deleteCampusNews = deleteOwnedContent({ Model: CampusNews, contentType: 'Campus News', titleFor: post => post.title || 'Campus news' })
