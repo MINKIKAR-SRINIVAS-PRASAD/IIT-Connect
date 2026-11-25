@@ -34,6 +34,7 @@ export default function Gallery() {
   const [posts, setPosts] = useState([])
   const [myPending, setMyPending] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState('')
 
   async function load() {
     setLoading(true)
@@ -57,6 +58,18 @@ export default function Gallery() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function deleteMySubmission(post) {
+    if (!window.confirm('Delete this Gallery submission for everyone? This cannot be undone.')) return
+    setDeletingId(String(post._id))
+    try {
+      await api.delete(`/gallery/${post._id}`)
+      toast.success('Gallery submission deleted. Admin has been notified.')
+      await load()
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Could not delete submission')
+    } finally { setDeletingId('') }
   }
 
   useEffect(() => {
@@ -94,7 +107,7 @@ export default function Gallery() {
             <div className="space-y-2">{myPending.map(post => (
               <div key={post._id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/10 px-3 py-2 text-sm">
                 <span className="text-slate-200">{post.caption || 'Photo submission'}</span>
-                <span className={post.status === 'Rejected' ? 'text-rose-300' : 'text-amber-300'}>{post.status === 'Rejected' ? 'Rejected' : 'Awaiting admin approval'}</span>
+                <div className="flex items-center gap-3"><span className={post.status === 'Rejected' ? 'text-rose-300' : 'text-amber-300'}>{post.status === 'Rejected' ? 'Rejected' : 'Awaiting admin approval'}</span><button disabled={deletingId===String(post._id)} onClick={()=>deleteMySubmission(post)} className="rounded-lg border border-rose-400/30 px-2.5 py-1 text-xs text-rose-300 disabled:opacity-50">{deletingId===String(post._id)?'Deleting…':'Delete'}</button></div>
               </div>
             ))}</div>
           </div>
