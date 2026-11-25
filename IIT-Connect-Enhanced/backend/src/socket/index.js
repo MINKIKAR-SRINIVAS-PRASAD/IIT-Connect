@@ -107,7 +107,7 @@ export function initSocket(httpServer, corsOrigin) {
       io.to(conversationId).emit('message:new', {
         _id: msg._id,
         conversationId,
-        senderId: user._id,
+        senderId: { _id: user._id, role: user.role, profile: user.profile },
         text: msg.text,
         createdAt: msg.createdAt,
         seenBy: msg.seenBy
