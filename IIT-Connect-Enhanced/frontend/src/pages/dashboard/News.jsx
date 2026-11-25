@@ -6,7 +6,7 @@ import {Newspaper,CalendarDays,BriefcaseBusiness,Images,ArrowUpRight,Search,Refr
 import {api} from '../../utils/api'
 import Loader from '../../components/common/Loader.jsx'
 
-const filters=['All updates','Events','Placements','Campus moments']
+const filters=['All updates','Events','Placements','Campus moments','Campus news']
 const dateLabel=value=>{if(!value)return 'Recently shared';const d=new Date(value);return Number.isNaN(d.getTime())?'Recently shared':d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
 
 export default function News(){
@@ -15,12 +15,14 @@ export default function News(){
  async function load(){
   setLoading(true)
   try{
-   const requests=[api.get('/events'),api.get('/gallery')]
+   const requests=[api.get('/events'),api.get('/gallery'),api.get('/news/campus')]
    if(!faculty)requests.push(api.get('/placements'))
    const results=await Promise.allSettled(requests)
    const next=[]
    const ev=results[0].status==='fulfilled'?results[0].value.data:{}
    ;[...(ev.upcoming||[]),...(ev.past||[])].forEach(x=>next.push({id:'event-'+x._id,type:'Events',title:x.title||'Campus event',description:x.description||x.details||'A campus event shared with the IITStudentsOS community.',date:x.datetime||x.createdAt,source:x.iit||'IITStudentsOS community',image:x.posterUrl,href:faculty?'/faculty/events':'/app/events',icon:CalendarDays}))
+   const campus=results[2].status==='fulfilled'?results[2].value.data:{}
+   ;(campus.posts||[]).forEach(x=>next.push({id:'campus-'+x._id,type:'Campus news',title:x.title||'Campus update',description:x.body||'',date:x.createdAt,source:x.institute||x.authorId?.profile?.iit||'Campus News',image:x.mediaUrl,href:faculty?'/faculty/news':'/app/news',icon:Newspaper}))
    const gal=results[1].status==='fulfilled'?results[1].value.data:{}
    ;(gal.posts||[]).forEach(x=>next.push({id:'gallery-'+x._id,type:'Campus moments',title:x.caption||'A moment from campus',description:x.description||'A campus photo shared with the community.',date:x.createdAt,source:x.iit||x.user?.profile?.iit||'Campus Gallery',image:x.imageUrl||x.photoUrl,href:faculty?'/faculty/gallery':'/app/gallery',icon:Images}))
    if(!faculty&&results[2]?.status==='fulfilled'){
