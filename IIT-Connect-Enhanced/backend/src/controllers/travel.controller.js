@@ -1,3 +1,5 @@
+import TravelPost from '../models/TravelPost.js'
+import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import TravelPost from '../models/TravelPost.js'
@@ -47,3 +49,5 @@ export const listMyTravel = asyncHandler(async (req, res) => {
 
   res.json({ success: true, posts })
 })
+
+export const deleteTravelSubmission = deleteOwnedContent({ Model: TravelPost, contentType: 'Travel', titleFor: post => [post.from, '→', post.to].filter(Boolean).join(' ') || 'Travel submission' })
