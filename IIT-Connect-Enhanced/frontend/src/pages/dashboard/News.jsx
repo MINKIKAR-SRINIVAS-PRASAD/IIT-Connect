@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import {Newspaper,ArrowUpRight,Search,RefreshCw,Sparkles,Linkedin,Globe2,Send,ShieldCheck,PenLine} from 'lucide-react'
 import {api} from '../../utils/api'
 import Loader from '../../components/common/Loader.jsx'
-import {useAuth} from '../../hooks/useAuth.jsx'
+import {useAuth} from '../../hooks/useAuth'
 
 const filters=['All news','Campus news','International news','LinkedIn']
 const categories=['Announcement','Achievement','Research','Campus life','Other']
