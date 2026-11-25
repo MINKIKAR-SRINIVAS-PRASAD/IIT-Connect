@@ -243,6 +243,7 @@ export default function Profile() {
             {user?.profile?.website && <a href={user.profile.website} target="_blank" rel="noreferrer" className="break-all font-semibold text-indigo-300 hover:underline">↗ {user.profile.website.replace('https://','').replace('http://','')}</a>}
           </div>
           <div className="mt-5 grid grid-cols-[1fr_1fr_44px] gap-2 sm:max-w-lg"><button type="button" onClick={()=>setEditing(true)} className="rounded-xl bg-[#30363b] px-4 py-2.5 text-sm font-semibold hover:bg-[#3b4248]">Edit profile</button><button type="button" onClick={shareProfile} className="rounded-xl bg-[#30363b] px-4 py-2.5 text-sm font-semibold hover:bg-[#3b4248]">Share profile</button><button type="button" onClick={()=>navigate('/app/search')} aria-label="Find people" className="flex items-center justify-center rounded-xl bg-[#30363b] text-lg hover:bg-[#3b4248]">♧</button></div>
+          <div className="mt-4 flex flex-wrap items-center gap-2"><div className="rounded-xl border border-amber-400/25 bg-amber-400/[.06] px-4 py-2"><div className="text-lg font-bold text-amber-200">🔥 {Number(achievement?.points || 0).toLocaleString()}</div><div className="text-xs text-slate-400">Contribution streak points</div></div><div className="text-xs text-slate-500">Silver 1K · Gold 5K · Platinum 10K</div></div>
         </div>
       </div>
     </section>
