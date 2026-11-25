@@ -74,7 +74,7 @@ export default function Sidebar() {
         {to:'/app',label:'Home',icon:Home,end:true},
         {to:'/app/study',label:'Study',icon:BookOpen},
         {to:'/app/chat',label:'Chat',icon:MessageCircle},
-        {to:'/app/news',label:'News',icon:Search},
+        {to:'/app/news',label:'Search',icon:Search},
         {to:'/app/profile',label:'Profile',icon:UserRound}
       ]).map(({to,label,icon:Icon,end}) => <NavLink key={label} to={to} end={end} onClick={() => setMobileMenuOpen(false)} className={({isActive}) => `mobile-bottom-nav-item ${isActive ? 'is-active' : ''}`}><Icon size={22} strokeWidth={1.9}/><span>{label}</span></NavLink>)}
     </nav>
