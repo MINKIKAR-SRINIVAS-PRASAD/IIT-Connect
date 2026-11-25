@@ -32,6 +32,7 @@ const item = {
 
 export default function Gallery() {
   const [posts, setPosts] = useState([])
+  const [myPending, setMyPending] = useState([])
   const [loading, setLoading] = useState(true)
 
   async function load() {
@@ -43,13 +44,14 @@ export default function Gallery() {
       const approved = approvedResult.status === 'fulfilled' ? approvedResult.value.data.posts || [] : []
       const mine = mineResult.status === 'fulfilled' ? mineResult.value.data.posts || [] : []
       const community = communityResult.status === 'fulfilled'
-        ? (communityResult.value.data.posts || []).filter(post => post.section === 'Gallery').map(post => ({ ...post, _source: 'community' }))
+        ? (communityResult.value.data.posts || []).filter(post => post.section === 'Gallery' && post.status === 'Approved').map(post => ({ ...post, _source: 'community' }))
         : []
+      setMyPending(mine.filter(post => post.status !== 'Approved' && post.status !== 'Deleted'))
       if (approvedResult.status === 'rejected' && mineResult.status === 'rejected' && communityResult.status === 'rejected') {
         throw approvedResult.reason || mineResult.reason || communityResult.reason
       }
-      const merged = [...community, ...mine, ...approved]
-      setPosts(Array.from(new Map(merged.map((post) => [post._id, post])).values()).filter((post) => post.status !== 'Deleted'))
+      const merged = [...community, ...approved]
+      setPosts(Array.from(new Map(merged.map((post) => [post._id, post])).values()).filter((post) => post.status === 'Approved' && post.visibility !== 'private'))
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load gallery')
     } finally {
@@ -69,7 +71,7 @@ export default function Gallery() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="sage-page-theme space-y-6">
-      <CreatePostPanel title="Share a campus moment" description="Upload a photo or memory for the IIT community. Gallery photos remain pending until admin approval." buttonLabel="Add photo"><GalleryUpload onCreated={() => { toast.success('Photo uploaded! Awaiting admin approval'); load() }} /></CreatePostPanel>
+      <CreatePostPanel title="Share a campus moment" description="Upload a photo or memory for the IIT community. Gallery photos remain pending until admin approval." buttonLabel="Add photo"><GalleryUpload onCreated={() => { load() }} /></CreatePostPanel>
 
       {/* Gallery Grid */}
       <motion.section
@@ -86,6 +88,17 @@ export default function Gallery() {
           <span className="text-sm text-slate-500">{posts.length} {posts.length === 1 ? 'photo' : 'photos'}</span>
         </motion.div>
 
+        {myPending.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/[.04] p-4">
+            <h3 className="mb-3 text-sm font-semibold text-amber-200">My submissions · visible only to you</h3>
+            <div className="space-y-2">{myPending.map(post => (
+              <div key={post._id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/10 px-3 py-2 text-sm">
+                <span className="text-slate-200">{post.caption || 'Photo submission'}</span>
+                <span className={post.status === 'Rejected' ? 'text-rose-300' : 'text-amber-300'}>{post.status === 'Rejected' ? 'Rejected' : 'Awaiting admin approval'}</span>
+              </div>
+            ))}</div>
+          </div>
+        )}
         {posts.length > 0 ? (
           <motion.div variants={container}>
             <GalleryGrid posts={posts} />
