@@ -1,5 +1,6 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
+import { syncApprovedPostContribution } from '../utils/postAchievements.js'
 import User from '../models/User.js'
 import GalleryPost from '../models/GalleryPost.js'
 import PlacementPost from '../models/PlacementPost.js'
@@ -87,6 +88,8 @@ export const approveGallery = asyncHandler(async (req, res) => {
   post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
   await post.save()
 
+  await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'GalleryPost', sourceId: post._id, approved: status === 'Approved' })
+
   await log(req.user._id, status === 'Approved' ? 'APPROVE_GALLERY' : 'REJECT_GALLERY', 'GalleryPost', post._id, {
     rejectionReason: post.rejectionReason
   })
@@ -104,6 +107,8 @@ export const approvePlacement = asyncHandler(async (req, res) => {
   post.status = status
   post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
   await post.save()
+
+  await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'PlacementPost', sourceId: post._id, approved: status === 'Approved' })
 
   await log(req.user._id, status === 'Approved' ? 'APPROVE_PLACEMENT' : 'REJECT_PLACEMENT', 'PlacementPost', post._id, {
     rejectionReason: post.rejectionReason
@@ -123,6 +128,8 @@ export const approveEvent = asyncHandler(async (req, res) => {
   post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
   await post.save()
 
+  await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'EventPost', sourceId: post._id, approved: status === 'Approved' })
+
   await log(req.user._id, status === 'Approved' ? 'APPROVE_EVENT' : 'REJECT_EVENT', 'EventPost', post._id, {
     rejectionReason: post.rejectionReason
   })
@@ -140,6 +147,8 @@ export const approveTravel = asyncHandler(async (req, res) => {
   post.status = status
   post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
   await post.save()
+
+  await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'TravelPost', sourceId: post._id, approved: status === 'Approved' })
 
   await log(req.user._id, status === 'Approved' ? 'APPROVE_TRAVEL' : 'REJECT_TRAVEL', 'TravelPost', post._id, {
     rejectionReason: post.rejectionReason
@@ -159,6 +168,8 @@ export const approveStudy = asyncHandler(async (req, res) => {
   post.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
   await post.save()
 
+  await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'StudyPost', sourceId: post._id, approved: status === 'Approved' })
+
   await log(req.user._id, status === 'Approved' ? 'APPROVE_STUDY' : 'REJECT_STUDY', 'StudyPost', post._id, {
     rejectionReason: post.rejectionReason
   })
@@ -173,6 +184,7 @@ export const approveCampusNews=asyncHandler(async(req,res)=>{
  if(!post)throw new ApiError(404,'Campus news not found')
  post.status=status;post.rejectionReason=status==='Rejected'?(rejectionReason||'Rejected'):''
  await post.save()
+ await syncApprovedPostContribution({ authorId: post.authorId, sourceModel: 'CampusNews', sourceId: post._id, approved: status === 'Approved' })
  await log(req.user._id,status==='Approved'?'APPROVE_CAMPUS_NEWS':'REJECT_CAMPUS_NEWS','CampusNews',post._id,{rejectionReason:post.rejectionReason})
  res.json({success:true,post})
 })
