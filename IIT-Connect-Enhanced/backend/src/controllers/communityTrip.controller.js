@@ -7,7 +7,7 @@ import TripJoinRequest from '../models/TripJoinRequest.js'
 const populateTrip = { path: 'authorId', select: 'email profile' }
 
 export const listCommunityTrips = asyncHandler(async (req, res) => {
-  const trips = await CommunityTrip.find({ status: 'Published', approvalStatus: 'Approved', travelDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } })
+  const trips = await CommunityTrip.find({ status: 'Published', $or: [{ approvalStatus: 'Approved' }, { approvalStatus: { $exists: false } }], travelDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } })
     .sort({ travelDate: 1, createdAt: -1 }).populate(populateTrip)
   res.json({ success: true, trips })
 })
