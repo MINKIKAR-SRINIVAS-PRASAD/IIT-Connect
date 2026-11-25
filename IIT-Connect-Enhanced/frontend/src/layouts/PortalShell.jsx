@@ -16,7 +16,6 @@ export default function PortalShell({ children }) {
     const onStart = (event) => {
       if (event.touches.length !== 1) { touchOrigin.current = null; return }
       const touch = event.touches[0]
-      if (touch.clientX > 30) { touchOrigin.current = null; return }
       touchOrigin.current = { x: touch.clientX, y: touch.clientY }
       gestureFired.current = false
     }
@@ -25,7 +24,7 @@ export default function PortalShell({ children }) {
       const touch = event.touches[0]
       const dx = touch.clientX - touchOrigin.current.x
       const dy = touch.clientY - touchOrigin.current.y
-      if (dx > 60 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+      if (location.pathname === '/app' && dx > 22 && Math.abs(dx) > Math.abs(dy) * 1.1) {
         gestureFired.current = true
         event.preventDefault()
         event.stopImmediatePropagation()
@@ -43,7 +42,7 @@ export default function PortalShell({ children }) {
       window.removeEventListener('touchend', onEnd, true)
       window.removeEventListener('touchcancel', onEnd, true)
     }
-  }, [])
+  }, [location.pathname])
 
   return <div className={`dashboard-shell min-h-screen ${location.pathname.startsWith('/faculty') ? 'faculty-theme' : ''} bg-[#070914] text-slate-100`}>
     <div className="dashboard-atmosphere pointer-events-none fixed inset-0"/>
