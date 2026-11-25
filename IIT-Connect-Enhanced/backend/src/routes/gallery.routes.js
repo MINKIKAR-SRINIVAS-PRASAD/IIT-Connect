@@ -8,7 +8,7 @@ import { createGalleryPost, deleteMyGalleryPost, listApprovedGallery, listMyGall
 const router = Router()
 
 // Approved campus gallery is shared and readable by both portals.
-router.get('/', listApprovedGallery)
+router.get('/', requireAuth, listApprovedGallery)
 router.get('/mine', requireAuth, listMyGallery)
 router.delete('/:id', requireAuth, deleteMyGalleryPost)
 router.post('/', requireAuth, requireProfileComplete, upload.single('image'), validateImageUpload, createGalleryPost)
