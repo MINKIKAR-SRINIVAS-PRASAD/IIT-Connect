@@ -23,7 +23,7 @@ export const createBooking = asyncHandler(async (req, res) => {
   const arrival = new Date(booking.arrivalDate + 'T' + booking.arrivalTime)
   if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime()) || arrival <= departure) throw new ApiError(400, 'Arrival must be later than departure')
   const saved = await TransportBooking.create({ userId: req.user._id, transportType, booking })
-  res.status(201).json({ success: true, booking: saved })
+  res.status(201).json({ success: true, booking: saved, message: 'Booking submitted for admin approval' })
 })
 
 export const deleteMyBooking = asyncHandler(async (req, res) => {
