@@ -12,6 +12,7 @@ import AdminLog from '../models/AdminLog.js'
 import CommunityTrip from '../models/CommunityTrip.js'
 import TransportBooking from '../models/TransportBooking.js'
 import CommunityPost from '../models/CommunityPost.js'
+import DeletionNotification from '../models/DeletionNotification.js'
 
 async function log(adminId, action, targetType, targetId = null, metadata = {}) {
   await AdminLog.create({ adminId, action, targetType, targetId, metadata })
@@ -259,4 +260,19 @@ export const reviewFacultyRequest = asyncHandler(async (req, res) => {
   await user.save()
   await log(req.user._id, decision === 'approve' ? 'APPROVE_FACULTY_ACCESS' : 'REJECT_FACULTY_ACCESS', 'User', user._id)
   res.json({ success: true, request: { id: user._id, email: user.email, facultyAccessStatus: user.facultyAccessStatus } })
+})
+
+
+export const listDeletionNotifications = asyncHandler(async (req, res) => {
+  const notifications = await DeletionNotification.find({})
+    .sort({ createdAt: -1 }).limit(250).lean()
+  res.json({ success: true, notifications })
+})
+
+export const markDeletionNotificationRead = asyncHandler(async (req, res) => {
+  const notification = await DeletionNotification.findByIdAndUpdate(
+    req.params.id, { $set: { readAt: new Date() } }, { new: true }
+  )
+  if (!notification) throw new ApiError(404, 'Deletion notification not found')
+  res.json({ success: true, notification })
 })
