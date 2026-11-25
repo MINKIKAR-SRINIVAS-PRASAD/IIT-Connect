@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search as SearchIcon, MessageCircle, UserRound, Users } from 'lucide-react'
+import { Search as SearchIcon, UserRound, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
@@ -50,7 +50,7 @@ export default function Search() {
       return <article key={person._id || person.id} className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[.035] p-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#26352a] text-sm font-semibold text-[#c7d9ba]">{profile.photoUrl ? <img src={profile.photoUrl} alt="" className="h-full w-full object-cover"/> : <UserRound size={21}/>}</div>
         <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold text-slate-100">{name}</h3><p className="mt-1 truncate text-xs text-slate-400">{[profile.iit, profile.branch].filter(Boolean).join(' · ') || 'IIT student'}</p>{profile.rollNumber && <p className="mt-1 truncate text-[11px] text-slate-500">{profile.rollNumber}</p>}</div>
-        <Link to="/app/chat" className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#a8c49a]/20 px-3 py-2 text-xs font-medium text-[#c6d8b8] hover:bg-[#a8c49a]/10"><MessageCircle size={14}/> Chat</Link>
+        <Link to={`/app/student/${person._id || person.id}`} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#a8c49a]/20 px-3 py-2 text-xs font-medium text-[#c6d8b8] hover:bg-[#a8c49a]/10">View profile →</Link>
       </article>
     })}</div> : <div className="rounded-2xl border border-white/10 bg-white/[.025] p-7 text-center"><Users size={26} className="mx-auto text-slate-500"/><p className="mt-3 text-sm text-slate-300">{query.trim() ? 'No students match that search.' : 'No student directory results are available right now.'}</p><p className="mt-1 text-xs text-slate-500">Try a different name, institute or roll number.</p></div>}
   </div>

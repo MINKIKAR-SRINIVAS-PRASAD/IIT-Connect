@@ -25,6 +25,7 @@ import News from './pages/dashboard/News.jsx'
 import Search from './pages/dashboard/Search.jsx'
 import IITConnectAI from './pages/dashboard/IITConnectAI.jsx'
 import FacultyWorkspace from './pages/FacultyWorkspaceLive.jsx'
+import StudentPublicPage from './pages/dashboard/StudentPublicPage.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import Users from './pages/admin/Users.jsx'
@@ -122,6 +123,7 @@ export default function App() {
         <Route path="travel" element={<Navigate to="/app/travel-home" replace />} />
         <Route path="study" element={<Study />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="student/:userId" element={<StudentPublicPage />} />
       </Route>
 
       
