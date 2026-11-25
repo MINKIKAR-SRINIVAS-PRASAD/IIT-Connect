@@ -35,7 +35,7 @@ export default function Register() {
     setBusy(true)
     try {
       const data = await verifyRegistrationOtp(email.trim(), otp)
-      nav(data.user.role === 'faculty' ? '/faculty/access-pending' : '/app/profile')
+      nav(data.user.role === 'faculty' ? '/faculty/home' : '/app/profile')
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Verification failed')
     } finally { setBusy(false) }
