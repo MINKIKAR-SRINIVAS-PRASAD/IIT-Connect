@@ -50,8 +50,15 @@ export default function HomeFeed() {
   useEffect(() => { loadData() }, [])
   useEffect(() => {
     if (window.matchMedia('(min-width: 768px)').matches) return
+    // Home-only: a rightward swipe anywhere on the feed opens Create Post.
+    // Capture the gesture before the shell/sidebar can interpret it as drawer navigation.
     const start = (event) => {
-      if (event.touches.length !== 1 || event.touches[0].clientX > 24) return
+      if (event.touches.length !== 1) return
+      const target = event.target
+      if (target?.closest?.('button,a,input,textarea,select,[role="dialog"],[data-no-create-swipe]')) {
+        touchStart.current = null
+        return
+      }
       touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
       touchOpened.current = false
     }
@@ -59,21 +66,23 @@ export default function HomeFeed() {
       if (!touchStart.current || touchOpened.current || event.touches.length !== 1) return
       const dx = event.touches[0].clientX - touchStart.current.x
       const dy = event.touches[0].clientY - touchStart.current.y
-      if (dx > 76 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      if (dx > 70 && Math.abs(dx) > Math.abs(dy) * 1.25) {
         touchOpened.current = true
+        event.preventDefault()
+        event.stopPropagation()
         setCreateOpen(true)
       }
     }
     const end = () => { touchStart.current = null }
-    window.addEventListener('touchstart', start, { passive: true })
-    window.addEventListener('touchmove', move, { passive: true })
-    window.addEventListener('touchend', end, { passive: true })
-    window.addEventListener('touchcancel', end, { passive: true })
+    window.addEventListener('touchstart', start, { passive: true, capture: true })
+    window.addEventListener('touchmove', move, { passive: false, capture: true })
+    window.addEventListener('touchend', end, { passive: true, capture: true })
+    window.addEventListener('touchcancel', end, { passive: true, capture: true })
     return () => {
-      window.removeEventListener('touchstart', start)
-      window.removeEventListener('touchmove', move)
-      window.removeEventListener('touchend', end)
-      window.removeEventListener('touchcancel', end)
+      window.removeEventListener('touchstart', start, true)
+      window.removeEventListener('touchmove', move, true)
+      window.removeEventListener('touchend', end, true)
+      window.removeEventListener('touchcancel', end, true)
     }
   }, [])
 
