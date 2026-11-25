@@ -54,7 +54,7 @@ function Protected({ children }) {
 
   if (loading) return <div className="p-8 text-slate-300">Loading...</div>
   if (!user) return <Navigate to="/login" replace />
-  if (user.role === 'faculty') return <Navigate to={user.facultyVerified ? '/faculty/home' : '/faculty/access-pending'} replace />
+  if (user.role === 'faculty') return <Navigate to='/faculty/home' replace />
 
   const profileComplete = hasCompletedStudentProfile(user)
   const isProfilePage = location.pathname === '/app/profile'
@@ -69,6 +69,7 @@ function Protected({ children }) {
 
 function FacultyOnly({ children }) {
   const { user, loading } = useAuth()
+  const location = useLocation()
   if (loading) return <div className="p-8 text-slate-300">Loading faculty workspace…</div>
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'faculty' && user.role !== 'admin') return <Navigate to="/app" replace />
