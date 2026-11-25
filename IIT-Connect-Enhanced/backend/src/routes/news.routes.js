@@ -27,7 +27,7 @@ const parseFeed=(xml,feed)=>{
  }).filter(x=>x.title&&/^https?:\/\//i.test(x.url))
 }
 // Campus news feed is public/shared; authenticated students and faculty can submit for moderation.
-router.get('/campus',listApprovedCampusNews)
+router.get('/campus',requireAuth,listApprovedCampusNews)
 router.get('/mine',requireAuth,listMyCampusNews)
 router.post('/campus',requireAuth,requireProfileComplete,createCampusNews)
 router.get('/external',async(_req,res)=>{
