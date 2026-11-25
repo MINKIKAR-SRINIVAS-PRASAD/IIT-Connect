@@ -11,7 +11,9 @@ const communityTripSchema = new mongoose.Schema({
   currentMembers: { type: Number, default: 1, min: 1 },
   memberIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   description: { type: String, required: true, trim: true, maxlength: 1000 },
-  status: { type: String, enum: ['Published', 'Cancelled'], default: 'Published', index: true }
+  status: { type: String, enum: ['Published', 'Cancelled'], default: 'Published', index: true },
+  approvalStatus: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending', index: true },
+  rejectionReason: { type: String, default: '' }
 }, { timestamps: true })
 
 communityTripSchema.index({ status: 1, travelDate: 1, createdAt: -1 })
