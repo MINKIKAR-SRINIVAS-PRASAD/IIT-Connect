@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, X, LogOut, Sparkles } from 'lucide-react'
+import { Home, MessageCircle, BookOpen, Images, BriefcaseBusiness, CalendarDays, Newspaper, Compass, Plane, UserRound, ShieldCheck, X, LogOut, Sparkles, Search } from 'lucide-react'
 import BrandSymbol from '../common/BrandSymbol'
 
 const links = [
@@ -63,6 +63,21 @@ export default function Sidebar() {
       <Brand faculty={isFaculty}/>
       <button type="button" aria-label={mobileMenuOpen ? 'Close page navigation' : 'Open page navigation'} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(value => !value)} className="mobile-menu-toggle flex h-11 w-11 items-center justify-center rounded-2xl border border-[#a8c49a]/20 bg-[#a8c49a]/[0.06] text-[#c8d9bc] transition-colors hover:bg-[#a8c49a]/[0.12] "><span className={`mobile-menu-icon ${mobileMenuOpen ? 'is-open' : ''}`} aria-hidden="true"><span/><span/><span/></span></button>
     </header>
+    <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 md:hidden" aria-label="Mobile quick navigation">
+      {(isFaculty ? [
+        {to:'/faculty/home',label:'Home',icon:Home,end:true},
+        {to:'/faculty/study',label:'Study',icon:BookOpen},
+        {to:'/faculty/community',label:'Community',icon:MessageCircle},
+        {to:'/faculty/news',label:'News',icon:Newspaper},
+        {to:'/faculty/home',label:'Profile',icon:UserRound}
+      ] : [
+        {to:'/app',label:'Home',icon:Home,end:true},
+        {to:'/app/study',label:'Study',icon:BookOpen},
+        {to:'/app/chat',label:'Chat',icon:MessageCircle},
+        {to:'/app/news',label:'News',icon:Search},
+        {to:'/app/profile',label:'Profile',icon:UserRound}
+      ]).map(({to,label,icon:Icon,end}) => <NavLink key={label} to={to} end={end} onClick={() => setMobileMenuOpen(false)} className={({isActive}) => `mobile-bottom-nav-item ${isActive ? 'is-active' : ''}`}><Icon size={22} strokeWidth={1.9}/><span>{label}</span></NavLink>)}
+    </nav>
     {mobileMenuOpen && <div className="mobile-nav-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-5 py-8 backdrop-blur-sm md:hidden" onClick={() => setMobileMenuOpen(false)}>
       <section role="dialog" aria-modal="true" aria-label="Page navigation" className="mobile-nav-panel w-full max-w-sm rounded-3xl border border-white/10 bg-[#111827] p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between px-1"><div className="flex items-center gap-2"><BrandSymbol className="h-7 w-[54px] object-contain"/><div><div className="text-sm font-bold text-white">{isFaculty ? 'IITProfessorsOS' : 'IITStudentsOS'}</div><div className="mt-1 text-[10px] tracking-wider text-slate-400">{isFaculty ? 'FACULTY NAVIGATION' : 'NAVIGATE TO A PAGE'}</div></div></div><button type="button" aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-white/5"><X size={20}/></button></div>
