@@ -16,7 +16,7 @@ export default function Login() {
   async function onSubmit(event) {
     event.preventDefault()
     setBusy(true)
-    try { const signedIn = await login(email.trim(), password); nav(signedIn.role === 'faculty' ? (signedIn.facultyAccessStatus === 'approved' || signedIn.facultyVerified ? '/faculty/home' : '/faculty/access-pending') : '/app') }
+    try { const signedIn = await login(email.trim(), password); nav(signedIn.role === 'faculty' ? '/faculty/home' : '/app') }
     catch (error) { toast.error(error?.response?.data?.message || 'Login failed') }
     finally { setBusy(false) }
   }
