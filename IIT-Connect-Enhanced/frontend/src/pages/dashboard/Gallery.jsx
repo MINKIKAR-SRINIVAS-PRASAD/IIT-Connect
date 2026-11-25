@@ -47,7 +47,7 @@ export default function Gallery() {
       const community = communityResult.status === 'fulfilled'
         ? (communityResult.value.data.posts || []).filter(post => post.section === 'Gallery' && post.status === 'Approved').map(post => ({ ...post, _source: 'community' }))
         : []
-      setMyPending(mine.filter(post => post.status !== 'Approved' && post.status !== 'Deleted'))
+      setMyPending(mine.filter(post => post.status !== 'Deleted'))
       if (approvedResult.status === 'rejected' && mineResult.status === 'rejected' && communityResult.status === 'rejected') {
         throw approvedResult.reason || mineResult.reason || communityResult.reason
       }
@@ -107,7 +107,7 @@ export default function Gallery() {
             <div className="space-y-2">{myPending.map(post => (
               <div key={post._id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/10 px-3 py-2 text-sm">
                 <span className="text-slate-200">{post.caption || 'Photo submission'}</span>
-                <div className="flex items-center gap-3"><span className={post.status === 'Rejected' ? 'text-rose-300' : 'text-amber-300'}>{post.status === 'Rejected' ? 'Rejected' : 'Awaiting admin approval'}</span><button disabled={deletingId===String(post._id)} onClick={()=>deleteMySubmission(post)} className="rounded-lg border border-rose-400/30 px-2.5 py-1 text-xs text-rose-300 disabled:opacity-50">{deletingId===String(post._id)?'Deleting…':'Delete'}</button></div>
+                <div className="flex items-center gap-3"><span className={post.status === 'Rejected' ? 'text-rose-300' : 'text-amber-300'}>{post.status === 'Rejected' ? 'Rejected' : post.status === 'Approved' ? 'Approved · in public Gallery' : 'Awaiting admin approval'}</span><button disabled={deletingId===String(post._id)} onClick={()=>deleteMySubmission(post)} className="rounded-lg border border-rose-400/30 px-2.5 py-1 text-xs text-rose-300 disabled:opacity-50">{deletingId===String(post._id)?'Deleting…':'Delete'}</button></div>
               </div>
             ))}</div>
           </div>
