@@ -81,7 +81,7 @@ export const pendingApprovals = asyncHandler(async (req, res) => {
     TravelPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     StudyPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     CampusNews.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
-    CommunityTrip.find({ approvalStatus: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
+    CommunityTrip.find({ approvalStatus: 'Pending', status: 'Published' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     TransportBooking.find({ approvalStatus: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('userId', 'email profile'),
     CommunityPost.find({ section: 'Gallery', status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile')
   ])
