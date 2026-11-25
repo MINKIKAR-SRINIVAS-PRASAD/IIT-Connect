@@ -3,11 +3,11 @@ import { ArrowLeft, Camera, Check, ImagePlus, LoaderCircle, X } from 'lucide-rea
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
 
-const destinations = ['News', 'Campus', 'Events', 'Community', 'Travel', 'Study', 'Placements', 'Gallery']
+const destinations = ['Events', 'Placements', 'Gallery']
 
 export default function MobileCreatePost({ onClose, onCreated }) {
   const [caption, setCaption] = useState('')
-  const [section, setSection] = useState('Community')
+  const [section, setSection] = useState('Gallery')
   const [visibility, setVisibility] = useState('public')
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
