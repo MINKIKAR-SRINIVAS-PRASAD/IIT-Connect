@@ -45,7 +45,7 @@ export default function GalleryCard({ post }) {
     if (!window.confirm('Delete this photo for everyone? This cannot be undone.')) return
     setDeleting(true)
     try {
-      await api.delete(`/gallery/${post._id}`)
+      await api.delete(post._source === 'community' ? `/posts/${post._id}` : `/gallery/${post._id}`)
       toast.success('Photo deleted for everyone')
       window.location.reload()
     } catch (error) {
