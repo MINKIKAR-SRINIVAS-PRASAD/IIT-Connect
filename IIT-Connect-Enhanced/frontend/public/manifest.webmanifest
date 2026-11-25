@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "IITStudentsOS",
+  "short_name": "IITStudentsOS",
+  "description": "The connected campus platform for IIT students and faculty.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#070914",
+  "theme_color": "#070914",
+  "icons": [
+    {
+      "src": "/iitconnect-gold-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
