@@ -12,7 +12,14 @@ export async function createDefaultAdmin(env) {
 
   const existing = await User.findOne({ email })
   if (existing) {
-    console.log("✅ Default admin already exists")
+    // Promote only the explicitly configured default-admin identity.
+    if (existing.role !== "admin") {
+      existing.role = "admin"
+      await existing.save()
+      console.log("✅ Configured default admin role verified")
+    } else {
+      console.log("✅ Default admin already exists")
+    }
     return
   }
 
