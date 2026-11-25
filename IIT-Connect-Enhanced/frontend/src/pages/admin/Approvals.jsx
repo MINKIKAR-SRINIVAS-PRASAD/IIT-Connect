@@ -67,8 +67,10 @@ function ApprovalCard({ item, type, onAction }) {
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
       : type === 'Event' || type === 'Campus News' || type === 'Faculty Post'
         ? item.title
-        : type === 'Trip'
+        : type === 'Trip' || type === 'Community Trip'
           ? [item.destination, item.location].filter(Boolean).join(' · ')
+          : type === 'Transport Booking'
+            ? item.transportType + ' booking'
           : item.title
 
   return (
