@@ -9,6 +9,8 @@ import TravelPost from '../models/TravelPost.js'
 import StudyPost from '../models/StudyPost.js'
 import CampusNews from '../models/CampusNews.js'
 import AdminLog from '../models/AdminLog.js'
+import CommunityTrip from '../models/CommunityTrip.js'
+import TransportBooking from '../models/TransportBooking.js'
 
 async function log(adminId, action, targetType, targetId = null, metadata = {}) {
   await AdminLog.create({ adminId, action, targetType, targetId, metadata })
@@ -65,7 +67,7 @@ export const setBan = asyncHandler(async (req, res) => {
 })
 
 export const pendingApprovals = asyncHandler(async (req, res) => {
-  const [gallery, placements, events, travel, study, campusNews] = await Promise.all([
+  const [gallery, placements, events, travel, study, campusNews, communityTrips, transportBookings] = await Promise.all([
     GalleryPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     PlacementPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
     EventPost.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile'),
@@ -74,7 +76,7 @@ export const pendingApprovals = asyncHandler(async (req, res) => {
     CampusNews.find({ status: 'Pending' }).sort({ createdAt: -1 }).limit(100).populate('authorId', 'email profile')
   ])
 
-  res.json({ success: true, gallery, placements, events, travel, study, campusNews })
+  res.json({ success: true, gallery, placements, events, travel, study, campusNews, communityTrips, transportBookings })
 })
 
 export const approveGallery = asyncHandler(async (req, res) => {
@@ -188,6 +190,30 @@ export const approveCampusNews=asyncHandler(async(req,res)=>{
  await log(req.user._id,status==='Approved'?'APPROVE_CAMPUS_NEWS':'REJECT_CAMPUS_NEWS','CampusNews',post._id,{rejectionReason:post.rejectionReason})
  res.json({success:true,post})
 })
+export const approveCommunityTrip = asyncHandler(async (req, res) => {
+  const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) throw new ApiError(400, 'Status must be Approved or Rejected')
+  const trip = await CommunityTrip.findById(req.params.id)
+  if (!trip) throw new ApiError(404, 'Trip not found')
+  trip.approvalStatus = status
+  trip.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
+  await trip.save()
+  await log(req.user._id, status === 'Approved' ? 'APPROVE_COMMUNITY_TRIP' : 'REJECT_COMMUNITY_TRIP', 'CommunityTrip', trip._id, { rejectionReason: trip.rejectionReason })
+  res.json({ success: true, trip })
+})
+
+export const approveTransportBooking = asyncHandler(async (req, res) => {
+  const { status, rejectionReason } = req.body
+  if (!['Approved', 'Rejected'].includes(status)) throw new ApiError(400, 'Status must be Approved or Rejected')
+  const booking = await TransportBooking.findById(req.params.id)
+  if (!booking) throw new ApiError(404, 'Transport booking not found')
+  booking.approvalStatus = status
+  booking.rejectionReason = status === 'Rejected' ? (rejectionReason || 'Rejected') : ''
+  await booking.save()
+  await log(req.user._id, status === 'Approved' ? 'APPROVE_TRANSPORT_BOOKING' : 'REJECT_TRANSPORT_BOOKING', 'TransportBooking', booking._id, { rejectionReason: booking.rejectionReason })
+  res.json({ success: true, booking })
+})
+
 export const logs = asyncHandler(async (req, res) => {
   const items = await AdminLog.find({}).sort({ createdAt: -1 }).limit(200).populate('adminId', 'email profile')
   res.json({ success: true, logs: items })
