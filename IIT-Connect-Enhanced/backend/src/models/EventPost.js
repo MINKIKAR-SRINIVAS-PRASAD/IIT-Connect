@@ -11,6 +11,7 @@ const eventPostSchema = new mongoose.Schema(
     posterPublicId: { type: String, default: '' },
     registrationLink: { type: String, default: '' },
     description: { type: String, default: '' },
+    visibility: { type: String, enum: ['public', 'connections'], default: 'public', index: true },
     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending', index: true },
     rejectionReason: { type: String, default: '' }
   },
