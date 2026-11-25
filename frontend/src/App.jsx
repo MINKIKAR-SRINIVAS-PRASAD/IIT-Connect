@@ -197,7 +197,8 @@ export default function App() {
 
         <Route path="events" element={<Events />} />
 
-        <Route path="profile" element={<SocialProfile />} />\n        <Route path="profile/edit" element={<Profile />} />
+        <Route path="profile" element={<SocialProfile />} />
+        <Route path="profile/edit" element={<Profile />} />
       </Route>
 
       <Route path="/faculty" element={<Protected><FacultyOnly><FacultyPortal /></FacultyOnly></Protected>} />
