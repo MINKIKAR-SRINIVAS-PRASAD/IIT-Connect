@@ -44,7 +44,7 @@ export default function Placement() {
       ) : posts.length ? (
         <div className="space-y-3">
           {posts.map((p) => (
-            <PlacementCard key={p._id} post={p} />
+            <PlacementCard key={p._id} post={p} onDeleted={() => load()} />
           ))}
         </div>
       ) : (
