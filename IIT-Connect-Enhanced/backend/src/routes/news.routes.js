@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import ExternalNews from '../models/ExternalNews.js'
 import { requireAuth } from '../middleware/auth.middleware.js'
 import { createCampusNews, listApprovedCampusNews, listMyCampusNews } from '../controllers/news.controller.js'
 
@@ -22,21 +23,40 @@ const parseFeed=(xml,feed)=>{
   const url=href||decode(readTag(block,'link'))
   const description=decode(readTag(block,'description')||readTag(block,'summary')||readTag(block,'content:encoded')).slice(0,360)
   const rawDate=decode(readTag(block,'pubDate')||readTag(block,'published')||readTag(block,'updated'))
-  return {id:feed.source+'-'+i+'-'+url,category:feed.category,source:feed.source,title,description,url,date:rawDate&&!Number.isNaN(Date.parse(rawDate))?new Date(rawDate).toISOString():null}
+  return {id:feed.source+'-'+url,category:feed.category,source:feed.source,title,description,url,date:rawDate&&!Number.isNaN(Date.parse(rawDate))?new Date(rawDate).toISOString():null}
  }).filter(x=>x.title&&/^https?:\/\//i.test(x.url))
 }
 router.get('/campus',listApprovedCampusNews)
 router.get('/mine',requireAuth,listMyCampusNews)
 router.post('/campus',requireAuth,createCampusNews)
+// Persist every discovered external article in MongoDB. Feed refresh is throttled
+// so the UI's 10-second polling does not hammer publishers' RSS endpoints.
+let lastExternalRefresh=0
+let externalRefreshPromise=null
+const refreshExternalArchive=async()=>{
+ if(Date.now()-lastExternalRefresh<10*60*1000)return 0
+ if(externalRefreshPromise)return externalRefreshPromise
+ externalRefreshPromise=(async()=>{
+  const settled=await Promise.allSettled(feeds.map(async feed=>{
+   const response=await fetch(feed.url,{headers:{'User-Agent':'IITStudentsOS-News/1.0 (RSS reader)'},signal:AbortSignal.timeout(9000)})
+   if(!response.ok)throw new Error('RSS unavailable: '+response.status)
+   return parseFeed(await response.text(),feed)
+  }))
+  let saved=0
+  for(const result of settled){
+   if(result.status!=='fulfilled')continue
+   const operations=result.value.map(item=>({updateOne:{filter:{id:item.id},update:{$set:{...item,date:item.date?new Date(item.date):null}},upsert:true}}))
+   if(operations.length){const result=await ExternalNews.bulkWrite(operations,{ordered:false});saved+=result.upsertedCount||0}
+  }
+  lastExternalRefresh=Date.now()
+  return settled.filter(x=>x.status==='rejected').length
+ })().finally(()=>{externalRefreshPromise=null})
+ return externalRefreshPromise
+}
 router.get('/external',async(_req,res)=>{
- const settled=await Promise.allSettled(feeds.map(async feed=>{
-  const response=await fetch(feed.url,{headers:{'User-Agent':'IITStudentsOS-News/1.0 (RSS reader)'},signal:AbortSignal.timeout(9000)})
-  if(!response.ok)throw new Error('RSS unavailable: '+response.status)
-  return parseFeed(await response.text(),feed)
- }))
- const items=settled.flatMap(x=>x.status==='fulfilled'?x.value:[])
- const failed=settled.filter(x=>x.status==='rejected').length
- items.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))
- res.json({items,partialFailure:failed>0,sourcesFailed:failed,updatedAt:new Date().toISOString()})
+ let failed=0
+ try{failed=await refreshExternalArchive()}catch(error){failed=feeds.length}
+ const items=await ExternalNews.find().sort({date:-1,createdAt:-1}).lean()
+ res.json({items,partialFailure:failed>0,sourcesFailed:failed,updatedAt:new Date().toISOString(),archived:true})
 })
 export default router
