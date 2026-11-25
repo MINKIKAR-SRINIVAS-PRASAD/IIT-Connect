@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
 import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
 import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 
 const inputClass = 'w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none'
 const labelClass = 'mb-1.5 block text-sm font-medium text-slate-300'
