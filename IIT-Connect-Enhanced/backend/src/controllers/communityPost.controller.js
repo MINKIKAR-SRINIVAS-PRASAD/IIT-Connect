@@ -3,6 +3,7 @@ import { ApiError } from '../utils/apiError.js'
 import CommunityPost from '../models/CommunityPost.js'
 import ConnectionRequest from '../models/ConnectionRequest.js'
 import { cloudinary } from '../config/cloudinary.js'
+import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 
 const sections=['News','Campus','Events','Community','Travel','Study','Placements','Gallery']
 export const createPost=asyncHandler(async(req,res)=>{
@@ -29,3 +30,5 @@ export const listVisiblePosts=asyncHandler(async(req,res)=>{
   .sort({createdAt:-1}).limit(100).populate('authorId','profile.name profile.iit profile.photoUrl')
  res.json({success:true,posts})
 })
+
+export const deleteCommunityPost = deleteOwnedContent({ Model: CommunityPost, contentType: 'Community', titleFor: post => post.caption || 'Community post', imageIdField: 'imagePublicId' })
