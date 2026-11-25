@@ -15,6 +15,14 @@ function publicUser(user) {
   return { id: user._id, email: user.email, role: user.role, profile: user.profile, facultyAccessStatus: user.facultyAccessStatus }
 }
 
+function isDemoLoginEmail(email) {
+  const normalized = String(email || '').trim().toLowerCase()
+  return [env.DEMO_STUDENT_EMAIL, env.DEMO_FACULTY_EMAIL]
+    .map(value => String(value || '').trim().toLowerCase())
+    .filter(Boolean)
+    .includes(normalized)
+}
+
 function isConfiguredAdmin(email) {
   const normalized = String(email || '').trim().toLowerCase()
   return normalized === String(env.DEFAULT_ADMIN_EMAIL || '').trim().toLowerCase() ||
@@ -59,10 +67,13 @@ export const register = asyncHandler(async (req, res) => {
 })
 
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body
-  if (!isAllowedIitEmail(email)) throw new ApiError(400, 'Only IIT emails allowed')
+  const email = String(req.body.email || '').trim().toLowerCase()
+  const password = String(req.body.password || '')
+  // Only the two server-configured demo identities bypass IIT-domain validation.
+  // Registration and password recovery continue to enforce IIT email domains.
+  if (!isAllowedIitEmail(email) && !isDemoLoginEmail(email)) throw new ApiError(400, 'Only IIT emails allowed')
 
-  const user = await User.findOne({ email: email.toLowerCase() })
+  const user = await User.findOne({ email })
   if (!user) throw new ApiError(401, 'Invalid credentials')
   if (user.isBanned) throw new ApiError(403, 'User is banned')
 
@@ -79,7 +90,7 @@ export const login = asyncHandler(async (req, res) => {
   await user.save()
   await setAuthCookies(res, { accessToken, refreshToken })
 
-  res.json({ success: true, user: { id: user._id, email: user.email, role: user.role, profile: user.profile } })
+  res.json({ success: true, user: { id: user._id, email: user.email, role: user.role, profile: user.profile, facultyAccessStatus: user.facultyAccessStatus } })
 })
 
 export const logout = asyncHandler(async (req, res) => {

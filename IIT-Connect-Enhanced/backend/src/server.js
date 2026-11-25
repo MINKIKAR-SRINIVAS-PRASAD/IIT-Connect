@@ -1,4 +1,5 @@
 import { createDefaultAdmin } from "./seed/createadmin.js"
+import { seedDemoAccounts } from "./seed/seedDemoAccounts.js"
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -32,6 +33,7 @@ async function bootstrap() {
   assertEnv()
   await connectDB()
   await createDefaultAdmin(env)
+  await seedDemoAccounts(env)
   const app = express()
   app.use(helmet())
   app.use(morgan('dev'))

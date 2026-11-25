@@ -15,6 +15,11 @@ export const env = {
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '60d',
   ADMIN_EMAILS: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   FACULTY_EMAILS: (process.env.FACULTY_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+  // Demo identities/passwords are configured as private Render environment variables.
+  DEMO_STUDENT_EMAIL: process.env.DEMO_STUDENT_EMAIL,
+  DEMO_STUDENT_PASSWORD: process.env.DEMO_STUDENT_PASSWORD,
+  DEMO_FACULTY_EMAIL: process.env.DEMO_FACULTY_EMAIL,
+  DEMO_FACULTY_PASSWORD: process.env.DEMO_FACULTY_PASSWORD,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-6.2-astra',
   GMAIL_OAUTH_CLIENT_ID: process.env.GMAIL_OAUTH_CLIENT_ID,
