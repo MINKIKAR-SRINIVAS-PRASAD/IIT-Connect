@@ -90,7 +90,7 @@ export default function Events() {
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <EventCard event={e} onOpen={(ev) => setSelected(ev)} />
+                <EventCard event={e} onOpen={(ev) => setSelected(ev)} onDeleted={load} />
               </motion.div>
             ))}
           </motion.div>
