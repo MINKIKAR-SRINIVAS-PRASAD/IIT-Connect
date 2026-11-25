@@ -17,7 +17,7 @@ export async function seedDemoAccounts(env) {
       email: env.DEMO_FACULTY_EMAIL,
       password: env.DEMO_FACULTY_PASSWORD,
       role: 'faculty',
-      facultyAccessStatus: 'pending', // New demo faculty identity starts as a reviewable request.
+      facultyAccessStatus: 'pending', // Demo faculty is a reviewable test account.
       profile: { name: 'Demo Faculty', institute: 'Demo Institute', department: 'Demo', designation: 'Faculty' }
     }
   ]
@@ -37,6 +37,7 @@ export async function seedDemoAccounts(env) {
         $setOnInsert: {
           role: account.role,
           facultyAccessStatus: account.facultyAccessStatus,
+          demoFacultyReviewInitialized: account.role === 'faculty',
           profile: account.profile
         }
       },
