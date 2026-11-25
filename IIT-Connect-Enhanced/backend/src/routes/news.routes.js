@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.middleware.js'
+import { upload } from '../middleware/upload.middleware.js'
+import { validateImageUpload } from '../middleware/imageUpload.middleware.js'
 import { requireProfileComplete } from '../middleware/profileCompletion.middleware.js'
 import { createCampusNews, listApprovedCampusNews, listMyCampusNews } from '../controllers/news.controller.js'
 
@@ -29,7 +31,7 @@ const parseFeed=(xml,feed)=>{
 // Campus news feed is public/shared; authenticated students and faculty can submit for moderation.
 router.get('/campus',requireAuth,listApprovedCampusNews)
 router.get('/mine',requireAuth,listMyCampusNews)
-router.post('/campus',requireAuth,requireProfileComplete,createCampusNews)
+router.post('/campus',requireAuth,requireProfileComplete,upload.single('media'),validateImageUpload,createCampusNews)
 router.get('/external',async(_req,res)=>{
  const settled=await Promise.allSettled(feeds.map(async feed=>{
   const response=await fetch(feed.url,{headers:{'User-Agent':'IITStudentsOS-News/1.0 (RSS reader)'},signal:AbortSignal.timeout(9000)})
