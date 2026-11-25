@@ -42,10 +42,12 @@ export const listApprovedEvents = asyncHandler(async (req, res) => {
   const upcoming = await EventPost.find({ status: 'Approved', datetime: { $gte: now } })
     .sort({ datetime: 1 })
     .limit(60)
+    .populate('authorId', 'profile.name profile.iit email')
 
   const past = await EventPost.find({ status: 'Approved', datetime: { $lt: now } })
     .sort({ datetime: -1 })
     .limit(60)
+    .populate('authorId', 'profile.name profile.iit email')
 
   res.json({ success: true, upcoming, past })
 })
