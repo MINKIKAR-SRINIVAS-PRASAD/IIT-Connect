@@ -144,16 +144,26 @@ export const refresh = asyncHandler(async (req, res) => {
 })
 
 
-const otpMailer = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT || 587,
-  secure: Boolean(env.SMTP_SECURE),
-  auth: { user: env.SMTP_USER, pass: env.SMTP_APP_PASSWORD },
-  // Fail quickly when the hosting platform cannot reach SMTP (e.g. Render Free).
-  connectionTimeout: 12000,
-  greetingTimeout: 12000,
-  socketTimeout: 20000
-})
+// Send mail through Resend's HTTPS API. Render Free blocks outbound SMTP ports.
+async function sendEmail({ to, subject, text, html }) {
+  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
+    throw new Error('Resend email API is not configured');
+  }
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, to: [to], subject, text, html }),
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Resend API returned ${response.status}: ${details.slice(0, 400)}`);
+  }
+  return response.json();
+}
 
 export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase()
@@ -163,7 +173,7 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   if (!email || password.length < 8) throw new ApiError(400, 'Valid institute email and password (8+ characters) are required')
   if (!isAllowedIitEmail(email)) throw new ApiError(400, 'Only approved IIT emails are allowed')
   if (isConfiguredAdmin(email)) throw new ApiError(403, 'Admin accounts are provisioned separately')
-  if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_APP_PASSWORD) throw new ApiError(503, 'Email verification is not configured. Please contact support.')
+  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) throw new ApiError(503, 'Email verification is not configured. Please contact support.')
   if (accountType === 'faculty' && ['name','institute','department','designation'].some(k => !String(facultyProfile[k] || '').trim())) {
     throw new ApiError(400, 'Please complete all required faculty details')
   }
@@ -178,8 +188,8 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
     expiresAt: new Date(Date.now() + 5 * 60 * 1000), lastSentAt: new Date(), attempts: 0
   }, { upsert: true, new: true, setDefaultsOnInsert: true })
   try {
-    await otpMailer.sendMail({
-      from: env.SMTP_FROM, to: email,
+    await sendEmail({
+      to: email,
       subject: 'Your IIT Connect verification code',
       text: `Your IIT Connect registration code is ${otp}. It expires in 5 minutes. If you did not request this, ignore this email.`,
       html: `<div style="font-family:Arial,sans-serif"><h2>IIT Connect</h2><p>Your email verification code:</p><div style="font-size:30px;font-weight:bold;letter-spacing:8px">${otp}</div><p>This code expires in 5 minutes.</p></div>`
@@ -246,7 +256,7 @@ export const sendPasswordResetOtp = asyncHandler(async (req, res) => {
   const genericMessage = 'If an account exists for this email, a password reset code has been sent.'
   const user = await User.findOne({ email })
   if (!user) return res.json({ success: true, message: genericMessage })
-  if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_APP_PASSWORD) {
+  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
     throw new ApiError(503, 'Password recovery email is not configured. Please contact support.')
   }
 
@@ -264,8 +274,7 @@ export const sendPasswordResetOtp = asyncHandler(async (req, res) => {
   }, { upsert: true, new: true, setDefaultsOnInsert: true })
 
   try {
-    await otpMailer.sendMail({
-      from: env.SMTP_FROM,
+    await sendEmail({
       to: email,
       subject: 'IIT Connect password reset code',
       text: `Your IIT Connect password reset code is ${otp}. It expires in 10 minutes. If you did not request this, ignore this email.`,
