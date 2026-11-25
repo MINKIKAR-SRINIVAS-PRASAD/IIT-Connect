@@ -7,7 +7,7 @@ import TripJoinRequest from '../models/TripJoinRequest.js'
 const populateTrip = { path: 'authorId', select: 'email profile' }
 
 export const listCommunityTrips = asyncHandler(async (req, res) => {
-  const trips = await CommunityTrip.find({ status: 'Published', travelDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } })
+  const trips = await CommunityTrip.find({ status: 'Published', approvalStatus: 'Approved', travelDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } })
     .sort({ travelDate: 1, createdAt: -1 }).populate(populateTrip)
   res.json({ success: true, trips })
 })
@@ -31,11 +31,12 @@ export const createCommunityTrip = asyncHandler(async (req, res) => {
   if (!Number.isInteger(capacity) || capacity < 2 || capacity > 50) throw new ApiError(400, 'Maximum members must be between 2 and 50')
   const trip = await CommunityTrip.create({
     authorId: req.user._id, destination: String(destination).trim(), location: String(location).trim(),
+    approvalStatus: 'Pending',
     category, travelDate, budget: amount, maxMembers: capacity, currentMembers: 1,
     memberIds: [req.user._id], description: String(description).trim()
   })
   await trip.populate(populateTrip)
-  res.status(201).json({ success: true, trip })
+  res.status(201).json({ success: true, trip, message: 'Trip submitted for admin approval' })
 })
 
 export const requestToJoinTrip = asyncHandler(async (req, res) => {
