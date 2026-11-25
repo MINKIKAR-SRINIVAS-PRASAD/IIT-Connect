@@ -37,8 +37,18 @@ export default function Gallery() {
   async function load() {
     setLoading(true)
     try {
-      const [approved, mine] = await Promise.all([api.get('/gallery'), api.get('/gallery/mine')])
-      const merged = [...(mine.data.posts || []), ...(approved.data.posts || [])]
+      const [approvedResult, mineResult, communityResult] = await Promise.allSettled([
+        api.get('/gallery'), api.get('/gallery/mine'), api.get('/posts/feed')
+      ])
+      const approved = approvedResult.status === 'fulfilled' ? approvedResult.value.data.posts || [] : []
+      const mine = mineResult.status === 'fulfilled' ? mineResult.value.data.posts || [] : []
+      const community = communityResult.status === 'fulfilled'
+        ? (communityResult.value.data.posts || []).filter(post => post.section === 'Gallery').map(post => ({ ...post, _source: 'community' }))
+        : []
+      if (approvedResult.status === 'rejected' && mineResult.status === 'rejected' && communityResult.status === 'rejected') {
+        throw approvedResult.reason || mineResult.reason || communityResult.reason
+      }
+      const merged = [...community, ...mine, ...approved]
       setPosts(Array.from(new Map(merged.map((post) => [post._id, post])).values()).filter((post) => post.status !== 'Deleted'))
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load gallery')
