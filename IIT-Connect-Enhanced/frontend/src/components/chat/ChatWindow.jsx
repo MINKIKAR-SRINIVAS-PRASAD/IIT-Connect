@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Button from '../common/Button'
 import Input from '../common/Input'
 import MessageBubble from './MessageBubble'
@@ -33,6 +34,9 @@ function Avatar({ person, size = 'h-10 w-10' }) {
 export default function ChatWindow({ conversation, onBack }) {
   const { user } = useAuth()
   const { socket } = useSocket()
+  const navigate = useNavigate()
+  const [members, setMembers] = useState([])
+  const [showMembers, setShowMembers] = useState(false)
 
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
@@ -50,6 +54,12 @@ export default function ChatWindow({ conversation, onBack }) {
   const title = conversation?.type === 'dm'
     ? getName(otherParticipant)
     : conversation?.title || (conversation?.type === 'community' ? 'Indian IIT Students Community' : 'Group Chat')
+
+  useEffect(() => {
+    setMembers([]); setShowMembers(false)
+    if (!conversation?._id || !['group','community'].includes(conversation.type)) return
+    api.get(`/chat/members/${conversation._id}`).then(({data})=>setMembers(data.members||[])).catch(()=>{})
+  }, [conversation?._id, conversation?.type])
 
   async function loadMessages() {
     if (!conversation?._id) return
@@ -170,26 +180,18 @@ export default function ChatWindow({ conversation, onBack }) {
 
   return (
     <section className="chat-window instagram-chat-window flex min-h-[520px] min-w-0 flex-1 flex-col">
-      <header className="instagram-chat-header flex items-center gap-3 border-b px-4 py-3"><button type="button" onClick={onBack} aria-label="Back to inbox" className="instagram-mobile-back md:hidden"><ChevronLeft size={21}/></button>
-        {conversation.type === 'dm' ? (
-          <Avatar person={otherParticipant} />
-        ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-indigo-500/30 bg-indigo-500/15 text-lg">
-            {conversation.type === 'community' ? '🌐' : '👥'}
-          </div>
-        )}
-        <div className="chat-message-input min-w-0 flex-1">
-          <h2 className="truncate font-semibold text-white">{title}</h2>
-          <p className="truncate text-xs text-slate-400">
-            {conversation.type === 'dm'
-              ? [otherParticipant?.profile?.iit, otherParticipant?.profile?.branch].filter(Boolean).join(' • ') || 'Direct message'
-              : conversation.type === 'community' ? 'Connect with students across institutes' : 'Institute group conversation'}
-          </p>
-          {typingOther && <div className="mt-1"><TypingIndicator show /></div>}
+      <header className="instagram-chat-header relative border-b px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={onBack} aria-label="Back to inbox" className="instagram-mobile-back md:hidden"><ChevronLeft size={21}/></button>
+          {conversation.type === 'dm' ? <button type="button" onClick={() => otherParticipant?._id && navigate('/app/student/'+getId(otherParticipant))} aria-label="Open student profile"><Avatar person={otherParticipant}/></button> : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-indigo-500/30 bg-indigo-500/15 text-lg">{conversation.type === 'community' ? '🌐' : '👥'}</div>}
+          <button type="button" onClick={() => conversation.type !== 'dm' ? setShowMembers(v=>!v) : otherParticipant?._id && navigate('/app/student/'+getId(otherParticipant))} className="chat-message-input min-w-0 flex-1 text-left">
+            <h2 className="truncate font-semibold text-white">{title}</h2>
+            <p className="truncate text-xs text-slate-400">{conversation.type === 'dm' ? [otherParticipant?.profile?.iit, otherParticipant?.profile?.branch].filter(Boolean).join(' • ') || 'Direct message' : (members.length ? members.length+' members · Tap to view profiles' : 'Tap to view group members')}</p>
+          </button>
+          <button type="button" onClick={() => conversation.type !== 'dm' ? setShowMembers(v=>!v) : otherParticipant?._id && navigate('/app/student/'+getId(otherParticipant))} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-300">{conversation.type === 'community' ? 'All IITs community' : conversation.type === 'group' ? 'Institute group' : 'Private chat'}</button>
         </div>
-        <div className="hidden rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-300 sm:block">
-          {conversation.type === 'community' ? 'All IITs community' : conversation.type === 'group' ? 'Institute group' : 'Private chat'}
-        </div>
+        {typingOther && <div className="mt-1"><TypingIndicator show /></div>}
+        {showMembers && conversation.type !== 'dm' && <div className="mt-3 rounded-xl border border-white/10 bg-[#101711] p-3"><div className="mb-2 flex items-center justify-between"><p className="text-xs font-semibold text-slate-300">Group members · {members.length}</p><button type="button" onClick={()=>setShowMembers(false)} className="text-xs text-slate-500">Close</button></div>{members.length ? <div className="grid max-h-56 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">{members.map(person=><button key={person._id} type="button" onClick={()=>navigate('/app/student/'+person._id)} className="flex items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-white/5"><Avatar person={person}/><span className="min-w-0"><span className="block truncate text-xs font-medium text-slate-100">{getName(person)}</span><span className="block truncate text-[10px] text-slate-500">{person.profile?.iit||'Student'}</span></span></button>)}</div>:<p className="text-xs text-slate-500">No member list available yet.</p>}</div>}
       </header>
 
       <div ref={listRef} className="chat-message-list instagram-message-list flex-1 space-y-4 overflow-y-auto px-4 py-5 md:px-6">
