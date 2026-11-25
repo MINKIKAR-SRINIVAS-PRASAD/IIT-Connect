@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import ExternalNews from '../models/ExternalNews.js'
 import { requireAuth } from '../middleware/auth.middleware.js'
-import { createCampusNews, listApprovedCampusNews, listMyCampusNews } from '../controllers/news.controller.js'
+import { createCampusNews, listApprovedCampusNews, listMyCampusNews, deleteCampusNews } from '../controllers/news.controller.js'
 
 const router = Router()
 const feeds = [
@@ -29,6 +29,7 @@ const parseFeed=(xml,feed)=>{
 router.get('/campus',listApprovedCampusNews)
 router.get('/mine',requireAuth,listMyCampusNews)
 router.post('/campus',requireAuth,createCampusNews)
+router.delete('/campus/:id',requireAuth,deleteCampusNews)
 // Persist every discovered external article in MongoDB. Feed refresh is throttled
 // so the UI's 10-second polling does not hammer publishers' RSS endpoints.
 let lastExternalRefresh=0
