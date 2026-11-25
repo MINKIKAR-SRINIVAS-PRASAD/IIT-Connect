@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.middleware.js'
 import { requireRole } from '../middleware/roles.middleware.js'
-import { approveEvent, approveGallery, approvePlacement, approveTravel, approveStudy, approveCampusNews, approveCommunityTrip, approveTransportBooking, approveCommunityGallery, listUsers, logs, pendingApprovals, setBan, stats, listFacultyRequests, reviewFacultyRequest } from '../controllers/admin.controller.js'
+import { approveEvent, approveGallery, approvePlacement, approveTravel, approveStudy, approveCampusNews, approveCommunityTrip, approveTransportBooking, approveCommunityGallery, listUsers, logs, pendingApprovals, setBan, stats, listFacultyRequests, reviewFacultyRequest, listDeletionNotifications, markDeletionNotificationRead } from '../controllers/admin.controller.js'
 
 const router = Router()
 
@@ -10,6 +10,8 @@ router.use(requireAuth, requireRole('admin'))
 router.get('/stats', stats)
 router.get('/users', listUsers)
 router.get('/faculty-requests', listFacultyRequests)
+router.get('/notifications/deletions', listDeletionNotifications)
+router.put('/notifications/deletions/:id/read', markDeletionNotificationRead)
 router.put('/faculty-requests/:id', reviewFacultyRequest)
 router.put('/users/:userId/ban', setBan)
 
