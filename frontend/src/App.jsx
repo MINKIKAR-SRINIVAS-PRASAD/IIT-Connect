@@ -25,6 +25,7 @@ import Travel from './pages/dashboard/travel.jsx'
 import Placement from './pages/dashboard/Placement.jsx'
 import Events from './pages/dashboard/Events.jsx'
 import Profile from './pages/dashboard/Profile.jsx'
+import SocialProfile from './pages/dashboard/SocialProfile.jsx'
 
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import Users from './pages/admin/Users.jsx'
@@ -73,7 +74,8 @@ function ProfileCompletionGuard({ children }) {
 
   if (
     !isProfileComplete(user) &&
-    location.pathname !== '/app/profile'
+    location.pathname !== '/app/profile' &&
+    location.pathname !== '/app/profile/edit'
   ) {
     return <Navigate to="/app/profile" replace />
   }
@@ -196,7 +198,8 @@ export default function App() {
 
         <Route path="events" element={<Events />} />
 
-        <Route path="profile" element={<Profile />} />
+        <Route path="profile" element={<SocialProfile />} />
+        <Route path="profile/edit" element={<Profile />} />
       </Route>
 
       <Route path="/faculty" element={<Protected><FacultyOnly><FacultyPortal /></FacultyOnly></Protected>} />
