@@ -2,13 +2,53 @@ import crypto from 'crypto'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/User.js'
+import PostContribution from '../models/PostContribution.js'
+import GalleryPost from '../models/GalleryPost.js'
+import PlacementPost from '../models/PlacementPost.js'
+import EventPost from '../models/EventPost.js'
+import TravelPost from '../models/TravelPost.js'
+import StudyPost from '../models/StudyPost.js'
+import CampusNews from '../models/CampusNews.js'
+import { syncApprovedPostContribution } from '../utils/postAchievements.js'
 
+const approvedPostModels = [
+  ['GalleryPost', GalleryPost],
+  ['PlacementPost', PlacementPost],
+  ['EventPost', EventPost],
+  ['TravelPost', TravelPost],
+  ['StudyPost', StudyPost],
+  ['CampusNews', CampusNews]
+]
+
+// Repair missed awards for posts approved before the contribution ledger was added.
+// The ledger's unique source index makes this safe to run on every summary refresh.
+async function reconcileApprovedContributions(userId) {
+  for (const [sourceModel, Model] of approvedPostModels) {
+    const posts = await Model.find({ authorId: userId, status: 'Approved' }).select('_id').lean()
+    for (const post of posts) {
+      await syncApprovedPostContribution({
+        authorId: userId,
+        sourceModel,
+        sourceId: post._id,
+        approved: true
+      })
+    }
+  }
+
+  const ledger = await PostContribution.aggregate([
+    { $match: { authorId: userId } },
+    { $group: { _id: null, points: { $sum: '$points' } } }
+  ])
+  const total = Number(ledger[0]?.points || 0)
+  await User.updateOne({ _id: userId }, { $set: { postStreakPoints: total } })
+  return total
+}
 const badgeFor = (points) => points >= 10000 ? 'Platinum' : points >= 5000 ? 'Gold' : points >= 1000 ? 'Silver' : 'No badge'
 
 export const achievementSummary = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select('postStreakPoints achievementCertificateId achievementCertificateIssuedAt profile.name profile.iit profile.branch profile.batch')
+  const user = await User.findById(req.user._id).select('achievementCertificateId achievementCertificateIssuedAt profile.name profile.iit profile.branch profile.batch')
   if (!user) throw new ApiError(404, 'User not found')
-  const points = Number(user.postStreakPoints || 0)
+  const points = await reconcileApprovedContributions(user._id)
   const level = badgeFor(points)
   const next = points < 1000 ? 1000 : points < 5000 ? 5000 : points < 10000 ? 10000 : null
   const rewards = {
