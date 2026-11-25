@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import GalleryUpload from '../../components/gallery/GalleryUpload.jsx'
+import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
 import GalleryGrid from '../../components/gallery/GalleryGrid.jsx'
 import Loader from '../../components/common/Loader.jsx'
 import { ImageIcon, Sparkles } from 'lucide-react'
@@ -36,8 +37,9 @@ export default function Gallery() {
   async function load() {
     setLoading(true)
     try {
-      const { data } = await api.get('/gallery')
-      setPosts(data.posts)
+      const [approved, mine] = await Promise.all([api.get('/gallery'), api.get('/gallery/mine')])
+      const merged = [...(mine.data.posts || []), ...(approved.data.posts || [])]
+      setPosts(Array.from(new Map(merged.map((post) => [post._id, post])).values()).filter((post) => post.status !== 'Deleted'))
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to load gallery')
     } finally {
@@ -56,59 +58,8 @@ export default function Gallery() {
   )
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      {/* Header Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-3xl border border-slate-800 bg-gradient-to-br from-purple-950/30 via-slate-950/60 to-pink-950/30 p-6 overflow-hidden"
-      >
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute -top-10 -right-10 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl"
-        />
-        
-        <div className="relative z-10 flex items-center gap-3">
-          <motion.div
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
-            className="p-3 rounded-xl bg-purple-500/20 border border-purple-500/30"
-          >
-            <ImageIcon size={28} className="text-purple-400" />
-          </motion.div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              Campus Gallery
-            </h1>
-            <p className="text-slate-400 mt-1">Share and explore campus moments</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Upload Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <GalleryUpload onCreated={() => {
-          toast.success('Photo uploaded! Awaiting admin approval')
-          load()
-        }} />
-      </motion.div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="sage-page-theme space-y-6">
+      <div className="hidden md:block"><CreatePostPanel title="Share a campus moment" description="Upload a photo or memory for the IIT community. Posts are reviewed before publication." buttonLabel="Add photo"><GalleryUpload onCreated={() => { toast.success('Photo uploaded! Awaiting admin approval'); load() }} /></CreatePostPanel></div>
 
       {/* Gallery Grid */}
       <motion.section

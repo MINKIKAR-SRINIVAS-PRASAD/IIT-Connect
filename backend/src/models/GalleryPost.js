@@ -7,6 +7,7 @@ const galleryPostSchema = new mongoose.Schema(
     caption: { type: String, default: '' },
     imageUrl: { type: String, required: true },
     imagePublicId: { type: String, required: true },
+    visibility: { type: String, enum: ['public', 'connections'], default: 'public', index: true },
     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending', index: true },
     rejectionReason: { type: String, default: '' }
   },
