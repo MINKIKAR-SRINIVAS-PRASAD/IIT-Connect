@@ -25,8 +25,8 @@ export default function News(){
    ;(campus.posts||[]).forEach(x=>next.push({id:'campus-'+x._id,type:'Campus news',title:x.title||'Campus update',description:x.body||'',date:x.createdAt,source:x.institute||x.authorId?.profile?.iit||'Campus News',image:x.mediaUrl,href:faculty?'/faculty/news':'/app/news',icon:Newspaper}))
    const gal=results[1].status==='fulfilled'?results[1].value.data:{}
    ;(gal.posts||[]).forEach(x=>next.push({id:'gallery-'+x._id,type:'Campus moments',title:x.caption||'A moment from campus',description:x.description||'A campus photo shared with the community.',date:x.createdAt,source:x.iit||x.user?.profile?.iit||'Campus Gallery',image:x.imageUrl||x.photoUrl,href:faculty?'/faculty/gallery':'/app/gallery',icon:Images}))
-   if(!faculty&&results[2]?.status==='fulfilled'){
-    ;(results[2].value.data.posts||[]).forEach(x=>next.push({id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',description:x.description||x.details||'A placement and career opportunity shared on IITStudentsOS.',date:x.createdAt,source:x.company||x.iit||'Placement network',href:'/app/placements',icon:BriefcaseBusiness}))
+   if(!faculty&&results[3]?.status==='fulfilled'){
+    ;(results[3].value.data.posts||[]).forEach(x=>next.push({id:'placement-'+x._id,type:'Placements',title:x.title||'Placement update',description:x.description||x.details||'A placement and career opportunity shared on IITStudentsOS.',date:x.createdAt,source:x.company||x.iit||'Placement network',href:'/app/placements',icon:BriefcaseBusiness}))
    }
    next.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));setItems(next)
    if(results.some(x=>x.status==='rejected'))toast('Some update sources could not be refreshed')
