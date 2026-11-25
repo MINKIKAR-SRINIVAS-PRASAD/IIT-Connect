@@ -69,7 +69,7 @@ export default function Gallery() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="sage-page-theme space-y-6">
-      <CreatePostPanel title="Share a campus moment" description="Upload a photo or memory for the IIT community. Posts are reviewed before publication." buttonLabel="Add photo"><GalleryUpload onCreated={() => { toast.success('Photo uploaded! Awaiting admin approval'); load() }} /></CreatePostPanel>
+      <CreatePostPanel title="Share a campus moment" description="Upload a photo or memory for the IIT community. Gallery photos remain pending until admin approval." buttonLabel="Add photo"><GalleryUpload onCreated={() => { toast.success('Photo uploaded! Awaiting admin approval'); load() }} /></CreatePostPanel>
 
       {/* Gallery Grid */}
       <motion.section
