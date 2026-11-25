@@ -61,7 +61,7 @@ function ApprovalCard({ item, type, onAction }) {
     }
   }
 
-  const title = type === 'Gallery'
+  const title = type === 'Gallery' || type === 'Community Gallery'
     ? item.caption || 'Gallery post'
     : type === 'Placement'
       ? [item.companyName, item.role].filter(Boolean).join(' • ')
@@ -79,12 +79,12 @@ function ApprovalCard({ item, type, onAction }) {
       </div>
       <h3 className="mt-2 text-lg font-semibold text-white">{title || `${type} submission`}</h3>
 
-      {type === 'Gallery' && item.imageUrl ? (
+      {(type === 'Gallery' || type === 'Community Gallery') && item.imageUrl ? (
         <img src={item.imageUrl} alt="Submitted gallery post" className="mt-4 max-h-72 w-full rounded-xl border border-slate-800 object-contain" />
       ) : null}
 
       <div className="mt-4 grid gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:grid-cols-2 lg:grid-cols-3">
-        {type === 'Gallery' && <>
+        {(type === 'Gallery' || type === 'Community Gallery') && <>
           <Detail label="Caption">{item.caption}</Detail>
           <Detail label="Institute on post">{item.iit}</Detail>
           <Detail label="Submitted">{item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</Detail>
@@ -106,13 +106,13 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Description">{item.description}</Detail>
           {item.posterUrl ? <div className="sm:col-span-2"><img src={item.posterUrl} alt="Event poster" className="max-h-64 rounded-lg object-contain" /></div> : null}
         </>}
-        {type === 'Trip' && <>
+        {(type === 'Trip' || type === 'Community Trip') && <>
           <Detail label="Destination">{item.destination}</Detail>
           <Detail label="Location / State">{item.location}</Detail>
           <Detail label="Category">{item.category}</Detail>
           <Detail label="Travel date">{item.travelDate ? new Date(item.travelDate).toLocaleDateString() : 'Not specified'}</Detail>
           <Detail label="Budget per person">{item.budget || 'Not specified'}</Detail>
-          <Detail label="Maximum members">{item.members}</Detail>
+          <Detail label="Maximum members">{item.maxMembers || item.members}</Detail>
           <Detail label="Travel mode">{item.travelMode}</Detail>
           <Detail label="From">{item.from}</Detail>
           <Detail label="To">{item.to}</Detail>
@@ -126,6 +126,7 @@ function ApprovalCard({ item, type, onAction }) {
           <Detail label="Legacy seat details">{item.seatDetails}</Detail>
           <div className="sm:col-span-2 lg:col-span-3"><Detail label="Trip description / notes">{item.description || item.notes}</Detail></div>
         </>}
+        {type === 'Transport Booking' && <><Detail label="Transport type">{item.transportType}</Detail><Detail label="Approval status">{item.approvalStatus}</Detail><Detail label="Booking fields">{item.booking ? Object.entries(item.booking).map(([k,v])=>`${k}: ${v}`).join(' · ') : ''}</Detail></>}
         {type === 'Faculty Post' && <><Detail label="Faculty section">{item.section}</Detail><Detail label="Description / abstract">{item.description}</Detail><Detail label="Post link">{item.link}</Detail><Detail label="Submitted">{item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</Detail></>}
         {type === 'Campus News' && <>
           <Detail label="Institute">{item.institute}</Detail><Detail label="Category">{item.category}</Detail>
@@ -161,6 +162,9 @@ function ApprovalCard({ item, type, onAction }) {
 export default function Approvals() {
   const [loading, setLoading] = useState(true)
   const [gallery, setGallery] = useState([])
+  const [communityGallery, setCommunityGallery] = useState([])
+  const [communityTrips, setCommunityTrips] = useState([])
+  const [transportBookings, setTransportBookings] = useState([])
   const [placements, setPlacements] = useState([])
   const [events, setEvents] = useState([])
   const [travel, setTravel] = useState([])
@@ -173,6 +177,9 @@ export default function Approvals() {
     try {
       const { data } = await api.get('/admin/approvals/pending')
       setGallery(data.gallery || [])
+      setCommunityGallery(data.communityGallery || [])
+      setCommunityTrips(data.communityTrips || [])
+      setTransportBookings(data.transportBookings || [])
       setPlacements(data.placements || [])
       setEvents(data.events || [])
       setTravel(data.travel || [])
@@ -189,6 +196,9 @@ export default function Approvals() {
   async function act(kind, id, status, rejectionReason) {
     const endpoint = {
       Gallery: `/admin/approvals/gallery/${id}`,
+      'Community Gallery': `/admin/approvals/community-gallery/${id}`,
+      'Community Trip': `/admin/approvals/community-trips/${id}`,
+      'Transport Booking': `/admin/approvals/transport-bookings/${id}`,
       Placement: `/admin/approvals/placements/${id}`,
       Event: `/admin/approvals/events/${id}`,
       Trip: `/admin/approvals/travel/${id}`,
@@ -211,6 +221,9 @@ export default function Approvals() {
 
   const sections = [
     { type: 'Gallery', items: gallery },
+    { type: 'Community Gallery', items: communityGallery },
+    { type: 'Community Trip', items: communityTrips },
+    { type: 'Transport Booking', items: transportBookings },
     { type: 'Placement', items: placements },
     { type: 'Events', items: events, cardType: 'Event' },
     { type: 'Trip', items: travel },
@@ -235,7 +248,7 @@ export default function Approvals() {
             <div className="grid gap-4 xl:grid-cols-2">
               {section.items.map((item) => {
                 const type = section.cardType || section.type
-                return <ApprovalCard key={item._id} item={type==='Faculty Post'?{...item,authorId:item.facultyId}:item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
+                return <ApprovalCard key={item._id} item={type==='Faculty Post'?{...item,authorId:item.facultyId}:type==='Transport Booking'?{...item,authorId:item.userId}:item} type={type} onAction={(status, reason) => act(type, item._id, status, reason)} />
               })}
             </div>
           ) : <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400">No pending {section.type.toLowerCase()} requests.</div>}
