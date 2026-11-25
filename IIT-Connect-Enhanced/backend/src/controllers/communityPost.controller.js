@@ -16,7 +16,9 @@ export const createPost=asyncHandler(async(req,res)=>{
  if(!['public','private'].includes(visibility)) throw new ApiError(400,'Choose a valid visibility')
  const base64=`data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
  const uploaded=await cloudinary.uploader.upload(base64,{folder:'iit-connect/community-posts',resource_type:'image'})
- const status=section==='Gallery'?'Pending':'Approved'
+ // Public Gallery submissions are moderated; private posts auto-approve
+ // because visibility is limited to the author and accepted connections.
+ const status=visibility==='private'?'Approved':section==='Gallery'?'Pending':'Approved'
  const post=await CommunityPost.create({authorId:req.user._id,section,caption,imageUrl:uploaded.secure_url,imagePublicId:uploaded.public_id,visibility,status})
  res.status(201).json({success:true,post,message:status==='Pending'?'Gallery photo submitted for admin approval':'Post published'})
 })
