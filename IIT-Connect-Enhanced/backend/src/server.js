@@ -23,6 +23,7 @@ import likeRoutes from './routes/like.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import healthRoutes from './routes/health.routes.js'
 import newsRoutes from './routes/news.routes.js'
+import communityPostRoutes from './routes/communityPost.routes.js'
 import aiRoutes from './routes/ai.routes.js'
 
 import { errorHandler, notFound } from './middleware/error.middleware.js'
@@ -52,6 +53,7 @@ async function bootstrap() {
 
   app.use('/api/health', healthRoutes)
   app.use('/api/news', newsRoutes)
+  app.use('/api/posts', communityPostRoutes)
   app.use('/api/ai', aiRoutes)
   app.use('/api/auth', authRoutes)
   app.use('/api/profile', profileRoutes)
