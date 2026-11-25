@@ -144,25 +144,62 @@ export const refresh = asyncHandler(async (req, res) => {
 })
 
 
-// Send mail through Resend's HTTPS API. Render Free blocks outbound SMTP ports.
+// Send OTP email through Gmail API over HTTPS. The OAuth account must be
+// connectingiitsoverindia@gmail.com (or the configured sender mailbox).
 async function sendEmail({ to, subject, text, html }) {
-  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
-    throw new Error('Resend email API is not configured');
+  const { GMAIL_OAUTH_CLIENT_ID, GMAIL_OAUTH_CLIENT_SECRET, GMAIL_OAUTH_REFRESH_TOKEN, GMAIL_SENDER_EMAIL } = env;
+  if (!GMAIL_OAUTH_CLIENT_ID || !GMAIL_OAUTH_CLIENT_SECRET || !GMAIL_OAUTH_REFRESH_TOKEN || !GMAIL_SENDER_EMAIL) {
+    throw new Error('Gmail API OAuth is not configured');
   }
-  const response = await fetch('https://api.resend.com/emails', {
+  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, to: [to], subject, text, html }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: GMAIL_OAUTH_CLIENT_ID,
+      client_secret: GMAIL_OAUTH_CLIENT_SECRET,
+      refresh_token: GMAIL_OAUTH_REFRESH_TOKEN,
+      grant_type: 'refresh_token'
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const tokenData = await tokenResponse.json().catch(() => ({}));
+  if (!tokenResponse.ok || !tokenData.access_token) {
+    throw new Error(`Gmail OAuth token failed (${tokenResponse.status}): ${JSON.stringify(tokenData).slice(0, 300)}`);
+  }
+  const safe = value => String(value || '').replace(/[\\r\\n]/g, ' ').trim();
+  const boundary = `iitstudentsos_${crypto.randomBytes(12).toString('hex')}`;
+  const mime = [
+    `From: IITStudentsOS <${safe(GMAIL_SENDER_EMAIL)}>`,
+    `To: <${safe(to)}>`,
+    `Subject: =?UTF-8?B?${Buffer.from(safe(subject)).toString('base64')}?=`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    Buffer.from(String(text || '')).toString('base64'),
+    `--${boundary}`,
+    'Content-Type: text/html; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    Buffer.from(String(html || text || '')).toString('base64'),
+    `--${boundary}--`,
+    ''
+  ].join('\\r\\n');
+  const raw = Buffer.from(mime).toString('base64url');
+  const sendResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ raw }),
     signal: AbortSignal.timeout(15000)
   });
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`Resend API returned ${response.status}: ${details.slice(0, 400)}`);
+  const sendData = await sendResponse.json().catch(() => ({}));
+  if (!sendResponse.ok) {
+    throw new Error(`Gmail API send failed (${sendResponse.status}): ${JSON.stringify(sendData).slice(0, 400)}`);
   }
-  return response.json();
+  return sendData;
 }
 
 export const sendRegistrationOtp = asyncHandler(async (req, res) => {
@@ -173,7 +210,7 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
   if (!email || password.length < 8) throw new ApiError(400, 'Valid institute email and password (8+ characters) are required')
   if (!isAllowedIitEmail(email)) throw new ApiError(400, 'Only approved IIT emails are allowed')
   if (isConfiguredAdmin(email)) throw new ApiError(403, 'Admin accounts are provisioned separately')
-  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) throw new ApiError(503, 'Email verification is not configured. Please contact support.')
+  if (!env.GMAIL_OAUTH_CLIENT_ID || !env.GMAIL_SENDER_EMAIL) throw new ApiError(503, 'Email verification is not configured. Please contact support.')
   if (accountType === 'faculty' && ['name','institute','department','designation'].some(k => !String(facultyProfile[k] || '').trim())) {
     throw new ApiError(400, 'Please complete all required faculty details')
   }
@@ -256,7 +293,7 @@ export const sendPasswordResetOtp = asyncHandler(async (req, res) => {
   const genericMessage = 'If an account exists for this email, a password reset code has been sent.'
   const user = await User.findOne({ email })
   if (!user) return res.json({ success: true, message: genericMessage })
-  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
+  if (!env.GMAIL_OAUTH_CLIENT_ID || !env.GMAIL_SENDER_EMAIL) {
     throw new ApiError(503, 'Password recovery email is not configured. Please contact support.')
   }
 
