@@ -71,7 +71,7 @@ export const login = asyncHandler(async (req, res) => {
   const password = String(req.body.password || '')
   // Only the two server-configured demo identities bypass IIT-domain validation.
   // Registration and password recovery continue to enforce IIT email domains.
-  if (!isAllowedIitEmail(email) && !isDemoLoginEmail(email)) throw new ApiError(400, 'Only IIT emails allowed')
+  if (!isAllowedIitEmail(email) && !isDemoLoginEmail(email) && !isConfiguredAdmin(email)) throw new ApiError(400, 'Only IIT emails allowed')
 
   const user = await User.findOne({ email })
   if (!user) throw new ApiError(401, 'Invalid credentials')
