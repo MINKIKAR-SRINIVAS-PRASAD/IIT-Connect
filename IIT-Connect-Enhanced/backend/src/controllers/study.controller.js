@@ -1,3 +1,5 @@
+import StudyPost from '../models/StudyPost.js'
+import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import StudyPost from '../models/StudyPost.js'
@@ -49,3 +51,5 @@ export const listMyStudy = asyncHandler(async (req, res) => {
 
   res.json({ success: true, posts })
 })
+
+export const deleteStudySubmission = deleteOwnedContent({ Model: StudyPost, contentType: 'Study', titleFor: post => post.title || 'Study resource' })
