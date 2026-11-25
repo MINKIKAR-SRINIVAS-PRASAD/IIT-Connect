@@ -1,10 +1,12 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import EventPost from '../models/EventPost.js'
+import ConnectionRequest from '../models/ConnectionRequest.js'
 import { cloudinary } from '../config/cloudinary.js'
 
 export const createEvent = asyncHandler(async (req, res) => {
   const { iit, title, datetime, venue, registrationLink, description } = req.body
+  const visibility = req.body.visibility === 'connections' ? 'connections' : 'public'
   if (!iit || !title || !datetime) throw new ApiError(400, 'iit, title, datetime are required')
 
   let posterUrl = ''
@@ -30,6 +32,7 @@ export const createEvent = asyncHandler(async (req, res) => {
     posterPublicId,
     registrationLink: registrationLink || '',
     description: description || '',
+    visibility,
     status: 'Pending'
   })
 
@@ -38,11 +41,15 @@ export const createEvent = asyncHandler(async (req, res) => {
 
 export const listApprovedEvents = asyncHandler(async (req, res) => {
   const now = new Date()
-  const upcoming = await EventPost.find({ status: 'Approved', datetime: { $gte: now } })
+  const viewerId = req.user?._id
+  const accepted = viewerId ? await ConnectionRequest.find({ status: 'accepted', $or: [{ requester: viewerId }, { recipient: viewerId }] }).select('requester recipient').lean() : []
+  const connectedIds = accepted.map(row => String(row.requester) === String(viewerId) ? row.recipient : row.requester)
+  const visibilityFilter = viewerId ? { $or: [{ visibility: { $ne: 'connections' } }, { authorId: viewerId }, { authorId: { $in: connectedIds } }] } : { visibility: { $ne: 'connections' } }
+  const upcoming = await EventPost.find({ status: 'Approved', datetime: { $gte: now }, ...visibilityFilter })
     .sort({ datetime: 1 })
     .limit(60)
 
-  const past = await EventPost.find({ status: 'Approved', datetime: { $lt: now } })
+  const past = await EventPost.find({ status: 'Approved', datetime: { $lt: now }, ...visibilityFilter })
     .sort({ datetime: -1 })
     .limit(60)
 
