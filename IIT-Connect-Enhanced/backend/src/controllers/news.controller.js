@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import CampusNews from '../models/CampusNews.js'
 import ConnectionRequest from '../models/ConnectionRequest.js'
+import { cloudinary } from '../config/cloudinary.js'
 const categories=['Announcement','Achievement','Research','Campus life','Other']
 export const createCampusNews=asyncHandler(async(req,res)=>{
  const title=String(req.body.title||'').trim(),body=String(req.body.body||'').trim(),category=categories.includes(req.body.category)?req.body.category:'Other',sourceUrl=String(req.body.sourceUrl||'').trim()
@@ -10,7 +11,9 @@ export const createCampusNews=asyncHandler(async(req,res)=>{
  if(sourceUrl){try{const u=new URL(sourceUrl);if(!['http:','https:'].includes(u.protocol))throw Error()}catch{throw new ApiError(400,'Source link must be a valid http or https URL')}}
  const institute=req.user.profile?.iit||req.user.profile?.institute||'IIT Community'
  const visibility=req.body.visibility==='connections'?'connections':'public'
- const post=await CampusNews.create({authorId:req.user._id,institute,title,body,category,sourceUrl,visibility,status:'Pending'})
+ let mediaUrl='',mediaPublicId=''
+ if(req.file){const base64=`data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;const uploaded=await cloudinary.uploader.upload(base64,{folder:'iit-connect/campus-news',resource_type:'image'});mediaUrl=uploaded.secure_url;mediaPublicId=uploaded.public_id}
+ const post=await CampusNews.create({authorId:req.user._id,institute,title,body,category,sourceUrl,mediaUrl,mediaPublicId,visibility,status:'Pending'})
  res.status(201).json({success:true,post,message:'Campus news submitted for review'})
 })
 export const listApprovedCampusNews=asyncHandler(async(req,res)=>{
