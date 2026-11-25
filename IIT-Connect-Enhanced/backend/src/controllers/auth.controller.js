@@ -148,7 +148,11 @@ const otpMailer = nodemailer.createTransport({
   host: env.SMTP_HOST,
   port: env.SMTP_PORT || 587,
   secure: Boolean(env.SMTP_SECURE),
-  auth: { user: env.SMTP_USER, pass: env.SMTP_APP_PASSWORD }
+  auth: { user: env.SMTP_USER, pass: env.SMTP_APP_PASSWORD },
+  // Fail quickly when the hosting platform cannot reach SMTP (e.g. Render Free).
+  connectionTimeout: 12000,
+  greetingTimeout: 12000,
+  socketTimeout: 20000
 })
 
 export const sendRegistrationOtp = asyncHandler(async (req, res) => {
