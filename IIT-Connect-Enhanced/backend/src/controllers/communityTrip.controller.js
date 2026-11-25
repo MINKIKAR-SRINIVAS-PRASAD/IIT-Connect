@@ -96,9 +96,10 @@ export const cancelCommunityTrip = asyncHandler(async (req, res) => {
   const trip = await CommunityTrip.findById(req.params.tripId)
   if (!trip) throw new ApiError(404, 'Trip not found')
   if (String(trip.authorId) !== String(req.user._id)) throw new ApiError(403, 'Only the organiser can cancel this trip')
+  // Cancellation is an organiser action, not an admin rejection.
+  // Preserve the moderation decision and represent cancellation only via status.
   trip.status = 'Cancelled'
-  trip.approvalStatus = 'Rejected'
-  trip.rejectionReason = 'Cancelled by organiser'
+  trip.rejectionReason = ''
   await trip.save()
   await TripJoinRequest.deleteMany({ tripId: trip._id })
   res.json({ success: true })
