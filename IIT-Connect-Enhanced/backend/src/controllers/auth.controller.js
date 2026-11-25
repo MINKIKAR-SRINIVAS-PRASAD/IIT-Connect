@@ -187,7 +187,7 @@ async function sendEmail({ to, subject, text, html }) {
     Buffer.from(String(html || text || '')).toString('base64'),
     `--${boundary}--`,
     ''
-  ].join('\\r\\n');
+  ].join('\r\n');
   const raw = Buffer.from(mime).toString('base64url');
   const sendResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
     method: 'POST',
