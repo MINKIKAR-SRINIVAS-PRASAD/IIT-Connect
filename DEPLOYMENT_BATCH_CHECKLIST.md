@@ -150,3 +150,13 @@ Latest branch commit at checklist update: `44f33fc708686ac475a2c820e1e874912b153
 - [x] Fix IIT Connect AI page mobile overflow: chat history is a slide-over drawer on small screens instead of occupying a permanent sidebar.
 - [x] Make chat area full-width on mobile and use dynamic viewport height; retain the desktop two-panel layout.
 - [ ] Verify mobile layout on physical device / browser responsive mode and production deployment.
+
+
+## News retention and auto-refresh (implemented on feature branch; deployment pending)
+
+- [x] Refresh the News feed automatically every 10 seconds without overlapping refresh calls.
+- [x] Persist external RSS articles in MongoDB by stable source+URL key; update existing article snapshots and retain previously discovered articles even when a source omits them later.
+- [x] Add external-news archive model and route wiring.
+- [ ] Build and verify backend/frontend on this branch; confirm MongoDB production connection and RSS source access.
+- [ ] Verify the 10-second refresh in both student and faculty News pages and confirm archived stories survive a provider outage/restart.
+- [ ] Merge/release only after the pending deployment batch is reviewed and production verification is complete.
