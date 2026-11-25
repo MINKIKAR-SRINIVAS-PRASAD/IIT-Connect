@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../../utils/api'
 import CreatePostPanel from '../../components/common/CreatePostPanel.jsx'
+import { useAuth } from '../../hooks/useAuth'
 
 const inputClass = 'w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none'
 const labelClass = 'mb-1.5 block text-sm font-medium text-slate-300'
@@ -27,7 +28,7 @@ function ResourceCard({ post, onOpen }) {
   )
 }
 
-function ResourceDetails({ post, onClose, isOwner, onDelete }) {
+function ResourceDetails({ post, onClose, isOwner, isAdmin, onDelete }) {
   if (!post) return null
   const links = (post.links || []).filter((url) => /^https?:\/\//i.test(url))
   return (
@@ -48,13 +49,15 @@ function ResourceDetails({ post, onClose, isOwner, onDelete }) {
         <div className="mt-5"><h3 className="text-sm font-semibold text-white">About this material</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-300">{post.description || 'No description provided.'}</p></div>
         {(post.tags || []).length > 0 && <div className="mt-5"><h3 className="text-sm font-semibold text-white">Topics and tags</h3><div className="mt-2 flex flex-wrap gap-2">{post.tags.map((tag, index) => <span key={tag + index} className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-300">#{tag}</span>)}</div></div>}
         <div className="mt-5"><h3 className="text-sm font-semibold text-white">Study material links</h3>{links.length ? <div className="mt-2 space-y-2">{links.map((url, index) => <a key={url + index} href={url} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-200 hover:bg-indigo-500/20"><span className="break-all">Resource {index + 1}: {url}</span><span className="shrink-0">↗</span></a>)}</div> : <p className="mt-2 text-sm text-slate-500">No external links were added.</p>}</div>
-        {isOwner && <div className="mt-6 flex justify-end border-t border-slate-800 pt-4"><button type="button" onClick={() => onDelete(post)} className="rounded-xl border border-rose-500/40 px-4 py-2.5 text-sm font-semibold text-rose-300 hover:bg-rose-500/10">Delete for everyone</button></div>}
+        {(isOwner || isAdmin) && <div className="mt-6 flex justify-end border-t border-slate-800 pt-4"><button type="button" onClick={() => onDelete(post)} className="rounded-xl border border-rose-500/40 px-4 py-2.5 text-sm font-semibold text-rose-300 hover:bg-rose-500/10">{isAdmin && !isOwner ? 'Admin · Delete resource' : 'Delete for everyone'}</button></div>}
       </section>
     </div>
   )
 }
 
 export default function Study() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [posts, setPosts] = useState([])
   const [mine, setMine] = useState([])
   const [form, setForm] = useState(emptyForm)
@@ -156,7 +159,7 @@ export default function Study() {
         <h2 className="text-lg font-semibold text-white">My submissions</h2><p className="mt-1 text-sm text-slate-400">Track approval status or delete a resource you submitted.</p>
         {mine.length ? <div className="mt-4 space-y-3">{mine.map((post) => <div key={post._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 p-3"><button type="button" onClick={() => setSelected(post)} className="min-w-0 flex-1 text-left"><div className="font-medium text-slate-200 hover:text-indigo-300">{post.title}</div><div className="text-xs text-slate-500">{post.subject} · Click for details</div></button><div className="flex items-center gap-2"><span className={`rounded-full px-3 py-1 text-xs ${post.status === 'Approved' ? 'bg-emerald-950 text-emerald-300' : post.status === 'Rejected' ? 'bg-rose-950 text-rose-300' : 'bg-amber-950 text-amber-300'}`}>{post.status}</span><button type="button" disabled={deletingId === String(post._id)} onClick={() => deleteResource(post)} className="rounded-lg border border-rose-500/40 px-3 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-500/10 disabled:opacity-50">{deletingId === String(post._id) ? 'Deleting…' : 'Delete'}</button></div></div>)}</div> : <p className="mt-4 text-sm text-slate-500">You have not submitted any resources yet.</p>}
       </section>
-      <ResourceDetails post={selected} onClose={() => setSelected(null)} isOwner={Boolean(isSelectedOwner)} onDelete={deleteResource} />
+      <ResourceDetails post={selected} onClose={() => setSelected(null)} isOwner={Boolean(isSelectedOwner)} isAdmin={isAdmin} onDelete={deleteResource} />
     </div>
   )
 }
