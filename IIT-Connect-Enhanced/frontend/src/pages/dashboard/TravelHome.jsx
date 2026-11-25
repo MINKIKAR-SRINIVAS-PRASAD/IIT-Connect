@@ -115,7 +115,7 @@ export default function TravelHome() {
     setError('')
     try {
       await api.post('/transport-bookings', { transportType: mode, booking })
-      toast.success('Travel booking saved privately.')
+      toast.success('Booking saved privately and sent for admin approval.')
       setBooking(emptyBooking)
       await loadBookings()
     } catch (err) {
@@ -181,7 +181,7 @@ export default function TravelHome() {
                   <button type="button" onClick={() => removeBooking(item._id)} aria-label="Remove booking" className="rounded-lg p-2 text-rose-300 hover:bg-rose-300/10"><Trash2 size={16} /></button>
                 </div>
                 <p className="mt-3 text-sm font-semibold">{item.booking?.trainName || item.booking?.operator || item.booking?.airline || item.booking?.flightNumber || 'Transport booking'}</p>
-                <p className="mt-1 text-xs text-slate-400">{item.booking?.departureDate} · {item.booking?.departureTime} → {item.booking?.arrivalDate} · {item.booking?.arrivalTime}</p>
+                <p className="mt-1 text-xs text-slate-400">Admin review: <span className={item.approvalStatus==='Approved'?'text-emerald-300':item.approvalStatus==='Rejected'?'text-rose-300':'text-amber-300'}>{item.approvalStatus||'Pending'}</span>{item.rejectionReason?` · ${item.rejectionReason}`:''}</p><p className="mt-1 text-xs text-slate-400">{item.booking?.departureDate} · {item.booking?.departureTime} → {item.booking?.arrivalDate} · {item.booking?.arrivalTime}</p>
                 <p className="mt-2 text-xs text-slate-400">{item.booking?.boardingStation || item.booking?.boardingPoint || item.booking?.departureAirport || 'Origin'} → {item.booking?.arrivalStation || item.booking?.dropPoint || item.booking?.arrivalAirport || 'Destination'}</p>
                 {item.booking?.bookingStatus && <p className="mt-2 text-xs text-[#b6d0a8]">Status: {item.booking.bookingStatus}</p>}
               </article>
