@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
       const { data } = await api.post('/auth/login', { email, password }); setUser(data.user); void notifySuccessfulLogin(data.user); return data.user
     },
     async sendRegistrationOtp(email, password, accountType = 'student', facultyProfile = {}) {
-      const { data } = await api.post('/auth/register/send-otp', { email, password, accountType, facultyProfile })
+      const { data } = await api.post('/auth/register/send-otp', { email, password, accountType, facultyProfile }, { timeout: 25000 })
       return data
     },
     async verifyRegistrationOtp(email, otp) {
