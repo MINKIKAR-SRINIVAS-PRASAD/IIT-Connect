@@ -86,7 +86,16 @@ export const getOrCreateCommunity = asyncHandler(async (req, res) => {
     })
   }
 
+  if (!convo.participants.some(p => String(p) === String(req.user._id))) { convo.participants.push(req.user._id); await convo.save() }
   res.json({ success: true, conversation: convo })
+})
+
+export const listConversationMembers = asyncHandler(async (req, res) => {
+  const convo = await Conversation.findById(req.params.conversationId).populate('participants', 'role isBanned profile.name profile.photoUrl profile.iit profile.branch profile.batch')
+  if (!convo) throw new ApiError(404, 'Conversation not found')
+  if (convo.type === 'group' && !convo.participants.some(p => String(p._id) === String(req.user._id))) throw new ApiError(403, 'Join this institute group to view its members')
+  const members = convo.participants.filter(p => p && !p.isBanned && p.role === 'student').map(p => ({ _id: String(p._id), role: p.role, profile: p.profile || {} }))
+  res.json({ success: true, members })
 })
 
 export const myConversations = asyncHandler(async (req, res) => {
@@ -185,6 +194,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     ] })
     if (!connected) throw new ApiError(403, 'Accept the connection request before messaging')
   } else if (convo.type === 'group' && !member) throw new ApiError(403, 'Join this group to message')
+  if (convo.type === 'community' && !member) { convo.participants.push(req.user._id) }
   const message = await Message.create({ conversationId, senderId: req.user._id, text: cleanText.slice(0, 2000), seenBy: [req.user._id] })
   convo.lastMessageAt = new Date(); convo.lastMessageText = message.text; await convo.save()
   const populated = await Message.findById(message._id).populate('senderId', 'email role profile').lean()
