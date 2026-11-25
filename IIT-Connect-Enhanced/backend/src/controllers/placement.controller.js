@@ -1,6 +1,7 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/apiError.js'
 import PlacementPost from '../models/PlacementPost.js'
+import { deleteOwnedContent } from '../utils/deleteOwnedContent.js'
 
 export const createPlacementPost = asyncHandler(async (req, res) => {
   const { companyName, role, ctc, interviewQuestions, rounds, tips } = req.body
@@ -42,3 +43,5 @@ export const listMyPlacements = asyncHandler(async (req, res) => {
 
   res.json({ success: true, posts })
 })
+
+export const deletePlacement = deleteOwnedContent({ Model: PlacementPost, contentType: 'Placement', titleFor: post => [post.companyName, post.role].filter(Boolean).join(' — ') || 'Placement post' })
