@@ -31,7 +31,17 @@ function renderAIContent(raw) {
   return parts.map((part, i) => typeof part === 'string' ? part.split('\n').map((line, j) => <React.Fragment key={i + '-' + j}>{j > 0 && <br/>}{line}</React.Fragment>) : part)
 }
 
-const prompts = [
+
+function getImagePrompt(message) {
+  const value = String(message || '').trim()
+  if (!/(?:generate|create|make|draw|paint|design)\\s+(?:me\\s+)?(?:an?\\s+)?(?:ai\\s+)?(?:image|picture|illustration|artwork|art|photo|wallpaper)\\b|\\b(?:ai image|image generation)\\b/i.test(value)) return null
+  let prompt = value
+    .replace(/^\\s*(?:please\\s+)?(?:can you\\s+)?(?:generate|create|make|draw|paint|design)\\s+(?:me\\s+)?(?:an?\\s+)?(?:ai\\s+)?(?:generated\\s+)?(?:image|picture|illustration|artwork|art|photo|wallpaper)\\s*(?:of|showing|with|about)?\\s*/i, '')
+    .replace(/^\\s*(?:please\\s+)?(?:an?\\s+)?(?:ai\\s+)?(?:image|picture)\\s*(?:of|showing|with)?\\s*/i, '')
+    .trim()
+  return prompt
+}
+\nconst prompts = [
   'Explain a difficult engineering concept simply',
   'Create a 7-day exam revision plan',
   'Help me debug or understand my code',
@@ -156,7 +166,15 @@ export default function IITConnectAI() {
     setBusy(true)
     try {
       let data
-      if (attachment) {
+      const imagePrompt = !attachment ? getImagePrompt(message) : null
+      if (imagePrompt !== null) {
+        if (!imagePrompt) {
+          setMessages(prev => [...prev, { role: 'assistant', content: 'Sure! What should the image show? For example: “Create an AI image of a golden temple at sunset.”' }])
+          return
+        }
+        const response = await api.post('/ai/image', { prompt: imagePrompt, conversationId: activeId })
+        data = response.data
+      } else if (attachment) {
         const form = new FormData()
         form.append('message', message)
         form.append('conversationId', activeId || '')
