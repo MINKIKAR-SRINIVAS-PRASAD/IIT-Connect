@@ -3,7 +3,7 @@ import { api } from '../../utils/api'
 import { useAuth } from '../../hooks/useAuth'
 import {
   Bot, Send, Sparkles, UserRound, Trash2, LoaderCircle, Plus,
-  MessageSquare, Pencil, PanelLeftClose, PanelLeftOpen, Search, MoreHorizontal
+  MessageSquare, Pencil, PanelLeftClose, PanelLeftOpen, Search, MoreHorizontal, Paperclip, FileText, X
 } from 'lucide-react'
 
 const prompts = [
@@ -31,7 +31,9 @@ export default function IITConnectAI() {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(true)
-  const [historyOpen, setHistoryOpen] = useState(true)
+  const [historyOpen, setHistoryOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768)
+  const [attachment, setAttachment] = useState(null)
+  const fileInputRef = useRef(null)
   const [search, setSearch] = useState('')
   const messagesRef = useRef(null)
 
@@ -90,6 +92,8 @@ export default function IITConnectAI() {
     setActiveId(null)
     setMessages([])
     setText('')
+    setAttachment(null)
+    if (window.innerWidth < 768) setHistoryOpen(false)
   }
 
   async function renameConversation(conversation) {
@@ -119,13 +123,26 @@ export default function IITConnectAI() {
 
   async function send(value = text) {
     const message = value.trim()
-    if (!message || busy) return
+    if ((!message && !attachment) || busy) return
     const tempId = `local-${Date.now()}`
-    setMessages(prev => [...prev, { id: tempId, role: 'user', content: message }])
+    const shownMessage = message || ('Please review attached file: ' + attachment.name)
+    setMessages(prev => [...prev, { id: tempId, role: 'user', content: shownMessage, attachmentName: attachment?.name }])
     setText('')
     setBusy(true)
     try {
-      const { data } = await api.post('/ai/chat', { message, conversationId: activeId })
+      let data
+      if (attachment) {
+        const form = new FormData()
+        form.append('message', message)
+        form.append('conversationId', activeId || '')
+        form.append('file', attachment)
+        const response = await api.post('/ai/chat', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+        data = response.data
+      } else {
+        const response = await api.post('/ai/chat', { message, conversationId: activeId })
+        data = response.data
+      }
+      setAttachment(null)
       if (data.conversationId && data.conversationId !== activeId) setActiveId(data.conversationId)
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer }])
       await loadConversations()
@@ -144,8 +161,8 @@ export default function IITConnectAI() {
     (item.preview || '').toLowerCase().includes(search.toLowerCase())
   )
 
-  return <div className="mx-auto flex h-[72vh] min-h-[30rem] max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-[#101a18]">
-    {historyOpen && <aside className="flex h-full min-h-0 w-[250px] shrink-0 flex-col border-r border-white/10 bg-[#0b1411] sm:w-[270px]">
+  return <div className="relative mx-auto flex h-[calc(100dvh-8.5rem)] min-h-[34rem] max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-[#101a18] sm:h-[75vh] sm:min-h-[34rem] sm:rounded-3xl">
+    {historyOpen && <aside className="absolute inset-0 z-20 flex h-full min-h-0 w-full shrink-0 flex-col border-r border-white/10 bg-[#0b1411] md:relative md:inset-auto md:w-[250px] md:flex-shrink-0 lg:w-[270px]">
       <div className="flex items-center gap-2 border-b border-white/10 p-3">
         <button type="button" onClick={newChat} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#a8c49a] px-3 py-2.5 text-sm font-semibold text-[#101810] hover:bg-[#bdd5ae]"><Plus size={16}/> New chat</button>
         <button type="button" onClick={() => setHistoryOpen(false)} title="Hide history" className="rounded-xl border border-white/10 p-2.5 text-slate-400 hover:text-white"><PanelLeftClose size={16}/></button>
@@ -170,7 +187,7 @@ export default function IITConnectAI() {
     </aside>}
 
     <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <header className="flex items-center gap-3 border-b border-white/10 bg-white/[.025] p-4 sm:p-5">
+      <header className="flex items-center gap-2 border-b border-white/10 bg-white/[.025] p-3 sm:gap-3 sm:p-5">
         {!historyOpen && <button type="button" onClick={()=>setHistoryOpen(true)} title="Show chat history" className="rounded-xl border border-white/10 p-2.5 text-slate-400 hover:text-white"><PanelLeftOpen size={16}/></button>}
         <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#a8c49a]/15 text-[#b9d5aa]"><Bot size={22}/></span>
         <div className="min-w-0 flex-1"><h1 className="text-lg font-semibold text-slate-100">IIT Connect AI</h1><p className="mt-1 text-xs text-slate-400">{isFaculty ? 'Academic, research and teaching assistant' : 'Your learning, coding and campus assistant'}</p></div>
@@ -182,7 +199,7 @@ export default function IITConnectAI() {
         {busy&&<div className="flex items-center gap-2 text-xs text-slate-400"><LoaderCircle size={15} className="animate-spin"/> IIT Connect AI is thinking…</div>}
 
       </main>
-      <form onSubmit={e=>{e.preventDefault();send()}} className="border-t border-white/10 bg-black/10 p-4 sm:p-5"><div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0b1411] p-2 focus-within:border-[#a8c49a]/40"><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}} rows={2} maxLength={6000} placeholder="Ask IIT Connect AI anything…" className="max-h-40 min-h-[48px] flex-1 resize-y bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-slate-500"/><button type="submit" disabled={!text.trim()||busy} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#a8c49a] text-[#101810] transition hover:bg-[#bdd5ae] disabled:opacity-40"><Send size={18}/></button></div><p className="mt-2 text-center text-[10px] text-slate-500">AI can make mistakes. Verify important academic or official information.</p></form>
+      <form onSubmit={e=>{e.preventDefault();send()}} className="shrink-0 border-t border-white/10 bg-black/10 p-2.5 sm:p-5"><div className="flex items-end gap-1.5 rounded-2xl border border-white/10 bg-[#0b1411] p-1.5 sm:gap-2 sm:p-2 focus-within:border-[#a8c49a]/40"><input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt,.md,.csv,.xls,.xlsx,.ppt,.pptx,.json,.png,.jpg,.jpeg,.webp" className="hidden" onChange={e=>{const file=e.target.files?.[0];if(file)setAttachment(file);e.target.value=''}}/><button type="button" onClick={()=>fileInputRef.current?.click()} title="Attach file" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-white/5 hover:text-[#b9d5aa]"><Paperclip size={18}/></button><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}} rows={2} maxLength={6000} placeholder="Ask IIT Connect AI anything…" className="max-h-40 min-h-[48px] flex-1 resize-y bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-slate-500"/><button type="submit" disabled={(!text.trim()&&!attachment)||busy} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#a8c49a] text-[#101810] transition hover:bg-[#bdd5ae] disabled:opacity-40"><Send size={18}/></button></div>{attachment&&<div className="mb-2 flex items-center gap-2 rounded-lg border border-[#a8c49a]/20 bg-[#a8c49a]/[.05] px-3 py-2 text-xs text-slate-300"><FileText size={14}/><span className="min-w-0 flex-1 truncate">{attachment.name} · {(attachment.size/1024/1024).toFixed(1)} MB</span><button type="button" onClick={()=>setAttachment(null)} aria-label="Remove attachment" className="p-1 text-slate-400"><X size={14}/></button></div>}<p className="mt-2 text-center text-[10px] text-slate-500">AI can make mistakes. Verify important academic or official information.</p></form>
     </section>
   </div>
 }
