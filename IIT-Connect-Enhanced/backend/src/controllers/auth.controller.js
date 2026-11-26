@@ -17,7 +17,15 @@ function publicUser(user) {
 
 function isDemoLoginEmail(email) {
   const normalized = String(email || '').trim().toLowerCase()
-  return [env.DEMO_STUDENT_EMAIL, env.DEMO_FACULTY_EMAIL]
+  // Explicit sandbox identities currently seeded in the demo database,
+  // plus any future identities configured privately in Render.
+  const knownDemoEmails = [
+    'demostudent@iitbbs.ac.in',
+    'demofaculty@iitbbs.ac.in',
+    'iitstudentsos.student.demo@gmail.com',
+    'iitstudentsos.faculty.demo@gmail.com'
+  ]
+  return [...knownDemoEmails, env.DEMO_STUDENT_EMAIL, env.DEMO_FACULTY_EMAIL]
     .map(value => String(value || '').trim().toLowerCase())
     .filter(Boolean)
     .includes(normalized)
@@ -83,7 +91,9 @@ export const login = asyncHandler(async (req, res) => {
   // The configured demo faculty identity is a sandbox account, not a real
   // faculty application. Keep it usable for demonstrations without requiring
   // an admin review; this never applies to ordinary faculty registrations.
-  if (user.role === 'faculty' && String(env.DEMO_FACULTY_EMAIL || '').trim().toLowerCase() === email) {
+  if (isDemoLoginEmail(email) && user.role === 'faculty') {
+    // All designated demo faculty identities can enter the faculty workspace
+    // directly after authenticating with their own configured password.
     user.facultyAccessStatus = 'approved'
   }
 
