@@ -244,11 +244,17 @@ export const logs = asyncHandler(async (req, res) => {
 
 
 export const listFacultyRequests = asyncHandler(async (_req, res) => {
-  // Older/demo faculty accounts were created before facultyAccessStatus was
-  // added and therefore have "not-applicable" instead of "pending". Promote
-  // those legacy faculty accounts into the review queue, never into approved.
+  // This review queue must always be fresh; browsers/proxies previously returned
+  // 304 responses and kept the empty queue visible after the backend changed.
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.set('Pragma', 'no-cache')
+  res.set('Expires', '0')
+
+  // Queue every faculty account that has not been explicitly approved/rejected.
+  // This also catches older demo/legacy records with missing or unexpected
+  // status values, not just the current schema default.
   await User.updateMany(
-    { role: 'faculty', facultyAccessStatus: 'not-applicable' },
+    { role: 'faculty', facultyAccessStatus: { $nin: ['approved', 'rejected'] } },
     { $set: { facultyAccessStatus: 'pending' } }
   )
 
