@@ -24,7 +24,7 @@ export default function EventCard({ event, onOpen, onDeleted }) {
         {event.venue ? <div className="mt-1 text-xs text-slate-400">Venue: {event.venue}</div> : null}
         <div className="mt-3">
           <Button variant="ghost" onClick={() => onOpen(event)}>Details</Button>
-          {canDelete && <button type="button" onClick={deleteEvent} className="ml-2 rounded-lg border border-rose-500/30 px-3 py-2 text-xs text-rose-300">{isOwner?'Delete event':'Admin · Delete event'}</button>
+          {canDelete && <button type="button" onClick={deleteEvent} className="ml-2 rounded-lg border border-rose-500/30 px-3 py-2 text-xs text-rose-300">{isOwner ? 'Delete event' : 'Admin · Delete event'}</button>}
         </div>
       </div>
     </div>
