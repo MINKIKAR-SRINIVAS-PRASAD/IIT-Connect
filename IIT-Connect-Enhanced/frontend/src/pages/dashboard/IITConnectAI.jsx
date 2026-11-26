@@ -13,27 +13,22 @@ const safeWebUrl = value => {
 
 function renderAIContent(raw) {
   const text = String(raw || '')
-  const tokens = /(\\!\\[[^\\]]*\\]\\([^\\s)]+(?:\\s+[^)]*)?\\)|\\[[^\\]]+\\]\\(https?:\\/\\/[^\\s)]+\\)|https?:\\/\\/[^\\s<>]+[^\\s<>.,;!?])/g
-  const output = []
+  const pattern = /(!\[([^\]]*)\]\((https?:\/\/[^\s)]+)(?:\s+[^)]*)?\)|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<>]+))/g
+  const parts = []
   let last = 0, match, key = 0
-  while ((match = tokens.exec(text))) {
-    if (match.index > last) output.push(text.slice(last, match.index))
-    const token = match[0]
-    const imageMatch = token.match(/^!\\[([^\\]]*)\\]\\((https?:\\/\\/[^\\s)]+)(?:\\s+[^)]*)?\\)$/)
-    const linkMatch = token.match(/^\\[([^\\]]+)\\]\\((https?:\\/\\/[^\\s)]+)\\)$/)
-    const urlMatch = token.match(/^(https?:\\/\\/[^\\s<>]+)$/)
-    if (imageMatch) {
-      const url = safeWebUrl(imageMatch[2])
-      output.push(url ? <a key={key++} href={url} target="_blank" rel="noopener noreferrer" className="my-2 block max-w-full"><img src={url} alt={imageMatch[1] || 'AI shared image'} loading="lazy" className="max-h-80 max-w-full rounded-xl border border-white/10 object-contain" /></a> : token)
-    } else {
-      const url = safeWebUrl(linkMatch?.[2] || urlMatch?.[1])
-      const label = linkMatch?.[1] || urlMatch?.[1]
-      output.push(url ? <a key={key++} href={url} target="_blank" rel="noopener noreferrer" className="break-all text-[#c4e2b2] underline underline-offset-2 hover:text-white">{label}</a> : token)
-    }
-    last = tokens.lastIndex
+  while ((match = pattern.exec(text))) {
+    if (match.index > last) parts.push(text.slice(last, match.index))
+    const imageUrl = safeWebUrl(match[3])
+    const linkUrl = safeWebUrl(match[5] || match[6])
+    if (match[1] && imageUrl) {
+      parts.push(<a key={key++} href={imageUrl} target="_blank" rel="noopener noreferrer" className="my-2 block max-w-full"><img src={imageUrl} alt={match[2] || 'AI shared image'} loading="lazy" className="max-h-80 max-w-full rounded-xl border border-white/10 object-contain" /></a>)
+    } else if (linkUrl) {
+      parts.push(<a key={key++} href={linkUrl} target="_blank" rel="noopener noreferrer" className="break-all text-[#c4e2b2] underline underline-offset-2 hover:text-white">{match[4] || match[6]}</a>)
+    } else parts.push(match[0])
+    last = pattern.lastIndex
   }
-  if (last < text.length) output.push(text.slice(last))
-  return output.map((part, index) => typeof part === 'string' ? part.split('\\n').map((line, i) => <React.Fragment key={index + '-' + i}>{i > 0 && <br/>}{line}</React.Fragment>) : part)
+  if (last < text.length) parts.push(text.slice(last))
+  return parts.map((part, i) => typeof part === 'string' ? part.split('\n').map((line, j) => <React.Fragment key={i + '-' + j}>{j > 0 && <br/>}{line}</React.Fragment>) : part)
 }
 
 const prompts = [
