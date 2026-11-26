@@ -254,7 +254,7 @@ export const listFacultyRequests = asyncHandler(async (_req, res) => {
   // This also catches older demo/legacy records with missing or unexpected
   // status values, not just the current schema default.
   await User.updateMany(
-    { role: 'faculty', facultyAccessStatus: { $nin: ['approved', 'rejected'] } },
+    { role: 'faculty', facultyAccessStatus: { $ne: 'approved' } },
     { $set: { facultyAccessStatus: 'pending' } }
   )
 
