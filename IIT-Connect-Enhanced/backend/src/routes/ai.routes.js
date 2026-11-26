@@ -129,8 +129,10 @@ router.post('/chat', aiLimiter, upload.single('file'), async (req, res, next) =>
     if ((!message && !file) || message.length > 6000) {
       return res.status(400).json({ success: false, message: 'Enter a message or attach a file (message limit: 6,000 characters).' })
     }
-    const supportedTypes = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain', 'text/markdown', 'text/csv', 'application/json'])
-    if (file && !supportedTypes.has(file.mimetype)) {
+    const extension = file?.originalname?.split('.').pop()?.toLowerCase() || ''
+    const supportedTypes = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain', 'text/markdown', 'text/csv', 'application/json', 'application/octet-stream'])
+    const supportedExtensions = new Set(['pdf', 'png', 'jpg', 'jpeg', 'webp', 'txt', 'md', 'csv', 'json'])
+    if (file && (!supportedTypes.has(file.mimetype) || !supportedExtensions.has(extension))) {
       return res.status(415).json({ success: false, message: 'Supported attachments: PDF, PNG/JPG/WEBP images, TXT, Markdown, CSV, and JSON.' })
     }
 
@@ -162,9 +164,9 @@ router.post('/chat', aiLimiter, upload.single('file'), async (req, res, next) =>
     if (file) {
       const encoded = file.buffer.toString('base64')
       const dataUrl = 'data:' + file.mimetype + ';base64,' + encoded
-      if (file.mimetype === 'application/pdf') {
+      if (file.mimetype === 'application/pdf' || extension === 'pdf') {
         latestContent.push({ type: 'input_file', filename: file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_'), file_data: dataUrl })
-      } else if (file.mimetype.startsWith('image/')) {
+      } else if (file.mimetype.startsWith('image/') || ['png','jpg','jpeg','webp'].includes(extension)) {
         latestContent.push({ type: 'input_image', image_url: dataUrl, detail: 'auto' })
       } else {
         const fileText = file.buffer.toString('utf8')
