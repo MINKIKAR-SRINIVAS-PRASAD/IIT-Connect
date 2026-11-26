@@ -6,6 +6,36 @@ import {
   MessageSquare, Pencil, PanelLeftClose, PanelLeftOpen, Search, MoreHorizontal, Paperclip, FileText, X
 } from 'lucide-react'
 
+
+const safeWebUrl = value => {
+  try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : null } catch { return null }
+}
+
+function renderAIContent(raw) {
+  const text = String(raw || '')
+  const tokens = /(\\!\\[[^\\]]*\\]\\([^\\s)]+(?:\\s+[^)]*)?\\)|\\[[^\\]]+\\]\\(https?:\\/\\/[^\\s)]+\\)|https?:\\/\\/[^\\s<>]+[^\\s<>.,;!?])/g
+  const output = []
+  let last = 0, match, key = 0
+  while ((match = tokens.exec(text))) {
+    if (match.index > last) output.push(text.slice(last, match.index))
+    const token = match[0]
+    const imageMatch = token.match(/^!\\[([^\\]]*)\\]\\((https?:\\/\\/[^\\s)]+)(?:\\s+[^)]*)?\\)$/)
+    const linkMatch = token.match(/^\\[([^\\]]+)\\]\\((https?:\\/\\/[^\\s)]+)\\)$/)
+    const urlMatch = token.match(/^(https?:\\/\\/[^\\s<>]+)$/)
+    if (imageMatch) {
+      const url = safeWebUrl(imageMatch[2])
+      output.push(url ? <a key={key++} href={url} target="_blank" rel="noopener noreferrer" className="my-2 block max-w-full"><img src={url} alt={imageMatch[1] || 'AI shared image'} loading="lazy" className="max-h-80 max-w-full rounded-xl border border-white/10 object-contain" /></a> : token)
+    } else {
+      const url = safeWebUrl(linkMatch?.[2] || urlMatch?.[1])
+      const label = linkMatch?.[1] || urlMatch?.[1]
+      output.push(url ? <a key={key++} href={url} target="_blank" rel="noopener noreferrer" className="break-all text-[#c4e2b2] underline underline-offset-2 hover:text-white">{label}</a> : token)
+    }
+    last = tokens.lastIndex
+  }
+  if (last < text.length) output.push(text.slice(last))
+  return output.map((part, index) => typeof part === 'string' ? part.split('\\n').map((line, i) => <React.Fragment key={index + '-' + i}>{i > 0 && <br/>}{line}</React.Fragment>) : part)
+}
+
 const prompts = [
   'Explain a difficult engineering concept simply',
   'Create a 7-day exam revision plan',
@@ -195,7 +225,7 @@ export default function IITConnectAI() {
         <button type="button" onClick={newChat} title="Start new chat" className="rounded-xl border border-white/10 p-2.5 text-slate-400 hover:text-white"><Plus size={16}/></button>
       </header>
       <main ref={messagesRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6">
-        {!messages.length ? <div className="mx-auto max-w-2xl py-8 text-center sm:py-10"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#a8c49a]/10 text-[#b9d5aa]"><Sparkles size={30}/></div><h2 className="mt-5 text-2xl font-semibold text-white">What can I help you with?</h2><p className="mt-2 text-sm text-slate-400">Your conversations are saved automatically. Pick up where you left off, or start a new chat.</p><div className="mt-7 grid gap-2 text-left sm:grid-cols-2">{prompts.map(p=><button key={p} onClick={()=>send(p)} className="rounded-2xl border border-white/10 bg-white/[.025] p-4 text-sm text-slate-300 transition hover:border-[#a8c49a]/35 hover:bg-[#a8c49a]/[.06]">{p}</button>)}</div></div> : messages.map((m,i)=><div key={m.id||i} className={m.role==='user'?'flex justify-end gap-3':'flex gap-3'}>{m.role==='assistant'&&<span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#a8c49a]/10 text-[#b9d5aa]"><Bot size={16}/></span>}<div className={m.role==='user'?'max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-7 sm:max-w-[78%] bg-[#a8c49a] text-[#101810]':'max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-7 sm:max-w-[78%] border border-white/10 bg-white/[.04] text-slate-200'}>{m.content}</div>{m.role==='user'&&<span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-slate-300"><UserRound size={16}/></span>}</div>)}
+        {!messages.length ? <div className="mx-auto max-w-2xl py-8 text-center sm:py-10"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#a8c49a]/10 text-[#b9d5aa]"><Sparkles size={30}/></div><h2 className="mt-5 text-2xl font-semibold text-white">What can I help you with?</h2><p className="mt-2 text-sm text-slate-400">Your conversations are saved automatically. Pick up where you left off, or start a new chat.</p><div className="mt-7 grid gap-2 text-left sm:grid-cols-2">{prompts.map(p=><button key={p} onClick={()=>send(p)} className="rounded-2xl border border-white/10 bg-white/[.025] p-4 text-sm text-slate-300 transition hover:border-[#a8c49a]/35 hover:bg-[#a8c49a]/[.06]">{p}</button>)}</div></div> : messages.map((m,i)=><div key={m.id||i} className={m.role==='user'?'flex justify-end gap-3':'flex gap-3'}>{m.role==='assistant'&&<span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#a8c49a]/10 text-[#b9d5aa]"><Bot size={16}/></span>}<div className={m.role==='user'?'max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-7 sm:max-w-[78%] bg-[#a8c49a] text-[#101810]':'max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-7 sm:max-w-[78%] border border-white/10 bg-white/[.04] text-slate-200'}>{m.role==='assistant'?renderAIContent(m.content):m.content}</div>{m.role==='user'&&<span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-slate-300"><UserRound size={16}/></span>}</div>)}
         {busy&&<div className="flex items-center gap-2 text-xs text-slate-400"><LoaderCircle size={15} className="animate-spin"/> IIT Connect AI is thinking…</div>}
 
       </main>
