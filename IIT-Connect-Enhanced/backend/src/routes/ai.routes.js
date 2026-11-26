@@ -139,14 +139,15 @@ router.post('/chat', aiLimiter, upload.single('file'), async (req, res, next) =>
       conversation = await AIConversation.findOne({ _id: req.body.conversationId, owner: req.user._id })
       if (!conversation) return res.status(404).json({ success: false, message: 'Conversation not found.' })
     } else {
-      conversation = await AIConversation.create({ owner: req.user._id, title: titleFromMessage(message) })
+      conversation = await AIConversation.create({ owner: req.user._id, title: titleFromMessage(message || file?.originalname) })
     }
 
     if (!conversation.messages.length || conversation.title === 'New chat') {
-      conversation.title = titleFromMessage(message)
+      conversation.title = titleFromMessage(message || file?.originalname)
     }
 
-    const userMessage = conversation.messages.create({ role: 'user', content: message, status: 'pending' })
+    const storedUserMessage = message || ('Attached file: ' + file.originalname)
+    const userMessage = conversation.messages.create({ role: 'user', content: storedUserMessage, status: 'pending' })
     conversation.messages.push(userMessage)
     conversation.lastMessageAt = new Date()
     // Keep each thread bounded while preserving its recent context.
