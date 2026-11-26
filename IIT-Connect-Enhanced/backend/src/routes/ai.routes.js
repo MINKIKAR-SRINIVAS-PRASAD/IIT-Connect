@@ -118,6 +118,42 @@ router.delete('/conversations/:id', async (req, res, next) => {
   }
 })
 
+
+/**
+ * Free image generation via Pollinations' legacy no-key endpoint.
+ * Free access is provider-controlled and rate-limited; no API secret is exposed.
+ */
+router.post('/image', aiLimiter, async (req, res, next) => {
+  try {
+    const prompt = String(req.body?.prompt || '').trim().slice(0, 1200)
+    if (!prompt) return res.status(400).json({ success: false, message: 'Describe the image you want to create.' })
+
+    let conversation
+    if (req.body?.conversationId) {
+      conversation = await AIConversation.findOne({ _id: req.body.conversationId, owner: req.user._id })
+      if (!conversation) return res.status(404).json({ success: false, message: 'Conversation not found.' })
+    } else {
+      conversation = await AIConversation.create({ owner: req.user._id, title: titleFromMessage('Image: ' + prompt) })
+    }
+    if (!conversation.messages.length || conversation.title === 'New chat') conversation.title = titleFromMessage('Image: ' + prompt)
+
+    conversation.messages.push({ role: 'user', content: 'Generate an image: ' + prompt, status: 'complete' })
+    const imageUrl = new URL('https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt))
+    imageUrl.searchParams.set('width', '768')
+    imageUrl.searchParams.set('height', '768')
+    imageUrl.searchParams.set('nologo', 'true')
+    imageUrl.searchParams.set('safe', 'true')
+    const answer = 'Here is your AI-generated image.\n\n![Generated image](' + imageUrl.href + ')\n\n*Generated using the free image service. Free access may be rate-limited or temporarily unavailable.*'
+    conversation.messages.push({ role: 'assistant', content: answer, status: 'complete' })
+    conversation.lastMessageAt = new Date()
+    if (conversation.messages.length > 250) conversation.messages.splice(0, conversation.messages.length - 250)
+    await conversation.save()
+    return res.json({ success: true, answer, conversationId: String(conversation._id), title: conversation.title })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.post('/chat', aiLimiter, upload.single('file'), async (req, res, next) => {
   try {
     const useOpenRouter = Boolean(env.OPENROUTER_API_KEY)
