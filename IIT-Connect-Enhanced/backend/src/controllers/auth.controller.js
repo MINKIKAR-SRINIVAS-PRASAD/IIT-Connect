@@ -21,9 +21,7 @@ function isDemoLoginEmail(email) {
   // plus any future identities configured privately in Render.
   const knownDemoEmails = [
     'demostudent@iitbbs.ac.in',
-    'demofaculty@iitbbs.ac.in',
-    'iitstudentsos.student.demo@gmail.com',
-    'iitstudentsos.faculty.demo@gmail.com'
+    'demofaculty@iitbbs.ac.in'
   ]
   return [...knownDemoEmails, env.DEMO_STUDENT_EMAIL, env.DEMO_FACULTY_EMAIL]
     .map(value => String(value || '').trim().toLowerCase())
