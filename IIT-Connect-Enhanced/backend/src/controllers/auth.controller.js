@@ -80,6 +80,13 @@ export const login = asyncHandler(async (req, res) => {
   const ok = await bcrypt.compare(password, user.passwordHash)
   if (!ok) throw new ApiError(401, 'Invalid credentials')
 
+  // The configured demo faculty identity is a sandbox account, not a real
+  // faculty application. Keep it usable for demonstrations without requiring
+  // an admin review; this never applies to ordinary faculty registrations.
+  if (user.role === 'faculty' && String(env.DEMO_FACULTY_EMAIL || '').trim().toLowerCase() === email) {
+    user.facultyAccessStatus = 'approved'
+  }
+
   const desiredRole = user.role === 'faculty' ? 'faculty' : getRoleForEmail(user.email)
   if (user.role !== desiredRole) user.role = desiredRole
 
