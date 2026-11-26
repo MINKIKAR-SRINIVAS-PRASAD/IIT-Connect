@@ -244,6 +244,14 @@ export const logs = asyncHandler(async (req, res) => {
 
 
 export const listFacultyRequests = asyncHandler(async (_req, res) => {
+  // Older/demo faculty accounts were created before facultyAccessStatus was
+  // added and therefore have "not-applicable" instead of "pending". Promote
+  // those legacy faculty accounts into the review queue, never into approved.
+  await User.updateMany(
+    { role: 'faculty', facultyAccessStatus: 'not-applicable' },
+    { $set: { facultyAccessStatus: 'pending' } }
+  )
+
   const requests = await User.find({ role: 'faculty', facultyAccessStatus: 'pending' })
     .select('email role facultyAccessStatus profile createdAt')
     .sort({ createdAt: 1 }).limit(200).lean()
